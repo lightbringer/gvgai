@@ -1,5 +1,6 @@
 package core;
 
+
 import core.game.Game;
 import core.player.AbstractPlayer;
 import ontology.Types;
@@ -8,7 +9,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * Created with IntelliJ IDEA.
  * User: Diego

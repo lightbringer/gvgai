@@ -499,6 +499,9 @@ public abstract class Game
             delay = 1000.0/CompetitionParameters.DELAY; //in milliseconds
 
 
+        //Draw all sprites in the panel.
+        //view.paint(this.spriteGroups);
+
         //Play until the game is ended
         while(!isEnded)
         {
@@ -646,7 +649,7 @@ public abstract class Game
      * received as a parameter is not null, it is assigned to it.
      * @param player the player that will play the game.
      */
-    private void assignPlayer(AbstractPlayer player )
+    public void assignPlayer(AbstractPlayer player )
     {
         //Avatar will usually be the first element, starting from the end.
         int idx = spriteOrder.length-1;
@@ -1155,8 +1158,18 @@ public abstract class Game
         return this.winner != Types.WINNER.NO_WINNER;
     }
 
+
     /**
-     * Retuns the observation of this state.
+     * Returns the view of this state. This view does not contain a forward model.
+     * @return the view.
+     */
+    public StateView getView()
+    {
+        return new StateView(this);
+    }
+
+    /**
+     * Returns the observation of this state.
      * @return the observation.
      */
     public StateObservation getObservation()

@@ -21,6 +21,11 @@ public class StateObservation {
     private ForwardModel model;
 
     /**
+     * Default constructor for StateObservation.
+     */
+    public StateObservation() { }
+
+    /**
      * Constructor for StateObservation. Requires a forward model
      *
      * @param a_model forward model of the game.

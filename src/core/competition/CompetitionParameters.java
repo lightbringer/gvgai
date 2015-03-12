@@ -27,6 +27,11 @@ public class CompetitionParameters
     public static int INITIALIZATION_TIME = 1000;
 
     /**
+     * Milliseconds allowed for the controller to wrap up when a game has finished.
+     */
+    public static int FINALIZATION_TIME = 500;
+
+    /**
      * Path to sprite images.
      */
     public static String IMG_PATH = "sprites/";
@@ -45,7 +50,7 @@ public class CompetitionParameters
     /**
      * Max time a game can run
      */
-    public static int MAX_TIMESTEPS = 2000;
+    public static int MAX_TIMESTEPS = 100;//2000;
 
 
     /**

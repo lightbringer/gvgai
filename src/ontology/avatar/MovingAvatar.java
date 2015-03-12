@@ -4,6 +4,7 @@ import core.VGDLSprite;
 import core.competition.CompetitionParameters;
 import core.content.SpriteContent;
 import core.game.Game;
+import core.game.StateObservation;
 import ontology.Types;
 import tools.ElapsedCpuTimer;
 import tools.Utils;
@@ -123,7 +124,9 @@ public class MovingAvatar extends VGDLSprite {
         ElapsedCpuTimer ect = new ElapsedCpuTimer(CompetitionParameters.TIMER_TYPE);
         ect.setMaxTimeMillis(CompetitionParameters.ACTION_TIME);
 
-        Types.ACTIONS action = this.player.act(game.getObservation(), ect.copy());
+        //Get the observation, or the view, depending on the type of player.
+        StateObservation stateObs = this.player.isLearner() ? game.getView() : game.getObservation();
+        Types.ACTIONS action = this.player.act(stateObs, ect.copy());
 
         if(ect.exceededMaxTime())
         {
