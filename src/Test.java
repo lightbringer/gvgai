@@ -59,7 +59,7 @@ public class Test
         //ArcadeMachine.runOneGame(game, level1, visuals, tester, recordActionsFile, seed);
 
         // 3. This replays a game from an action file previously recorded
-        //String readActionsFile = "actionsFile_aliens_lvl0.txt";  
+        //String readActionsFile = "actionsFile_aliens_lvl0.txt";
         //ArcadeMachine.replayGame(game, level1, visuals, readActionsFile);
 
         // 4. This plays a single game, in N levels, M times :
