@@ -56,6 +56,7 @@ def mockAct(gameTick):
 
 
     line = "ACT"
+    pyClient.processCommLine(line)
     pyClient.processLine(line)
 
     line = "Game#1.0#" + str(gameTick) + "#NO_WINNER#false#"
@@ -104,6 +105,7 @@ def mockAct(gameTick):
 def mockEnd(gameTick):
 
     line = "ENDGAME"
+    pyClient.processCommLine(line)
     pyClient.processLine(line)
 
     line = "Game#1.0#" + str(gameTick) + "#NO_WINNER#true#"

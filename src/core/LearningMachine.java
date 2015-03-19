@@ -10,9 +10,7 @@ import ontology.Types;
 import tools.ElapsedCpuTimer;
 import tools.StatSummary;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -91,7 +89,6 @@ public class LearningMachine
 
             //Get the score for the result.
             return toPlay.handleResult();
-
         }
 
         //Then, play the game.
@@ -114,21 +111,76 @@ public class LearningMachine
      */
     private static LearningPlayer createPlayer(String playerName)
     {
-        Process client = null;
+        boolean python = playerName.contains(".py");
+        boolean java = playerName.contains(".java");
+
+        Process client;
 
         //TODO: For the moment we use something fixed.
-        //String cmd = "/usr/bin/python /Users/dperez/gvgaiLearningTest/client2.py";
-        String cmd = "/usr/bin/python /Users/dperez/Work/git/gvgai/clients/GVGAI-PythonClient/PyProcess.py";
         try{
+            String cmd = null;
+            if(python)
+                cmd = "/usr/bin/python " + playerName;
+            else if(java)
+            {
+                //Compile
+                String path = playerName.substring(0, playerName.lastIndexOf("/"));
+                compileJava(path);
+
+                //Execute (prepare the line)
+                String agent = playerName.substring(playerName.lastIndexOf("/")+1, playerName.lastIndexOf("."));
+                cmd = "/usr/bin/java -cp " + path + " -Xms512m -Xmx2048m " +  agent;
+            }
+
             client = Runtime.getRuntime().exec(cmd);
+            if(VERBOSE) System.out.println(cmd);
+
         }catch(IOException e)
         {
             System.out.println("IO Exception creating the client process: " + e);
             e.printStackTrace();
             return null;
+        }catch (Exception e){
+            System.out.println("Exception creating the client process: " + e);
+            e.printStackTrace();
+            return null;
         }
 
         return new LearningPlayer(client);
+    }
+
+    private static void compileJava(String path) throws Exception
+    {
+        String cmd = "find " + path + " | grep \\.java";
+        Process p = Runtime.getRuntime().exec(cmd);
+        if(VERBOSE) System.out.println(cmd);
+
+        String line;
+        BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+
+        while ((line = in.readLine()) != null) {
+
+            if(line.contains(".java"))
+            {
+                cmd = "/usr/bin/javac -cp " + path + " " + line;
+                //System.out.println(cmd);
+                Process proc = Runtime.getRuntime().exec(cmd);
+                if(VERBOSE) System.out.println(cmd);
+                proc.waitFor(); //We need to wait for the compilation process to finish before moving on.
+            }
+        }
+    }
+
+
+    private static void printLines(String name, InputStream ins) {
+        String line = null;
+        BufferedReader in = new BufferedReader(
+                new InputStreamReader(ins));
+        try {
+            while ((line = in.readLine()) != null) {
+                System.out.println(name + " " + line);
+            }
+        }catch (Exception e) {}
     }
 
     /**
@@ -195,6 +247,5 @@ public class LearningMachine
         player.teardown();
         //player.close();
     }
-
-
 }
+

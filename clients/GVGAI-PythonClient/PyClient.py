@@ -17,7 +17,7 @@ class GVGame:
         self.remMillis = 0
 
     def printToFile(self, gameIdx):
-        f = open("test-game-" + str(gameIdx) + ".txt", 'w')
+        f = open("pyclient-test-game-" + str(gameIdx) + ".txt", 'w')
         f.write("Score " + str(self.score) + ", GameTick: " + str(self.gameTick) + ", Winner: " + str(self.gameWinner)
         + ", GameOver: " + str(self.gameOver)+ ", WorldDimW: " + str(self.worldDim[0])+ ", WorldDimW: " + str(self.worldDim[1])
         + ", BlockSize: " + str(self.blockSize) + ", RemMillis: " + str(self.remMillis) + os.linesep)
@@ -44,7 +44,7 @@ class GVGAvatar:
         self.resources = {}
 
     def printToFile(self, gameIdx):
-        f = open("test-avatar-" + str(gameIdx) + ".txt", 'w')
+        f = open("pyclient-test-avatar-" + str(gameIdx) + ".txt", 'w')
         f.write("Position X: " +  str(self.position[0]) + ", Position Y: " +  str(self.position[1]) +
         ", Speed: " + str(self.speed) + ", Last Action: " +  str(self.lastAction) + os.linesep + "Actions: {")
 
@@ -197,7 +197,7 @@ class PyClient:
                     self.avatar.resources[key] = val
 
         elif lineType[0] == 's': #Observation Grid
-            spriteID = int(lineType[1])
+            spriteID = int(lineType[1:])
             bitData = splitLine[1].split(",")
 
             nRows = len(bitData)

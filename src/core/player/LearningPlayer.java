@@ -46,12 +46,18 @@ public class LearningPlayer extends AbstractPlayer{
     private Process client;
 
     /**
+     * Print debug info
+     */
+    private boolean verbose;
+
+    /**
      * Public constructor of the player.
      * @param client process that runs the agent.
      */
     public LearningPlayer(Process client)
     {
         isLearner = true;
+        verbose = false;
 
         try {
 
@@ -91,6 +97,7 @@ public class LearningPlayer extends AbstractPlayer{
     public void init(StateView stateView, ElapsedCpuTimer elapsedTimer, boolean isTraining)
     {
         isLearner = true;
+        verbose = false;
 
         stateView.assignPlayer(this);
 
@@ -110,7 +117,7 @@ public class LearningPlayer extends AbstractPlayer{
         commSend ("INIT-END " + elapsedTimer.remainingTimeMillis());
 
         String response = commRecv(elapsedTimer);
-        //System.out.println("Received: " + response);
+        if(verbose) System.out.println("Received: " + response);
     }
 
 
@@ -146,7 +153,7 @@ public class LearningPlayer extends AbstractPlayer{
         commSend ("ACT-END " + elapsedTimer.remainingTimeMillis());
 
         String response = commRecv(elapsedTimer);
-        //System.out.println("Received: " + response);
+        if(verbose)  System.out.println("Received ACTION: " + response);
 
         Types.ACTIONS action = Types.ACTIONS.fromString(response);
         return action;
@@ -176,7 +183,8 @@ public class LearningPlayer extends AbstractPlayer{
         commSend ("ENDGAME-END " + elapsedTimer.remainingTimeMillis());
 
         String response = commRecv(elapsedTimer);
-        //System.out.println("Received: " + response);
+        verbose = true;
+        if(verbose) System.out.println("Received: " + response);
     }
 
     /**
@@ -186,7 +194,8 @@ public class LearningPlayer extends AbstractPlayer{
     public void commSend(String msg) {
         String ret;
 
-        //System.out.println(msg);
+        if(verbose)
+            System.out.println(msg);
 
         try {
             output.write( msg + lineSep );
