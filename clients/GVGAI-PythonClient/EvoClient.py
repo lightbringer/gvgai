@@ -112,7 +112,8 @@ class PyClient:
                 dead_actions = []
 
                 desired_action = self.ee.predict(senses_all, dead_actions)
-                self.writeToPipe(desired_action)
+                action = self.avatar.actionList[desired_action]
+                self.writeToPipe(action)
 
             if self.commState == CommState.ENDED_END:
                 #We can study what happened in the game here.
