@@ -3,6 +3,7 @@ import numpy as np
 import random
 import sys
 import os
+from ee import EvoEpisodic
 
 class GVGame:
 
@@ -96,6 +97,14 @@ class PyClient:
             #if self.commState == CommState.ENDED: #In this state, the game has ended, and we are receiving the last state.
             #if self.commState == CommState.ENDED_END: #In this state, the game has ended, and we have received all final state info.
 
+            if self.commState == CommState.INIT_END:
+                #We can work on some initialization stuff here.
+
+
+                self.ee = EvoEpisodic(len(self.avatar.actionList))
+
+                self.writeToPipe("INIT_DONE.")
+
             if self.commState == CommState.ACT_END:
                 #This is the place to think and return what action to take.
                 ##rndAction = random.choice(self.avatar.actionList)
@@ -116,10 +125,11 @@ class PyClient:
                 self.game = GVGame()
                 self.avatar = GVGAvatar()
                 score = 0
-
+                
                 self.ee.fit(score)
 
                 self.writeToPipe("GAME_DONE.")
+
             messageIdx += 1
 
 
