@@ -60,6 +60,7 @@ public class Types {
 
         public static ACTIONS fromString(String strKey)
         {
+            if(strKey == null) return ACTION_NIL;
             if(strKey.equalsIgnoreCase("ACTION_UP")) return ACTION_UP;
             else if(strKey.equalsIgnoreCase("ACTION_LEFT")) return ACTION_LEFT;
             else if(strKey.equalsIgnoreCase("ACTION_DOWN")) return ACTION_DOWN;

@@ -16,8 +16,8 @@ public class LearningTest
     public static void main(String[] args)
     {
         //Available controllers:
-        //String pythonController = "/Users/dperez/Work/git/gvgai/clients/GVGAI-PythonClient/EvoClient.py";
-        String pythonController = "/Users/dperez/Work/git/gvgai/clients/GVGAI-PythonClient/PyClient.py";
+        String pythonController = "/Users/dperez/Work/git/gvgai/clients/GVGAI-PythonClient/EvoClient.py";
+        //String pythonController = "/Users/dperez/Work/git/gvgai/clients/GVGAI-PythonClient/PyClient.py";
         String javaController = "/Users/dperez/Work/git/gvgai/clients/GVGAI-JavaClient/src/JavaClient.java";
 
         //Available games:
