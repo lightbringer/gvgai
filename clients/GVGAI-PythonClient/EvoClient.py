@@ -1,20 +1,21 @@
 from __future__ import print_function
 import numpy as np
-import random
 import sys
-import os
 from ee import EvoEpisodic
 from FeatureExtraction import *
+import pylearn2.utils.logger as py2log
+import logging
 
 from Ontology import *
 
 class EvoClient:
 
-    def __init__(self):
+    def __init__(self, logger):
         self.commState = CommState.START
         self.game = GVGame()
         self.avatar = GVGAvatar()
         self.numGames = 0
+        self.logger = logger
 
     def writeToPipe(self, line):
         sys.stdout.write(line + os.linesep)
@@ -72,6 +73,7 @@ class EvoClient:
                 score = 0
                 
                 self.ee.fit(score)
+                self.logger.info("Finished training...")
 
                 self.writeToPipe("GAME_DONE.")
 
@@ -177,5 +179,8 @@ class EvoClient:
 
 
 if __name__=="__main__":
-    pyClient = EvoClient()
+    py2log.restore_defaults()
+    logging.basicConfig(filename='evo.log', level=logging.INFO)
+
+    pyClient = EvoClient(logger=logging.getLogger("EvoClient"))
     pyClient.listen()

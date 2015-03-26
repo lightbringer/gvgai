@@ -121,10 +121,10 @@ class EvoEpisodic():
                 self.tell.append(reward)
                 if(len(self.tell) == len(self.asked) == popsize):
 
-                    print "Updating ES..."
+                    #print "Updating ES..."
                     if(self.coevolution):
                         if(self.generation%self.challenger_iterations == 0 ):
-                            print "Changing challenger"
+                            #print "Changing challenger"
                             next_challenger = np.array(self.tell).argmax()
                             self.__genomeToMlp(self.challenger,  next_challenger)
                     self.sness.tell(self.asked, self.tell)
