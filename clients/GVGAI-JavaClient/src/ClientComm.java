@@ -208,13 +208,15 @@ public class ClientComm {
         {
             avatar.position[0] = Double.parseDouble(splitLine[1]);
             avatar.position[1] = Double.parseDouble(splitLine[2]);
-            avatar.speed = Double.parseDouble(splitLine[3]);
-            avatar.lastAction = splitLine[4];
+            avatar.orientation[0] = Double.parseDouble(splitLine[3]);
+            avatar.orientation[1] = Double.parseDouble(splitLine[4]);
+            avatar.speed = Double.parseDouble(splitLine[5]);
+            avatar.lastAction = splitLine[6];
 
-            if(splitLine.length > 5)
+            if(splitLine.length > 7)
             {
                 //We have resources
-                String resources[] = splitLine[5].split(";");
+                String resources[] = splitLine[7].split(";");
                 for (String r : resources)
                 {
                     int key = Integer.parseInt(r.split(",")[0]);

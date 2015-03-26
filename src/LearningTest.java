@@ -16,7 +16,8 @@ public class LearningTest
     public static void main(String[] args)
     {
         //Available controllers:
-        String pythonController = "/Users/dperez/Work/git/gvgai/clients/GVGAI-PythonClient/PyProcess.py";
+        //String pythonController = "/Users/dperez/Work/git/gvgai/clients/GVGAI-PythonClient/EvoClient.py";
+        String pythonController = "/Users/dperez/Work/git/gvgai/clients/GVGAI-PythonClient/PyClient.py";
         String javaController = "/Users/dperez/Work/git/gvgai/clients/GVGAI-JavaClient/src/JavaClient.java";
 
         //Available games:
@@ -51,7 +52,8 @@ public class LearningTest
 
         // 2. This plays a game in a level by the controller (through the "Learning Machine").
         int trainingPlays = 10;
-        LearningMachine.runOneGame(game, level1, visuals, javaController, recordActionsFile, trainingPlays, seed);
+        //LearningMachine.runOneGame(game, level1, visuals, javaController, recordActionsFile, trainingPlays, seed);
+        LearningMachine.runOneGame(game, level1, visuals, pythonController, recordActionsFile, trainingPlays, seed);
 
         // 3. This replays a game from an action file previously recorded
         //String readActionsFile = "seminar/SeaQuest.txt";  //This example is for

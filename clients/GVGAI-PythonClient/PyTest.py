@@ -1,4 +1,5 @@
 from PyClient import PyClient
+from EvoClient import EvoClient
 
 # MOCK DATA PASSED TO THE CLIENT
 def mockInit(isTraining):
@@ -13,7 +14,7 @@ def mockInit(isTraining):
     line = "Actions#ACTION_LEFT,ACTION_RIGHT,ACTION_DOWN,ACTION_UP,ACTION_NIL#"
     pyClient.processLine(line)
 
-    line = "Avatar#266.0#133.0#1.0#ACTION_NIL#1,2;3,4#"
+    line = "Avatar#266.0#133.0#0.0#0.0#1.0#ACTION_NIL#1,2;3,4#"
     pyClient.processLine(line)
 
     line = "s0#111111,101011,100001,110001,111111#"
@@ -62,7 +63,7 @@ def mockAct(gameTick):
     line = "Game#1.0#" + str(gameTick) + "#NO_WINNER#false#"
     pyClient.processLine(line)
 
-    line = "Avatar#266.0#133.0#1.0#ACTION_NIL#1,2;3,4#"
+    line = "Avatar#266.0#133.0#0.0#0.0#1.0#ACTION_NIL#1,2;3,4#"
     pyClient.processLine(line)
 
     line = "s0#111111,101011,100001,110001,111111#"
@@ -99,6 +100,7 @@ def mockAct(gameTick):
     pyClient.processLine(line)
 
     line = "ACT-END 38"
+    pyClient.processCommLine(line)
     pyClient.processLine(line)
 
 
@@ -111,10 +113,7 @@ def mockEnd(gameTick):
     line = "Game#1.0#" + str(gameTick) + "#NO_WINNER#true#"
     pyClient.processLine(line)
 
-    line = "Avatar#266.0#133.0#1.0#0##"
-    pyClient.processLine(line)
-
-    line = "Avatar#266.0#133.0#1.0#ACTION_NIL#1,2;3,4#"
+    line = "Avatar#266.0#133.0#0.0#0.0#1.0#ACTION_NIL#1,2;3,4#"
     pyClient.processLine(line)
 
     line = "s0#111111,101011,100001,110001,111111#"
@@ -154,7 +153,7 @@ def mockEnd(gameTick):
     pyClient.processLine(line)
 
 
-pyClient = PyClient()
+pyClient = EvoClient()  #PyClient()
 mockInit("true")
 
 pyClient.game.printToFile(0)

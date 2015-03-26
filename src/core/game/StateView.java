@@ -255,7 +255,9 @@ public class StateView extends StateObservation{
     public String getAvatarInfo()
     {
         String line = "Avatar#";
-        line += getAvatarPosition().x + "#" +  getAvatarPosition().y + "#" +  getAvatarSpeed() + "#" + getAvatarLastAction() + "#";
+        line += getAvatarPosition().x + "#" +  getAvatarPosition().y + "#"
+                + getAvatarOrientation().x + "#" +  getAvatarOrientation().y + "#"
+                + getAvatarSpeed() + "#" + getAvatarLastAction() + "#";
 
         //Resources.
         if(game.avatar != null)

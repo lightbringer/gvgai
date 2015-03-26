@@ -57,7 +57,7 @@ public class LearningPlayer extends AbstractPlayer{
     public LearningPlayer(Process client)
     {
         isLearner = true;
-        verbose = false;
+        verbose = true;
 
         try {
 
@@ -97,7 +97,7 @@ public class LearningPlayer extends AbstractPlayer{
     public void init(StateView stateView, ElapsedCpuTimer elapsedTimer, boolean isTraining)
     {
         isLearner = true;
-        verbose = false;
+        verbose = true;
 
         stateView.assignPlayer(this);
 

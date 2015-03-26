@@ -14,6 +14,7 @@ public class Avatar
 {
     public ArrayList<String> actionList = new ArrayList<String>();
     public double[] position = new double[2];
+    public double[] orientation = new double[2];
     public double speed = 0;
     public String lastAction = "NIL";
     public HashMap<Integer, Integer> resources = new HashMap<Integer, Integer>();
@@ -25,6 +26,7 @@ public class Avatar
             BufferedWriter writer = new BufferedWriter(new FileWriter(new File("javaclient-test-avatar-" + gameN + ".txt")));
 
             writer.write("Position X: " +  position[0] + ", Position Y: " +  position[1] +
+                    ", Orientation X: " +  orientation[0] + ", Orientation Y: " +  orientation[1] +
                     ", Speed: " + speed + ", Last Action: " +  lastAction + lineSep + "Actions: {");
 
             for (String act : actionList)

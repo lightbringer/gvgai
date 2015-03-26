@@ -3,65 +3,8 @@ import numpy as np
 import random
 import sys
 import os
-
-class GVGame:
-
-    def __init__(self):
-        self.score = 0
-        self.gameTick = -1
-        self.gameWinner = 0
-        self.gameOver = False
-        self.worldDim = [0,0]
-        self.blockSize = 0
-        self.grid = {}
-        self.remMillis = 0
-
-    def printToFile(self, gameIdx):
-        f = open("pyclient-test-game-" + str(gameIdx) + ".txt", 'w')
-        f.write("Score " + str(self.score) + ", GameTick: " + str(self.gameTick) + ", Winner: " + str(self.gameWinner)
-        + ", GameOver: " + str(self.gameOver)+ ", WorldDimW: " + str(self.worldDim[0])+ ", WorldDimW: " + str(self.worldDim[1])
-        + ", BlockSize: " + str(self.blockSize) + ", RemMillis: " + str(self.remMillis) + os.linesep)
-
-        for id in self.grid:
-            spriteBitMap = self.grid[id]
-
-            f.write("Sprite Type: " + str(id) + " bit array: " + os.linesep)
-            for r in spriteBitMap:
-                for c in r:
-                    f.write(str(c))
-                f.write(os.linesep)
-
-        f.close()
-
-
-class GVGAvatar:
-
-    def __init__(self):
-        self.actionList = []
-        self.position = [0,0]
-        self.speed = 0
-        self.lastAction = 0
-        self.resources = {}
-
-    def printToFile(self, gameIdx):
-        f = open("pyclient-test-avatar-" + str(gameIdx) + ".txt", 'w')
-        f.write("Position X: " +  str(self.position[0]) + ", Position Y: " +  str(self.position[1]) +
-        ", Speed: " + str(self.speed) + ", Last Action: " +  str(self.lastAction) + os.linesep + "Actions: {")
-
-        for a in self.actionList:
-            f.write(str(a) + ",")
-        f.write("}" + os.linesep)
-
-        f.write("Resources: {")
-        for r in self.resources:
-            f.write("(" + str(r) + "," + str(self.resources[r]) + ")")
-        f.write("}" + os.linesep)
-
-        f.close()
-
-
-class CommState:
-    START, INIT, INIT_END, ACT, ACT_END, ENDED, ENDED_END = range(7)
+from Ontology import *
+from FeatureExtraction import *
 
 class PyClient:
 
@@ -99,11 +42,12 @@ class PyClient:
             if self.commState == CommState.ACT_END:
                 #This is the place to think and return what action to take.
                 ##rndAction = random.choice(self.avatar.actionList)
-                senses_all = []
+                senses_all = np.hstack((game_features(self.game), avatar_features(self.avatar)))
                 dead_actions = []
 
-                desired_action = self.ee.predict(senses_all, dead_actions)
-                self.writeToPipe(desired_action)
+                desired_action, a = self.ee.predict(senses_all, dead_actions)
+                action = self.avatar.actionList[desired_action]
+                self.writeToPipe(action)
 
             if self.commState == CommState.ENDED_END:
                 #We can study what happened in the game here.
@@ -185,12 +129,13 @@ class PyClient:
 
         elif lineType == "Avatar":
             self.avatar.position = [float(splitLine[1]), float(splitLine[2])]
-            self.avatar.speed = float(splitLine[3])
-            self.avatar.lastAction = splitLine[4]
+            self.avatar.orientation = [float(splitLine[3]), float(splitLine[4])]
+            self.avatar.speed = float(splitLine[5])
+            self.avatar.lastAction = splitLine[6]
 
-            if len(splitLine[5]) > 0:
+            if len(splitLine[7]) > 0:
                 #We have resources:
-                resources = splitLine[5].split(";")
+                resources = splitLine[7].split(";")
                 for r in resources:
 
                     key = int(r.split(",")[0])
