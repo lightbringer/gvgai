@@ -7,8 +7,6 @@ from pylearn2.datasets import DenseDesignMatrix
 from pylearn2.training_algorithms import sgd, bgd
 from pylearn2.models import mlp, maxout
 from pylearn2.costs.mlp.dropout import Dropout
-from theano import config
-from learning.config import get_config
 from pylearn2.training_algorithms.learning_rule import AdaGrad, RMSProp
 from bisect import bisect
 
