@@ -27,7 +27,7 @@ class SNES():
         self.dim = len(x0)
         self.learningRate =  0.2 * (3 + log(self.dim)) / sqrt(self.dim)
         #print self.learningRate
-        self.learningRate = self.learningRate/1000.0
+        #self.learningRate = self.learningRate/1000.0
         #self.learningRate = 0.000001
         self.numEvals = 0
         self.bestFound = None
