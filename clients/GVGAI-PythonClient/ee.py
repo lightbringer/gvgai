@@ -89,7 +89,9 @@ class EvoEpisodic():
 
 
 
-        desired_action = cn.action_selector.softmax(senses_all, dead_actions)
+        #desired_action = cn.action_selector.softmax(senses_all, dead_actions)
+        desired_action = cn.action_selector.e_greedy(senses_all, dead_actions, 0.1)
+
 
         return desired_action, [0]
 
