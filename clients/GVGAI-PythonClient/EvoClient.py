@@ -28,6 +28,8 @@ class EvoClient:
         """
         messageIdx = 0
         line = "start"
+        self.ee = None
+
         while (line != ""):
 
             #Read the line
@@ -44,7 +46,9 @@ class EvoClient:
 
             if self.commState == CommState.INIT_END:
                 #We can work on some initialization stuff here.
-                self.ee = EvoEpisodic(len(self.avatar.actionList))
+
+                if self.ee == None:
+                    self.ee = EvoEpisodic(len(self.avatar.actionList))
 
                 senses_all = features(self.game, self.avatar)
                 dead_actions = []
@@ -69,14 +73,16 @@ class EvoClient:
                 #For debug, print here game and avatar info:
                 #self.game.printToFile(self.numGames)
                 #self.avatar.printToFile(self.numGames)
+                score = self.game.score
+                if self.game.gameOver and self.game.gameWinner == 'PLAYER_WINS':
+                    score = score + 10000
+                
+                self.ee.fit(score)
+                self.logger.info("Finished training... FIT: " + str(score))
 
                 #Also, we need to reset game and avatar back
                 self.game = GVGame()
                 self.avatar = GVGAvatar()
-                score = 0
-                
-                self.ee.fit(score)
-                self.logger.info("Finished training...")
 
                 self.writeToPipe("GAME_DONE.")
 

@@ -12,7 +12,7 @@ np.set_printoptions(suppress=True)
 
 
 
-popsize = 100
+popsize = 10
 
 
 class EvoEpisodic():

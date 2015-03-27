@@ -177,8 +177,8 @@ public class StateView extends StateObservation{
      */
     public Vector2d getAvatarPosition()
     {
-        //if(game.isEnded)
-        //    return Types.NIL;
+        if(game.avatar == null)
+            return Types.NIL;
         return game.avatar.getPosition();
     }
 
@@ -190,8 +190,8 @@ public class StateView extends StateObservation{
      */
     public double getAvatarSpeed()
     {
-        //if(game.isEnded)
-        //    return 0;
+        if(game.avatar == null)
+            return 0;
         return game.avatar.speed;
     }
 
@@ -202,8 +202,8 @@ public class StateView extends StateObservation{
      * @return orientation of the avatar, or Types.NIL if game is over.
      */
     public Vector2d getAvatarOrientation() {
-        //if(game.isEnded)
-        //    return Types.NIL;
+        if(game.avatar == null)
+            return Types.NIL;
         return game.avatar.orientation;
     }
 
@@ -242,6 +242,10 @@ public class StateView extends StateObservation{
      */
     public Types.ACTIONS getAvatarLastAction()
     {
+        if(game.avatar == null)
+        {
+            return Types.ACTIONS.ACTION_NIL;
+        }
         return game.avatar.lastAction;
     }
 

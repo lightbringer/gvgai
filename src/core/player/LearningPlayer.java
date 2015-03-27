@@ -133,7 +133,7 @@ public class LearningPlayer extends AbstractPlayer{
     public Types.ACTIONS act(StateObservation stateObs, ElapsedCpuTimer elapsedTimer)
     {
         initBuffers();
-
+verbose = false;
         //Pipes here.
         StateView sv = (StateView)stateObs;
 
@@ -164,7 +164,7 @@ public class LearningPlayer extends AbstractPlayer{
     public void finishGame(StateObservation stateObs, ElapsedCpuTimer elapsedTimer)
     {
         initBuffers();
-
+        verbose = false;
         //Pipes here.
         StateView sv = (StateView)stateObs;
 
@@ -184,7 +184,6 @@ public class LearningPlayer extends AbstractPlayer{
         commSend ("ENDGAME-END " + elapsedTimer.remainingTimeMillis());
 
         String response = commRecv(elapsedTimer, "ENDGAME");
-        verbose = false;
         if(verbose) System.out.println("Received: " + response);
     }
 
