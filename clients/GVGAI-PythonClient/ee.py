@@ -12,18 +12,14 @@ np.set_printoptions(suppress=True)
 
 
 
-popsize = 10
+
 
 
 class EvoEpisodic():
-    def __init__(self,  n_actions, coevolution = False, rounds = 1):
+    def __init__(self, n_actions, layers, popsize, action_selection, coevolution = False, rounds = 1):
 
         self.n_actions = n_actions
-        layers =  [
-                    #("RectifiedLinear", 200),
-                   # ("RectifiedLinear", 20),
-                    ("Linear", )
-                   ]
+        
         self.sknns = [sknn(layers, input_scaler=IncrementalMinMaxScaler()) for _ in range(rounds)]
         self.all_initialised = 0
 
@@ -36,7 +32,8 @@ class EvoEpisodic():
             self.challenger_iterations = 1
 
 
-
+        self.action_selection = action_selection
+        self.popsize = popsize
         self.states = []
 
 
@@ -88,9 +85,12 @@ class EvoEpisodic():
 
 
 
-
-        #desired_action = cn.action_selector.softmax(senses_all, dead_actions)
-        desired_action = cn.action_selector.e_greedy(senses_all, dead_actions, 0.1)
+        if(self.action_selection == 0):
+            desired_action = cn.action_selector.e_greedy(senses_all, dead_actions)
+        else:
+            desired_action = cn.action_selector.softmax(senses_all, dead_actions)
+        #
+        desired_action = self.exploration(senses_all, dead_actions)
 
 
         return desired_action, [0]
@@ -163,7 +163,7 @@ class EvoEpisodic():
                 total_weights += layer.get_weights().size
                 total_weights += layer.get_biases().size
 
-        snes = SNES(np.zeros(total_weights), popsize=popsize)
+        snes = SNES(np.zeros(total_weights), popsize=self.popsize)
         asked = snes.ask()
 
 

@@ -5,8 +5,19 @@ from ee import EvoEpisodic
 from FeatureExtraction import *
 import pylearn2.utils.logger as py2log
 import logging
+from sknn import ActionSelector
 
 from Ontology import *
+
+
+popsize = 10
+action_selection = 0 # 0 is e-greedy, 1 is softmax
+layers =   [
+                    #("RectifiedLinear", 200),
+                    ("Linear", )
+           ]
+
+
 
 class EvoClient:
 
@@ -48,7 +59,7 @@ class EvoClient:
                 #We can work on some initialization stuff here.
 
                 if self.ee == None:
-                    self.ee = EvoEpisodic(len(self.avatar.actionList))
+                    self.ee = EvoEpisodic(len(self.avatar.actionList), layers, popsize, action_selection)
 
                 senses_all = features(self.game, self.avatar)
                 dead_actions = []

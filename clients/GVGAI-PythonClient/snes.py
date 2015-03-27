@@ -21,13 +21,13 @@ def computeUtilities(fitnesses):
 
 
 class SNES():
-    def __init__(self, x0, popsize = 100):
+    def __init__(self, x0, learning_rate_mult, popsize = 100):
         self.x0 = x0
         self.batchSize = popsize
         self.dim = len(x0)
         self.learningRate =  0.2 * (3 + log(self.dim)) / sqrt(self.dim)
         #print self.learningRate
-        self.learningRate = self.learningRate/1000.0
+        self.learningRate = self.learningRate*learning_rate_mult
         #self.learningRate = 0.000001
         self.numEvals = 0
         self.bestFound = None
