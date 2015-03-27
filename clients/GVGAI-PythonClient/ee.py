@@ -16,7 +16,7 @@ np.set_printoptions(suppress=True)
 
 
 class EvoEpisodic():
-    def __init__(self, n_actions, layers, popsize, action_selection, coevolution = False, rounds = 1):
+    def __init__(self, n_actions, layers, popsize, action_selection, learning_rate, coevolution = False, rounds = 1):
 
         self.n_actions = n_actions
         
@@ -34,6 +34,7 @@ class EvoEpisodic():
 
         self.action_selection = action_selection
         self.popsize = popsize
+        self.learning_rate = learning_rate
         self.states = []
 
 
@@ -163,7 +164,7 @@ class EvoEpisodic():
                 total_weights += layer.get_weights().size
                 total_weights += layer.get_biases().size
 
-        snes = SNES(np.zeros(total_weights), popsize=self.popsize)
+        snes = SNES(x0 = np.zeros(total_weights), popsize=self.popsize, learning_rate_mult=self.learning_rate)
         asked = snes.ask()
 
 

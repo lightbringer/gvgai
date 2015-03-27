@@ -21,7 +21,7 @@ def computeUtilities(fitnesses):
 
 
 class SNES():
-    def __init__(self, x0, learning_rate_mult, popsize = 100):
+    def __init__(self, x0, learning_rate_mult, popsize):
         self.x0 = x0
         self.batchSize = popsize
         self.dim = len(x0)

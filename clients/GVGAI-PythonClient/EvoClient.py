@@ -17,6 +17,8 @@ layers =   [
                     ("Linear", )
            ]
 
+learning_rate = 1.
+
 
 
 class EvoClient:
@@ -59,7 +61,7 @@ class EvoClient:
                 #We can work on some initialization stuff here.
 
                 if self.ee == None:
-                    self.ee = EvoEpisodic(len(self.avatar.actionList), layers, popsize, action_selection)
+                    self.ee = EvoEpisodic(len(self.avatar.actionList), layers, popsize, action_selection, learning_rate)
 
                 senses_all = features(self.game, self.avatar)
                 dead_actions = []
