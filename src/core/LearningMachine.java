@@ -63,6 +63,7 @@ public class LearningMachine
         //1. Play the training games.
         for(int trainingGame = 0; trainingGame < trainingPlays; trainingGame++)
         {
+            System.out.print(trainingGame + " ");
             playOnce(player, actionFile, game_file, level_file, false, randomSeed, true);
         }
 

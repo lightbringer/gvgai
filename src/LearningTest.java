@@ -28,12 +28,12 @@ public class LearningTest
         //        "missilecommand", "portals", "sokoban", "survivezombies", "zelda"};
 
         //CIG 2014 Validation Set Games
-        //String games[] = new String[]{"camelRace", "digdug", "firestorms", "infection", "firecaster",
-        //      "overload", "pacman", "seaquest", "whackamole", "eggomania"};
+        String games[] = new String[]{"camelRace", "digdug", "firestorms", "infection", "firecaster",
+              "overload", "pacman", "seaquest", "whackamole", "eggomania"};
 
         //CIG 2015 New Training Set Games
-        String games[] = new String[]{"bait", "boloadventures", "brainman", "chipschallenge",  "modality",
-                                      "painter", "realportals", "realsokoban", "thecitadel", "zenpuzzle"};
+        //String games[] = new String[]{"bait", "boloadventures", "brainman", "chipschallenge",  "modality",
+        //                              "painter", "realportals", "realsokoban", "thecitadel", "zenpuzzle"};
 
 
         //Other settings
@@ -51,7 +51,7 @@ public class LearningTest
         //ArcadeMachine.playOneGame(game, level1, recordActionsFile, seed);
 
         // 2. This plays a game in a level by the controller (through the "Learning Machine").
-        int trainingPlays = 10;
+        int trainingPlays = 100;
         //LearningMachine.runOneGame(game, level1, visuals, javaController, recordActionsFile, trainingPlays, seed);
         LearningMachine.runOneGame(game, level1, visuals, pythonController, recordActionsFile, trainingPlays, seed);
 
