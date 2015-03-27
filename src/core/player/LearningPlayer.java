@@ -57,7 +57,7 @@ public class LearningPlayer extends AbstractPlayer{
     public LearningPlayer(Process client)
     {
         isLearner = true;
-        verbose = true;
+        verbose = false;
 
         try {
 
@@ -97,7 +97,7 @@ public class LearningPlayer extends AbstractPlayer{
     public void init(StateView stateView, ElapsedCpuTimer elapsedTimer, boolean isTraining)
     {
         isLearner = true;
-        verbose = true;
+        verbose = false;
 
         stateView.assignPlayer(this);
 
@@ -153,7 +153,11 @@ public class LearningPlayer extends AbstractPlayer{
         commSend ("ACT-END " + elapsedTimer.remainingTimeMillis());
 
         String response = commRecv(elapsedTimer);
-        if(verbose)  System.out.println("Received ACTION: " + response);
+        if(verbose)  System.out.println("Received ACTION: " + response + "; ACT Response time: "
+                                        + elapsedTimer.elapsedMillis() + " ms.");
+
+        if(elapsedTimer.elapsedMillis() > 10)
+            System.out.println("HEY!");
 
         Types.ACTIONS action = Types.ACTIONS.fromString(response);
         return action;
@@ -183,7 +187,7 @@ public class LearningPlayer extends AbstractPlayer{
         commSend ("ENDGAME-END " + elapsedTimer.remainingTimeMillis());
 
         String response = commRecv(elapsedTimer);
-        verbose = true;
+        verbose = false;
         if(verbose) System.out.println("Received: " + response);
     }
 
@@ -223,6 +227,7 @@ public class LearningPlayer extends AbstractPlayer{
 
                     ret = input.readLine();
                     if (ret != null && ret.trim().length() > 0) {
+                        //System.out.println("TIME OK");
                         return ret.trim();
                     }
                 }

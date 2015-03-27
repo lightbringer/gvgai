@@ -1,5 +1,6 @@
 from PyClient import PyClient
 from EvoClient import EvoClient
+import logging
 
 # MOCK DATA PASSED TO THE CLIENT
 def mockInit(isTraining):
@@ -153,7 +154,7 @@ def mockEnd(gameTick):
     pyClient.processLine(line)
 
 
-pyClient = EvoClient()  #PyClient()
+pyClient = EvoClient(logger=logging.getLogger("EvoClient"))  #PyClient()
 mockInit("true")
 
 pyClient.game.printToFile(0)

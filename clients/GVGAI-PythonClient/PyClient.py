@@ -4,6 +4,7 @@ import random
 import sys
 import os
 from Ontology import *
+from ee import EvoEpisodic
 from FeatureExtraction import *
 
 class PyClient:
@@ -39,10 +40,23 @@ class PyClient:
             #if self.commState == CommState.ENDED: #In this state, the game has ended, and we are receiving the last state.
             #if self.commState == CommState.ENDED_END: #In this state, the game has ended, and we have received all final state info.
 
+
+            if self.commState == CommState.INIT_END:
+                #We can work on some initialization stuff here.
+                self.ee = EvoEpisodic(len(self.avatar.actionList))
+
+                senses_all = features(self.game, self.avatar)
+                dead_actions = []
+                #This is just to compile and save time for the game cycles
+                desired_action, a = self.ee.predict(senses_all, dead_actions)
+
+                self.writeToPipe("INIT_DONE.")
+
+
             if self.commState == CommState.ACT_END:
                 #This is the place to think and return what action to take.
                 ##rndAction = random.choice(self.avatar.actionList)
-                senses_all = np.hstack((game_features(self.game), avatar_features(self.avatar)))
+                senses_all = features(self.game, self.avatar)
                 dead_actions = []
 
                 desired_action, a = self.ee.predict(senses_all, dead_actions)

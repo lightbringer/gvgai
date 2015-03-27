@@ -25,7 +25,7 @@ import java.util.Random;
  */
 public class LearningMachine
 {
-    public static final boolean VERBOSE = true;
+    public static final boolean VERBOSE = false;
 
     /**
      * Reads and launches a game for a human to be played. Graphics always on.

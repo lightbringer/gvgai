@@ -44,16 +44,19 @@ class EvoClient:
 
             if self.commState == CommState.INIT_END:
                 #We can work on some initialization stuff here.
-
-
                 self.ee = EvoEpisodic(len(self.avatar.actionList))
+
+                senses_all = features(self.game, self.avatar)
+                dead_actions = []
+                #This is just to compile and save time for the game cycles
+                desired_action, a = self.ee.predict(senses_all, dead_actions)
 
                 self.writeToPipe("INIT_DONE.")
 
             if self.commState == CommState.ACT_END:
                 #This is the place to think and return what action to take.
                 ##rndAction = random.choice(self.avatar.actionList)
-                senses_all = np.hstack((game_features(self.game), avatar_features(self.avatar)))
+                senses_all = features(self.game, self.avatar)
                 dead_actions = []
 
                 desired_action, a = self.ee.predict(senses_all, dead_actions)
@@ -92,7 +95,7 @@ class EvoClient:
         if "ACT-END" in line:
             splitLine = line.split(" ")
             self.game.remMillis = int(splitLine[1])
-            #senses_all = np.hstack((game_features(self.game), avatar_features(self.avatar)))
+            #senses_all = features(self.game, self.avatar)
             return CommState.ACT_END
 
         if "ENDGAME-END" in line:

@@ -1,0 +1,67 @@
+Score 1.0, GameTick: 0, Winner: NO_WINNER, GameOver: False, WorldDimW: 665, WorldDimW: 798, BlockSize: 133, RemMillis: 38
+Sprite Type: 0 bit array: 
+111111
+101011
+100001
+110001
+111111
+Sprite Type: 1 bit array: 
+000000
+000000
+010000
+000000
+000000
+Sprite Type: 2 bit array: 
+000000
+000000
+000000
+000000
+000000
+Sprite Type: 3 bit array: 
+000000
+000100
+001110
+001110
+000000
+Sprite Type: 4 bit array: 
+000000
+000000
+000000
+000000
+000000
+Sprite Type: 5 bit array: 
+000000
+000000
+000000
+000000
+000000
+Sprite Type: 6 bit array: 
+000000
+000000
+000000
+000000
+000000
+Sprite Type: 7 bit array: 
+000000
+000000
+000010
+000000
+000000
+Sprite Type: 8 bit array: 
+000000
+010000
+000000
+000000
+000000
+Sprite Type: 9 bit array: 
+000000
+000000
+000100
+000100
+000000
+Sprite Type: 10 bit array: 
+000000
+000000
+000000
+000000
+000000
