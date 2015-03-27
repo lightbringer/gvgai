@@ -214,7 +214,7 @@ public class LearningMachine
             }
             else
             {
-                System.out.println("Controller initialization time: " + timeTaken + " ms.");
+                //System.out.println("Controller initialization time: " + timeTaken + " ms.");
             }
 
             //If we have a player, set it up for action recording.

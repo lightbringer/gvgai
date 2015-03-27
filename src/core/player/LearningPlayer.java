@@ -116,7 +116,7 @@ public class LearningPlayer extends AbstractPlayer{
 
         commSend ("INIT-END " + elapsedTimer.remainingTimeMillis());
 
-        String response = commRecv(elapsedTimer);
+        String response = commRecv(elapsedTimer, "INIT");
         if(verbose) System.out.println("Received: " + response);
     }
 
@@ -152,12 +152,9 @@ public class LearningPlayer extends AbstractPlayer{
 
         commSend ("ACT-END " + elapsedTimer.remainingTimeMillis());
 
-        String response = commRecv(elapsedTimer);
+        String response = commRecv(elapsedTimer, "ACT");
         if(verbose)  System.out.println("Received ACTION: " + response + "; ACT Response time: "
                                         + elapsedTimer.elapsedMillis() + " ms.");
-
-        if(elapsedTimer.elapsedMillis() > 10)
-            System.out.println("HEY!");
 
         Types.ACTIONS action = Types.ACTIONS.fromString(response);
         return action;
@@ -186,7 +183,7 @@ public class LearningPlayer extends AbstractPlayer{
 
         commSend ("ENDGAME-END " + elapsedTimer.remainingTimeMillis());
 
-        String response = commRecv(elapsedTimer);
+        String response = commRecv(elapsedTimer, "ENDGAME");
         verbose = false;
         if(verbose) System.out.println("Received: " + response);
     }
@@ -214,9 +211,10 @@ public class LearningPlayer extends AbstractPlayer{
     /**
      * Waits for a response during T milliseconds.
      * @param elapsedTimer Timer when the initialization is due to finish.
+     * @param idStr String identifier of the phase the communication is in.
      * @return the response got from the client, or null if no response was received after due time.
      */
-    public static String commRecv(ElapsedCpuTimer elapsedTimer) {
+    public static String commRecv(ElapsedCpuTimer elapsedTimer, String idStr) {
         String ret = null;
 
         try {
@@ -239,7 +237,7 @@ public class LearningPlayer extends AbstractPlayer{
         }
 
         if(elapsedTimer.remainingTimeMillis() <= 0)
-            System.out.println("TIME OUT " + elapsedTimer.remainingTimeMillis());
+            System.out.println("TIME OUT (" + idStr + "): " + elapsedTimer.elapsedMillis());
 
         return null;
     }
