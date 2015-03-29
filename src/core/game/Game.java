@@ -163,6 +163,11 @@ public abstract class Game
     protected MovingAvatar avatar;
 
     /**
+     * A copy of the state of the avatar when is killed.
+     */
+    protected MovingAvatar deadAvatar;
+
+    /**
      * Indicates if the game is ended.
      */
     protected boolean isEnded;
@@ -941,7 +946,11 @@ public abstract class Game
                 fwdModel.removeSpriteObservation(sprite);
 
             if(sprite.is_avatar && sprite == this.avatar)
+            {
+                this.deadAvatar = (MovingAvatar) this.avatar.copy();
                 this.avatar = null;
+            }
+
 
             num_sprites--;
 

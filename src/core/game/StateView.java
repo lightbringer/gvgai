@@ -178,7 +178,7 @@ public class StateView extends StateObservation{
     public Vector2d getAvatarPosition()
     {
         if(game.avatar == null)
-            return Types.NIL;
+            return game.deadAvatar.getPosition();
         return game.avatar.getPosition();
     }
 
@@ -191,7 +191,7 @@ public class StateView extends StateObservation{
     public double getAvatarSpeed()
     {
         if(game.avatar == null)
-            return 0;
+            return game.deadAvatar.speed;
         return game.avatar.speed;
     }
 
@@ -203,7 +203,7 @@ public class StateView extends StateObservation{
      */
     public Vector2d getAvatarOrientation() {
         if(game.avatar == null)
-            return Types.NIL;
+            return game.deadAvatar.orientation;
         return game.avatar.orientation;
     }
 
@@ -220,11 +220,14 @@ public class StateView extends StateObservation{
         //Determine how many different resources does the avatar have.
         HashMap<Integer, Integer> owned = new HashMap<Integer, Integer>();
 
+        //Extract the set of resources
+        Set<Map.Entry<Integer, Integer>> entries;
         if(game.avatar == null)
-            return owned;
+            entries = game.deadAvatar.resources.entrySet();
+        else
+            entries = game.avatar.resources.entrySet();
 
         //And for each type, add their amount.
-        Set<Map.Entry<Integer, Integer>> entries = game.avatar.resources.entrySet();
         for(Map.Entry<Integer, Integer> entry : entries)
         {
             owned.put(entry.getKey(), entry.getValue());
@@ -244,7 +247,7 @@ public class StateView extends StateObservation{
     {
         if(game.avatar == null)
         {
-            return Types.ACTIONS.ACTION_NIL;
+            return game.deadAvatar.lastAction;
         }
         return game.avatar.lastAction;
     }
@@ -264,17 +267,21 @@ public class StateView extends StateObservation{
                 + getAvatarSpeed() + "#" + getAvatarLastAction() + "#";
 
         //Resources.
-        if(game.avatar != null)
+        Set<Map.Entry<Integer, Integer>> entries;
+        if(game.avatar == null)
+            entries = game.deadAvatar.resources.entrySet();
+        else
+            entries = game.avatar.resources.entrySet();
+
+        int nEntries = entries.size();
+        int idx = 0;
+        for(Map.Entry<Integer, Integer> entry : entries)
         {
-            Set<Map.Entry<Integer, Integer>> entries = game.avatar.resources.entrySet();
-            int nEntries = entries.size();
-            int idx = 0;
-            for(Map.Entry<Integer, Integer> entry : entries)
-            {
-                line += entry.getKey() + "," + entry.getValue();
-                if(idx < nEntries-1)
-                    line += ";";
-            }
+            line += entry.getKey() + "," + entry.getValue();
+            if(idx < nEntries-1)
+                line += ";";
+            idx++;
+
         }
         line += "#";
 

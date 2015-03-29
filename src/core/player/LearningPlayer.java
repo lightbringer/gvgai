@@ -133,7 +133,7 @@ public class LearningPlayer extends AbstractPlayer{
     public Types.ACTIONS act(StateObservation stateObs, ElapsedCpuTimer elapsedTimer)
     {
         initBuffers();
-verbose = false;
+        verbose = false;
         //Pipes here.
         StateView sv = (StateView)stateObs;
 

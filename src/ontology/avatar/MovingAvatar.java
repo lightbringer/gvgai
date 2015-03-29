@@ -144,7 +144,6 @@ public class MovingAvatar extends VGDLSprite {
             action = Types.ACTIONS.ACTION_NIL;
         }
 
-
         if(!actions.contains(action))
             action = Types.ACTIONS.ACTION_NIL;
 

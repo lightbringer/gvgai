@@ -590,7 +590,7 @@ public class ForwardModel extends Game
     public Vector2d getAvatarPosition()
     {
         if(isEnded)
-            return Types.NIL;
+            return deadAvatar.getPosition();
         return avatar.getPosition();
     }
 
@@ -603,7 +603,7 @@ public class ForwardModel extends Game
     public double getAvatarSpeed()
     {
         if(isEnded)
-            return 0;
+            return deadAvatar.speed;
         return avatar.speed;
     }
 
@@ -616,7 +616,7 @@ public class ForwardModel extends Game
     public Vector2d getAvatarOrientation()
     {
         if(isEnded)
-            return Types.NIL;
+            return deadAvatar.orientation;
         return avatar.orientation;
     }
 
@@ -654,8 +654,14 @@ public class ForwardModel extends Game
         if(avatar == null)
             return owned;
 
+        //Extract the set of resources
+        Set<Map.Entry<Integer, Integer>> entries;
+        if(avatar == null)
+            entries = deadAvatar.resources.entrySet();
+        else
+            entries = avatar.resources.entrySet();
+
         //And for each type, add their amount.
-        Set<Map.Entry<Integer, Integer>> entries = avatar.resources.entrySet();
         for(Map.Entry<Integer, Integer> entry : entries)
         {
             owned.put(entry.getKey(), entry.getValue());
@@ -673,6 +679,8 @@ public class ForwardModel extends Game
      */
     public Types.ACTIONS getAvatarLastAction()
     {
+        if(isEnded)
+            return deadAvatar.lastAction;
         return avatar.lastAction;
     }
 
