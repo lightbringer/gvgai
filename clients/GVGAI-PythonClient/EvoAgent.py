@@ -1,16 +1,7 @@
-from Ontology import *
 from ee import EvoEpisodic
 from FeatureExtraction import *
-from functools import wraps
 
-popsize = 10
-action_selection = 1 # 0 is e-greedy, 1 is softmax
-layers =   [
-                    ("RectifiedLinear", 20),
-                    ("Linear", )
-           ]
 
-learning_rate = 1.
 
 
 def ExceptionHandler(f):
@@ -24,7 +15,7 @@ def ExceptionHandler(f):
 
     return wrapper
 
-class EvoAgent:
+class EvoAgent(object):
 
      @ExceptionHandler
      def __init__(self, logger):
@@ -37,6 +28,15 @@ class EvoAgent:
         self.ee = None
         self.logger = logger
 
+        self.popsize = 10
+        self.action_selection = 1 # 0 is e-greedy, 1 is softmax
+        self.layers =   [
+                    ("RectifiedLinear", 20),
+                    ("Linear", )
+        ]
+
+        self.learning_rate = 1.
+
      @ExceptionHandler
      def init(self, game, avatar, remMillis):
 
@@ -48,7 +48,7 @@ class EvoAgent:
         :return: None.
         """
         if self.ee == None:
-            self.ee = EvoEpisodic(len(avatar.actionList), layers, popsize, action_selection, learning_rate)
+            self.ee = EvoEpisodic(len(avatar.actionList), self.layers, self.popsize, self.action_selection, self.learning_rate)
 
         senses_all = features(game, avatar)
         dead_actions = []

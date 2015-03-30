@@ -12,13 +12,13 @@ import logging
 
 class PyClient:
 
-    def __init__(self, logger):
+    def __init__(self, agent, logger):
         self.commState = CommState.START
         self.game = GVGame()
         self.avatar = GVGAvatar()
         self.numGames = 0
         self.logger = logger
-        self.agent = EvoAgent(logger)
+        self.agent = agent
 
     def writeToPipe(self, line):
         sys.stdout.write(line + os.linesep)
@@ -171,6 +171,12 @@ class PyClient:
 if __name__=="__main__":
     py2log.restore_defaults()
     logging.basicConfig(filename='play.log', level=logging.INFO)
-
-    pyClient = PyClient(logger=logging.getLogger("PyClient"))
+    import sys
+    import importlib
+    mypackage, myclass = sys.argv[1].split(".")
+    m = importlib.import_module(mypackage)
+    # get the class, will raise AttributeError if class cannot be found
+    c = getattr(m, myclass)
+    agent = c(logging.getLogger(myclass))
+    pyClient = PyClient(agent = agent, logger=logging.getLogger("PyClient"))
     pyClient.listen()
