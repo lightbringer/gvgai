@@ -27,6 +27,10 @@ public class LearningMachine
 {
     public static final boolean VERBOSE = false;
 
+    public static String PYTHON_BIN = "/usr/bin/python";
+    public static String JAVA_BIN = "/usr/bin/java";
+    public static String JAVAC_BIN = "/usr/bin/javac";
+
     /**
      * Reads and launches a game for a human to be played. Graphics always on.
      * @param game_file game description file.
@@ -122,7 +126,7 @@ public class LearningMachine
         try{
             String cmd = null;
             if(python)
-                cmd = "/usr/bin/python " + playerName;
+                cmd = PYTHON_BIN + " " + playerName;
             else if(java)
             {
                 //Compile
@@ -131,7 +135,7 @@ public class LearningMachine
 
                 //Execute (prepare the line)
                 String agent = playerName.substring(playerName.lastIndexOf("/")+1, playerName.lastIndexOf("."));
-                cmd = "/usr/bin/java -cp " + path + " -Xms512m -Xmx2048m " +  agent;
+                cmd = JAVA_BIN + " -cp " + path + " -Xms512m -Xmx2048m " +  agent;
             }
 
             client = Runtime.getRuntime().exec(cmd);
@@ -164,7 +168,7 @@ public class LearningMachine
 
             if(line.contains(".java"))
             {
-                cmd = "/usr/bin/javac -cp " + path + " " + line;
+                cmd = JAVAC_BIN + " -cp " + path + " " + line;
                 //System.out.println(cmd);
                 Process proc = Runtime.getRuntime().exec(cmd);
                 if(VERBOSE) System.out.println(cmd);

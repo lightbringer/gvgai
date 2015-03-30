@@ -235,8 +235,8 @@ public class LearningPlayer extends AbstractPlayer{
             err.printStackTrace();
         }
 
-        if(elapsedTimer.remainingTimeMillis() <= 0)
-            System.out.println("TIME OUT (" + idStr + "): " + elapsedTimer.elapsedMillis());
+        //if(elapsedTimer.remainingTimeMillis() <= 0)
+        //    System.out.println("TIME OUT (" + idStr + "): " + elapsedTimer.elapsedMillis());
 
         return null;
     }
