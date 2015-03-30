@@ -91,7 +91,7 @@ class EvoEpisodic():
         else:
             desired_action = cn.action_selector.softmax(senses_all, dead_actions)
         #
-        desired_action = self.exploration(senses_all, dead_actions)
+        #desired_action = self.exploration(senses_all, dead_actions)
 
 
         return desired_action, [0]
@@ -122,7 +122,7 @@ class EvoEpisodic():
         if( self.all_initialised == 2):
             ## update the rewards (and possibly train)
                 self.tell.append(reward)
-                if(len(self.tell) == len(self.asked) == popsize):
+                if(len(self.tell) == len(self.asked) == self.popsize):
 
                     #print "Updating ES..."
                     if(self.coevolution):
