@@ -5,8 +5,21 @@ from ee import EvoEpisodic
 from FeatureExtraction import *
 import pylearn2.utils.logger as py2log
 import logging
+from sknn import ActionSelector
 
 from Ontology import *
+
+
+popsize = 10
+action_selection = 0 # 0 is e-greedy, 1 is softmax
+layers =   [
+                    #("RectifiedLinear", 200),
+                    ("Linear", )
+           ]
+
+learning_rate = 1.
+
+
 
 class EvoClient:
 
@@ -45,25 +58,40 @@ class EvoClient:
             #if self.commState == CommState.ENDED_END: #In this state, the game has ended, and we have received all final state info.
 
             if self.commState == CommState.INIT_END:
-                #New game starts, time for some initialization work.
-                self.agent.init(self.game, self.avatar, self.game.remMillis)
+                #We can work on some initialization stuff here.
+
+                if self.ee == None:
+                    self.ee = EvoEpisodic(len(self.avatar.actionList), layers, popsize, action_selection, learning_rate)
+
+                senses_all = features(self.game, self.avatar)
+                dead_actions = []
+                #This is just to compile and save time for the game cycles
+                desired_action, a = self.ee.predict(senses_all, dead_actions)
+
                 self.writeToPipe("INIT_DONE.")
 
             if self.commState == CommState.ACT_END:
                 #This is the place to think and return what action to take.
-                action = self.agent.act(self.game, self.avatar, self.game.remMillis)
+                ##rndAction = random.choice(self.avatar.actionList)
+                senses_all = features(self.game, self.avatar)
+                dead_actions = []
+
+                desired_action, a = self.ee.predict(senses_all, dead_actions)
+                action = self.avatar.actionList[desired_action]
                 self.writeToPipe(action)
 
             if self.commState == CommState.ENDED_END:
-                #A game has finished. Time to analyze what happened.
-                self.agent.end(self.game, self.avatar, self.game.remMillis)
+                #We can study what happened in the game here.
 
                 #For debug, print here game and avatar info:
                 #self.game.printToFile(self.numGames)
                 #self.avatar.printToFile(self.numGames)
-
-
-                #self.logger.info("Finished training... FIT: " + str(score))
+                score = self.game.score
+                if self.game.gameOver and self.game.gameWinner == 'PLAYER_WINS':
+                    score = score + 10000
+                
+                self.ee.fit(score)
+                self.logger.info("Finished training... FIT: " + str(score))
 
                 #Also, we need to reset game and avatar back
                 self.game = GVGame()

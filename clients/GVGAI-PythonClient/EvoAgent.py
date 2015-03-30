@@ -2,6 +2,15 @@ from Ontology import *
 from ee import EvoEpisodic
 from FeatureExtraction import *
 
+popsize = 10
+action_selection = 0 # 0 is e-greedy, 1 is softmax
+layers =   [
+                    #("RectifiedLinear", 200),
+                    ("Linear", )
+           ]
+
+learning_rate = 1.
+
 class EvoAgent:
 
      def __init__(self, logger):
@@ -24,7 +33,7 @@ class EvoAgent:
         :return: None.
         """
         if self.ee == None:
-            self.ee = EvoEpisodic(len(avatar.actionList))
+            self.ee = EvoEpisodic(len(avatar.actionList), layers, popsize, action_selection, learning_rate)
 
         senses_all = features(game, avatar)
         dead_actions = []

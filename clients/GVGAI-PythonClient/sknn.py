@@ -192,7 +192,7 @@ class ActionSelector():
 
 
 
-    def e_greedy(self,inputs, dead_actions, epsilon):
+    def e_greedy(self,inputs, dead_actions, epsilon = 0.1):
         r = np.random.random()
 
         if(r < epsilon):
