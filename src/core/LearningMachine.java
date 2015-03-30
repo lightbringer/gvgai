@@ -68,6 +68,7 @@ public class LearningMachine
         }
 
         //2. Play the training games.
+        System.out.print(trainingPlays + " ");
         double finalScore = playOnce(player, actionFile, game_file, level_file, visuals, randomSeed, false);
 
         return finalScore;

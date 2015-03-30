@@ -3,9 +3,9 @@ from ee import EvoEpisodic
 from FeatureExtraction import *
 
 popsize = 10
-action_selection = 0 # 0 is e-greedy, 1 is softmax
+action_selection = 1 # 0 is e-greedy, 1 is softmax
 layers =   [
-                    #("RectifiedLinear", 200),
+                    ("RectifiedLinear", 20),
                     ("Linear", )
            ]
 
