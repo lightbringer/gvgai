@@ -45,40 +45,25 @@ class EvoClient:
             #if self.commState == CommState.ENDED_END: #In this state, the game has ended, and we have received all final state info.
 
             if self.commState == CommState.INIT_END:
-                #We can work on some initialization stuff here.
-
-                if self.ee == None:
-                    self.ee = EvoEpisodic(len(self.avatar.actionList))
-
-                senses_all = features(self.game, self.avatar)
-                dead_actions = []
-                #This is just to compile and save time for the game cycles
-                desired_action, a = self.ee.predict(senses_all, dead_actions)
-
+                #New game starts, time for some initialization work.
+                self.agent.init(self.game, self.avatar, self.game.remMillis)
                 self.writeToPipe("INIT_DONE.")
 
             if self.commState == CommState.ACT_END:
                 #This is the place to think and return what action to take.
-                ##rndAction = random.choice(self.avatar.actionList)
-                senses_all = features(self.game, self.avatar)
-                dead_actions = []
-
-                desired_action, a = self.ee.predict(senses_all, dead_actions)
-                action = self.avatar.actionList[desired_action]
+                action = self.agent.act(self.game, self.avatar, self.game.remMillis)
                 self.writeToPipe(action)
 
             if self.commState == CommState.ENDED_END:
-                #We can study what happened in the game here.
+                #A game has finished. Time to analyze what happened.
+                self.agent.end(self.game, self.avatar, self.game.remMillis)
 
                 #For debug, print here game and avatar info:
                 #self.game.printToFile(self.numGames)
                 #self.avatar.printToFile(self.numGames)
-                score = self.game.score
-                if self.game.gameOver and self.game.gameWinner == 'PLAYER_WINS':
-                    score = score + 10000
-                
-                self.ee.fit(score)
-                self.logger.info("Finished training... FIT: " + str(score))
+
+
+                #self.logger.info("Finished training... FIT: " + str(score))
 
                 #Also, we need to reset game and avatar back
                 self.game = GVGame()

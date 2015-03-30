@@ -4,16 +4,21 @@ import random
 import sys
 import os
 from Ontology import *
-from ee import EvoEpisodic
+from Agent import Agent
+from EvoAgent import EvoAgent
 from FeatureExtraction import *
+import pylearn2.utils.logger as py2log
+import logging
 
 class PyClient:
 
-    def __init__(self):
+    def __init__(self, logger):
         self.commState = CommState.START
         self.game = GVGame()
         self.avatar = GVGAvatar()
         self.numGames = 0
+        self.logger = logger
+        self.agent = EvoAgent(logger)
 
     def writeToPipe(self, line):
         sys.stdout.write(line + os.linesep)
@@ -42,42 +47,27 @@ class PyClient:
 
 
             if self.commState == CommState.INIT_END:
-                #We can work on some initialization stuff here.
-                self.ee = EvoEpisodic(len(self.avatar.actionList))
-
-                senses_all = features(self.game, self.avatar)
-                dead_actions = []
-                #This is just to compile and save time for the game cycles
-                desired_action, a = self.ee.predict(senses_all, dead_actions)
-
+                #New game starts, time for some initialization work.
+                self.agent.init(self.game, self.avatar, self.game.remMillis)
                 self.writeToPipe("INIT_DONE.")
 
 
             if self.commState == CommState.ACT_END:
                 #This is the place to think and return what action to take.
-                ##rndAction = random.choice(self.avatar.actionList)
-                senses_all = features(self.game, self.avatar)
-                dead_actions = []
-
-                desired_action, a = self.ee.predict(senses_all, dead_actions)
-                action = self.avatar.actionList[desired_action]
+                action = self.agent.act(self.game, self.avatar, self.game.remMillis)
                 self.writeToPipe(action)
 
+
             if self.commState == CommState.ENDED_END:
-                #We can study what happened in the game here.
+                #A game has finished. Time to analyze what happened.
+                self.agent.end(self.game, self.avatar, self.game.remMillis)
 
-                #For debug, print here game and avatar info:
-                #self.game.printToFile(self.numGames)
-                #self.avatar.printToFile(self.numGames)
-
-                #Also, we need to reset game and avatar back
+                #Here, we need to reset game and avatar back
                 self.game = GVGame()
                 self.avatar = GVGAvatar()
-                score = 0
-
-                self.ee.fit(score)
 
                 self.writeToPipe("GAME_DONE.")
+
             messageIdx += 1
 
 
@@ -179,5 +169,8 @@ class PyClient:
 
 
 if __name__=="__main__":
-    pyClient = PyClient()
+    py2log.restore_defaults()
+    logging.basicConfig(filename='play.log', level=logging.INFO)
+
+    pyClient = PyClient(logger=logging.getLogger("PyClient"))
     pyClient.listen()
