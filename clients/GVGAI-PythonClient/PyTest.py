@@ -154,7 +154,7 @@ def mockEnd(gameTick):
     pyClient.processLine(line)
 
 
-pyClient = EvoClient(logger=logging.getLogger("EvoClient"))  #PyClient()
+pyClient =  PyClient()
 mockInit("true")
 
 pyClient.game.printToFile(0)

@@ -40,7 +40,7 @@ class sknn():
             self.weight_scale = None
 
             None
-        self.trainer = sgd.SGD(learning_rate=learning_rate, cost=cost, batch_size=10000, learning_rule=RMSProp())
+        self.trainer = sgd.SGD(learning_rate=learning_rate, cost=cost, batch_size=1, learning_rule=RMSProp())
 
         self.input_normaliser = input_scaler
         self.output_normaliser = output_scaler
