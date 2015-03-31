@@ -44,8 +44,8 @@ public class LearningTestCmd
             return;
         }
 
-        LearningMachine.PYTHON_BIN = "/scratch/ssamot/anaconda/bin/python";
-        LearningMachine.JAVA_BIN = "/scratch/ssamot/jdk1.8.0_40/bin/java";
+        //LearningMachine.PYTHON_BIN = "/scratch/ssamot/anaconda/bin/python";
+        //LearningMachine.JAVA_BIN = "/scratch/ssamot/jdk1.8.0_40/bin/java";
         pythonController = args[0];
         String pyAgentFile = pythonController + " " + args[1];
         int gameIdx = Integer.parseInt(args[2]);
