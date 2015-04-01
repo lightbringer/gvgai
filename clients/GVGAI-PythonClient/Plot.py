@@ -73,9 +73,8 @@ def plot(data, numLines, ylabel, filename, show_plot, ylims=None):
 
 
 
-def plot_game(game_number, show_plot = False):
+def plot_game(input_dir, output_dir, game_number, show_plot = False):
     repeats = 50
-    dir = "results/"
     numLines = 1000
     AVOID_FIRST = 10 #AVOID_FIRST number of trials before computing accum. averages.
 
@@ -85,15 +84,11 @@ def plot_game(game_number, show_plot = False):
 
     #1. This first loop calculates the data out of the raw output.
     for i in range(repeats):
-        filename = dir + str(game_number) + "-" + str(i) + ".out"
+        filename = input_dir + str(game_number) + "-" + str(i) + ".out"
         #print filename
         repeatWins = []
         repeatScores = []
         repeatTimespents = []
-
-        repeatWinsAAvg = []
-        repeatScoreAAvg = []
-        repeatTimeAAvg = []
 
         f = open(filename, 'rb')
         csvReader = csv.reader(f, delimiter=' ')
@@ -125,11 +120,11 @@ def plot_game(game_number, show_plot = False):
                     averageTimesAtTrial[nTrial-AVOID_FIRST].append(acumAvgTimes)
 
 
-    plot(averageWinAtTrial, numLines, "Average number of victories", "pics/"+str(games[game_number])+"_wins.pdf", show_plot, [-0.2,1.2])
-    plot(averageScoresAtTrial, numLines, "Average score", "pics/"+str(games[game_number])+"_scores.pdf", show_plot)
-    plot(averageTimesAtTrial, numLines, "Average time spent", "pics/"+str(games[game_number])+"_times.pdf", show_plot, [0,1100])
+    plot(averageWinAtTrial, numLines, "Average number of victories", output_dir+str(games[game_number])+"_wins.pdf", show_plot, [-0.2,1.2])
+    plot(averageScoresAtTrial, numLines, "Average score", output_dir+str(games[game_number])+"_scores.pdf", show_plot)
+    plot(averageTimesAtTrial, numLines, "Average time spent", output_dir+str(games[game_number])+"_times.pdf", show_plot, [0,1100])
 
 
 if __name__=="__main__":
     for i in range(10):
-        plot_game(i)
+        plot_game("results/GreedyLinear/", "pics/GreedyLinear/", i)
