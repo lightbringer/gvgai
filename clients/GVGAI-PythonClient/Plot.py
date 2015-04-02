@@ -30,15 +30,7 @@ def errorfill(x, y, yerr, color=None, alpha_fill=0.3, ax=None):
     #print ymax
     ax.fill_between(x, ymax, ymin, color=color, alpha=alpha_fill)
 
-
-def plot(data, numLines, ylabel, filename, show_plot, ylims=None):
-
-    #Create a figure
-    fig = pylab.figure()
-
-    #Add a subplot (Grid of plots 1x1, adding plot 1)
-    ax = fig.add_subplot(111)
-
+def plot_error_bar(numLines, data):
     #All data we need is in avarage*AtTrial. Calculate averages for each repeat, stddev and stderr
     averages = []
     std_dev = []
@@ -52,7 +44,19 @@ def plot(data, numLines, ylabel, filename, show_plot, ylims=None):
 
     errorfill(range(numLines), averages, std_err)
 
-    plt.legend("Running average of victories",
+
+def plot_res(data_mult, numLines, labels, ylabel, filename, show_plot, ylims=None):
+
+    #Create a figure
+    fig = pylab.figure()
+
+    #Add a subplot (Grid of plots 1x1, adding plot 1)
+    ax = fig.add_subplot(111)
+
+    for data in data_mult:
+        plot_error_bar(numLines, data)
+
+    plt.legend(labels,
                shadow=True, fancybox=True)
 
     #Titles and labels
@@ -73,7 +77,8 @@ def plot(data, numLines, ylabel, filename, show_plot, ylims=None):
 
 
 
-def plot_game(input_dir, output_dir, game_number, show_plot = False):
+def get_data(input_dir, game_number):
+
     repeats = 50
     numLines = 1000
     AVOID_FIRST = 10 #AVOID_FIRST number of trials before computing accum. averages.
@@ -119,12 +124,45 @@ def plot_game(input_dir, output_dir, game_number, show_plot = False):
                     averageScoresAtTrial[nTrial-AVOID_FIRST].append(acumAvgScore)
                     averageTimesAtTrial[nTrial-AVOID_FIRST].append(acumAvgTimes)
 
+    return numLines, averageWinAtTrial, averageScoresAtTrial, averageTimesAtTrial
 
-    plot(averageWinAtTrial, numLines, "Average number of victories", output_dir+str(games[game_number])+"_wins.pdf", show_plot, [-0.2,1.2])
-    plot(averageScoresAtTrial, numLines, "Average score", output_dir+str(games[game_number])+"_scores.pdf", show_plot)
-    plot(averageTimesAtTrial, numLines, "Average time spent", output_dir+str(games[game_number])+"_times.pdf", show_plot, [0,1100])
+
+def plot_game(input_dirs, output_dir, labels, game_number, show_plot = False):
+
+    minNumLines = 10000
+    all_wins = []
+    all_scores = []
+    all_times = []
+
+    for input in input_dirs:
+        numLines, averageWinAtTrial, averageScoresAtTrial, averageTimesAtTrial = get_data(input, game_number)
+        all_wins.append(averageWinAtTrial)
+        all_scores.append(averageScoresAtTrial)
+        all_times.append(averageTimesAtTrial)
+
+        if numLines < minNumLines:
+            minNumLines = numLines
+
+
+
+    plot_res(all_wins, minNumLines, labels, "Average number of victories", output_dir+str(games[game_number])+"_wins.pdf", show_plot, [-0.2,1.2])
+    plot_res(all_scores, minNumLines, labels, "Average score", output_dir+str(games[game_number])+"_scores.pdf", show_plot)
+    plot_res(all_times, minNumLines, labels, "Average time spent", output_dir+str(games[game_number])+"_times.pdf", show_plot, [0,1100])
+
+
+
 
 
 if __name__=="__main__":
+
+    RESULTS_DIRS = ["results/GreedyLinear/", "results/SoftmaxLinear/"]
+    LABELS = ["GreedyLinear", "SoftmaxLinear"]
+    PIC_DIR = "pics/All/"
     for i in range(10):
-        plot_game("results/GreedyLinear/", "pics/GreedyLinear/", i)
+
+        #EACH ONE OF THESE LINES PLOTS EACH ALGORITHM SEPARATELY.
+        #plot_game(["results/GreedyLinear/"], "pics/GreedyLinear/", ["GreedyLinear"], i)
+        #plot_game(["results/SoftmaxLinear/"], "pics/SoftmaxLinear/", ["SoftmaxLinear"], i)
+
+        #USE THIS FOR PLOTTING ALL TOGETHER (the ones specified in RESULTS_DIRS).
+        plot_game(RESULTS_DIRS, PIC_DIR, LABELS, i)
