@@ -57,7 +57,7 @@ def plot_res(data_mult, numLines, labels, ylabel, filename, show_plot, ylims=Non
         plot_error_bar(numLines, data)
 
     plt.legend(labels,
-               shadow=True, fancybox=True)
+               shadow=True, fancybox=True, loc=2)
 
     #Titles and labels
     #plt.title('Heuristic estimation: 8 routes')

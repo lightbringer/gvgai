@@ -530,7 +530,7 @@
 528 Result (1->win; 0->lose):0, Score:0.0, timesteps:1000
 529 Result (1->win; 0->lose):0, Score:0.0, timesteps:1000
 530 Result (1->win; 0->lose):0, Score:0.0, timesteps:1000
-531 Result (1->win; 0->lose):0, Score:0.0, timesteps:1000
+531 Result (1->win; 0->lose):0, Score:1.0, timesteps:1000
 532 Result (1->win; 0->lose):0, Score:0.0, timesteps:1000
 533 Result (1->win; 0->lose):0, Score:0.0, timesteps:1000
 534 Result (1->win; 0->lose):0, Score:0.0, timesteps:1000
@@ -934,7 +934,7 @@
 932 Result (1->win; 0->lose):0, Score:0.0, timesteps:1000
 933 Result (1->win; 0->lose):0, Score:0.0, timesteps:1000
 934 Result (1->win; 0->lose):0, Score:0.0, timesteps:1000
-935 Result (1->win; 0->lose):0, Score:0.0, timesteps:1000
+935 Result (1->win; 0->lose):0, Score:1.0, timesteps:1000
 936 Result (1->win; 0->lose):0, Score:0.0, timesteps:1000
 937 Result (1->win; 0->lose):0, Score:0.0, timesteps:1000
 938 Result (1->win; 0->lose):0, Score:0.0, timesteps:1000
