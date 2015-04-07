@@ -89,6 +89,10 @@ def get_data(input_dir, game_number):
 
     #1. This first loop calculates the data out of the raw output.
     for i in range(repeats):
+
+        if game_number==3 and i==19:
+            continue
+
         filename = input_dir + str(game_number) + "-" + str(i) + ".out"
         #print filename
         repeatWins = []
@@ -155,8 +159,8 @@ def plot_game(input_dirs, output_dir, labels, game_number, show_plot = False):
 
 if __name__=="__main__":
 
-    RESULTS_DIRS = ["results/GreedyLinear/", "results/SoftmaxLinear/"]
-    LABELS = ["GreedyLinear", "SoftmaxLinear"]
+    RESULTS_DIRS = ["results/GreedyLinear/", "results/SoftmaxLinear/", "results/GreedyNN/"]
+    LABELS = ["eGreedyLinear", "SoftmaxLinear", "eGreedyNN"]
     PIC_DIR = "pics/All/"
     for i in range(10):
 
