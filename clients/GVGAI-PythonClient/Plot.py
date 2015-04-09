@@ -159,8 +159,8 @@ def plot_game(input_dirs, output_dir, labels, game_number, show_plot = False):
 
 if __name__=="__main__":
 
-    RESULTS_DIRS = ["results/GreedyLinear/", "results/SoftmaxLinear/", "results/GreedyNN/"]
-    LABELS = ["eGreedyLinear", "SoftmaxLinear", "eGreedyNN"]
+    RESULTS_DIRS = ["results/GreedyLinear/", "results/SoftmaxLinear/", "results/GreedyNN/", "results/SoftmaxNN/"]
+    LABELS = ["eGreedyLinear", "SoftmaxLinear", "eGreedyNN", "SoftmaxNN"]
     PIC_DIR = "pics/All/"
     for i in range(10):
 
