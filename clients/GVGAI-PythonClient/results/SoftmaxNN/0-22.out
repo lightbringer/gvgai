@@ -978,4 +978,25 @@
 976 Result (1->win; 0->lose):0, Score:31.0, timesteps:325
 977 Result (1->win; 0->lose):1, Score:52.0, timesteps:601
 978 Result (1->win; 0->lose):0, Score:44.0, timesteps:892
-979 
+979 Result (1->win; 0->lose):0, Score:46.0, timesteps:1000
+980 Result (1->win; 0->lose):0, Score:40.0, timesteps:972
+981 Result (1->win; 0->lose):0, Score:35.0, timesteps:828
+982 Result (1->win; 0->lose):0, Score:43.0, timesteps:972
+983 Result (1->win; 0->lose):0, Score:31.0, timesteps:325
+984 Result (1->win; 0->lose):0, Score:35.0, timesteps:812
+985 Result (1->win; 0->lose):0, Score:31.0, timesteps:325
+986 Result (1->win; 0->lose):0, Score:44.0, timesteps:988
+987 Result (1->win; 0->lose):0, Score:31.0, timesteps:325
+988 Result (1->win; 0->lose):0, Score:31.0, timesteps:325
+989 Result (1->win; 0->lose):0, Score:44.0, timesteps:972
+990 Result (1->win; 0->lose):1, Score:42.0, timesteps:450
+991 Result (1->win; 0->lose):1, Score:53.0, timesteps:632
+992 Result (1->win; 0->lose):0, Score:31.0, timesteps:325
+993 Result (1->win; 0->lose):0, Score:31.0, timesteps:325
+994 Result (1->win; 0->lose):1, Score:49.0, timesteps:605
+995 Result (1->win; 0->lose):0, Score:31.0, timesteps:325
+996 Result (1->win; 0->lose):0, Score:31.0, timesteps:325
+997 Result (1->win; 0->lose):1, Score:47.0, timesteps:772
+998 Result (1->win; 0->lose):0, Score:27.0, timesteps:418
+999 Result (1->win; 0->lose):0, Score:38.0, timesteps:972
+1000 Result (1->win; 0->lose):0, Score:40.0, timesteps:1000

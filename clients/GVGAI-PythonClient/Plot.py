@@ -107,26 +107,33 @@ def get_data(input_dir, game_number):
         for row in csvReader:
             if row[0] != '' and len(row)>2:
 
-                nTrial = int(row[0])
+                try:
 
-                gameRes = row[3][-2:-1]
-                repeatWins.append(int(gameRes))
+                    nTrial = int(row[0])
 
-                gameScore = row[4].split(":")[1][0:-1]
-                repeatScores.append(float(gameScore))
+                    gameRes = row[3][-2:-1]
 
-                gameTimeSpent = row[5].split(":")[1][0:]
-                repeatTimespents.append(int(gameTimeSpent))
+                    repeatWins.append(int(gameRes))
 
-                if len(repeatWins) > AVOID_FIRST:
+                    gameScore = row[4].split(":")[1][0:-1]
+                    repeatScores.append(float(gameScore))
 
-                    acumAvgWins = np.average(repeatWins)
-                    acumAvgScore = np.average(repeatScores)
-                    acumAvgTimes = np.average(repeatTimespents)
+                    gameTimeSpent = row[5].split(":")[1][0:]
+                    repeatTimespents.append(int(gameTimeSpent))
 
-                    averageWinAtTrial[nTrial-AVOID_FIRST].append(acumAvgWins)
-                    averageScoresAtTrial[nTrial-AVOID_FIRST].append(acumAvgScore)
-                    averageTimesAtTrial[nTrial-AVOID_FIRST].append(acumAvgTimes)
+                    if len(repeatWins) > AVOID_FIRST:
+
+                        acumAvgWins = np.average(repeatWins)
+                        acumAvgScore = np.average(repeatScores)
+                        acumAvgTimes = np.average(repeatTimespents)
+
+                        averageWinAtTrial[nTrial-AVOID_FIRST].append(acumAvgWins)
+                        averageScoresAtTrial[nTrial-AVOID_FIRST].append(acumAvgScore)
+                        averageTimesAtTrial[nTrial-AVOID_FIRST].append(acumAvgTimes)
+
+                except:
+                    print "Ignoring expection in line", row
+                    pass
 
     return numLines, averageWinAtTrial, averageScoresAtTrial, averageTimesAtTrial
 
