@@ -45,7 +45,6 @@ General Video Game Playing (GVGP) allows for the fair evaluation of algorithms a
 
 \section{Introduction} \label{sec:intro}
 
-\cite{Perez2014}
 
 \todo[inline]{We have to say somewhere that this is the first time this is done for GVG}
 
@@ -85,9 +84,71 @@ This section describes the framework and games employed in this research.
 
 \subsection{The framework} \label{ssec:framework}
 
-The General Video Game Playing competition and framework (GVG-AI) is build upon VGDL (Video Game Description Language), a framework designed by Ebner et al.~\cite{Ebner2013} and developed by Tom Schaul~\cite{schaul2013pyvgdl} for GVGP in Python (\textit{py-vgdl}). In VGDL, \textit{objects} interact in a two-dimensional rectangular space, with associated coordinates, and the ability of interact (collide) with each other. VGDL defines an ontology that allows the generation of real-time games and levels with simple text files.
+The General Video Game Playing competition and framework (GVG-AI) is built on VGDL (Video Game Description Language), a framework designed by Ebner et al.~\cite{Ebner2013} and developed by Tom Schaul~\cite{schaul2013pyvgdl} for GVGP in Python (\textit{py-vgdl}). In VGDL, there are several \textit{objects} that interact in a two-dimensional rectangular space, with associated coordinates, with the possibility of moving and colliding with each other. VGDL defines an ontology that allows the generation of real-time games and levels with simple text files.
 
-The GVG-AI framework is a Java port of py-vgdl, re-engineered for the GVG-AI Competition by Perez et al.~\cite{Perez2015}, which exposes an interface that allows the implementation of controllers that must determine the actions of the player (also referred to as the \textit{avatar}). The framework provides a \textit{forward model} and information regarding the state of the game to the controllers. The VGDL definition of the game is, however, not provided, so it is the responsibility of the agent to determine the nature of the game and the actions needed to achieve victory. 
+The GVG-AI framework is a Java port of py-vgdl, re-engineered for the GVG-AI Competition by Perez et al.~\cite{Perez2015}, which exposes an interface that allows the implementation of controllers that must determine the actions of the player (also referred to as the \textit{avatar}). The VGDL definition of the game is \textbf{not} provided, so it is the responsibility of the agent to determine the nature of the game and the actions needed to achieve victory. 
+
+The original version of this framework provided a \textit{forward model}, that allowed the agent to simulate actions on the current state to devise the consequences of the available actions. In this case, the agents counted on $40ms$ of CPU time to decide an action on each game cycle. This version of the framework was employed by the organizers of the competition to run what is now called the ``planning track'' of the contest, celebrated on the Computational Intelligence in Games (CIG) conference in Dortmund (Germany) in 2014. A complete description of this competition, framework, rules, entries and results has been published in~\cite{Perez2015}.
+
+2015 will feature a new track for this competition, named ``learning track''. In this track, controllers do \textbf{not} have access to forward model, so they cannot foresee the states reached after applying any of the available actions of the game. In contrast, they will be offered with the possibility of playing the game many times, with the aim of allowing the agents to learn how to play each given game. 
+
+Information is given regarding the state of the game to the controllers, at three different stages: initialization, at each game step (\textit{act} call, called repeatedly, until the game is finished) and termination. Table~\ref{tab:inf} summarizes the information given to the agent and at which stages:
+
+
+\begin{table*}[!t]
+\begin{center}
+\begin{tabular}{|m{2.85cm}|m{5cm}|m{5.25cm}|m{0.4cm}|m{0.4cm}|m{0.4cm}|}
+%\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+\textbf{Information}  & \textbf{Description} & \textbf{Possible Values} &  \textbf{Init} &  \textbf{Act} &  \textbf{End} \\ 
+\hline
+\multicolumn{6}{|c|}{\textbf{Game Information}} \\
+\hline
+\textbf{Score} & Score of the game. & $[0 .. N] \in \mathbb{N}$ & \checkmark & \checkmark & \checkmark \\
+\hline
+\textbf{Game tick} & Current game tick. & $[0 .. 1000] \in \mathbb{N}$ & \checkmark & \checkmark & \checkmark \\
+\hline
+\textbf{Game winner} & Indicates the result of the game for the player. & $\left \{ won, lost, ongoing \right \}$ & \checkmark & \checkmark & \checkmark \\
+\hline
+\textbf{Is game over} & Indicates if the game is over. & $\left \{ true, false \right \}$ & \checkmark & \checkmark & \checkmark \\
+\hline
+\textbf{World's dimension (width)} & Width of the level (in pixels). & $[0 .. N] \in \mathbb{R}$ & \checkmark &  &   \\
+\hline
+\textbf{World's dimension (height)} & Height of the level (in pixels). & $[0 .. N] \in \mathbb{R}$ & \checkmark &  &   \\
+\hline
+\textbf{Block size (\textit{bs})} & Number of pixels each grid cell has. & $[0 .. N] \in \mathbb{N}$ & \checkmark &  &   \\
+\hline
+\multicolumn{6}{|c|}{\textbf{Actions Information}} \\
+\hline
+\textbf{Actions} & Available actions of the game. & A subset of $\left \{ nil, up, down, left, right, use \right \}$ & \checkmark &  &   \\
+\hline
+\multicolumn{6}{|c|}{\textbf{Avatar Information}} \\
+\hline
+\textbf{Avatar position ($x$)} & $x$ coordinate (in pixels) of the avatar's position. & $[0 .. N] \in \mathbb{R}$ & \checkmark &  \checkmark  & \checkmark  \\
+\hline
+\textbf{Avatar position ($y$)} & $y$ coordinate (in pixels) of the avatar's position. & $[0 .. N] \in \mathbb{R}$ & \checkmark & \checkmark & \checkmark  \\
+\hline
+\textbf{Avatar orientation ($x$)} & $x$ coordinate of the avatar's orientation. & $\left \{ -1, 0, 1 \right \}$ & \checkmark & \checkmark &  \checkmark \\
+\hline
+\textbf{Avatar orientation ($y$)} & $y$ coordinate of the avatar's orientation.. & $\left \{ -1, 0, 1 \right \}$ & \checkmark & \checkmark & \checkmark  \\
+\hline
+\textbf{Avatar speed} & Speed of the avatar (pixels/tick). & $[0 .. N] \in \mathbb{N}$ & \checkmark & \checkmark & \checkmark  \\
+\hline
+\textbf{Avatar last action} & Last action played by the avatar. & One of $\left \{ nil, up, down, left, right, use \right \}$  & \checkmark & \checkmark & \checkmark  \\
+\hline
+\textbf{Avatar resources} & Collections of pairs $<K,V>$, where $K$ is the type of resource and $V$ is the amount owned. & $\left \{ <K_1,V_1>, <K_2,V_2>, ... \right \}; K_i ,V_i \in \mathbb{N}$  & \checkmark & \checkmark & \checkmark  \\
+\hline
+\multicolumn{6}{|c|}{\textbf{Grid Information (for each type of sprite)}} \\
+\hline
+\textbf{Sprite type} & Sprite identifier.& $[0 .. N] \in \mathbb{N}$ & \checkmark & \checkmark & \checkmark  \\
+\hline
+\textbf{Grid Bitmap} & Presence array of the sprite type on the grid. \newline $1$ means presence, $0$ means absence. & Array $\left \{ 0, 1 \right \}$ of size $[width/bs, height/bs]$ & \checkmark & \checkmark & \checkmark  \\
+\hline
+\end{tabular}
+\caption{Information given to the controllers for action decision. The controller of the agent receives this information on the three different calls: \textit{Init} (at the beginning of the game), \textit{Act} (at every game cycle) and \textit{End} (when the game is over). Pieces of information only sent on the \textit{Init} call are constant throughout the game played.}
+\label{tab:inf}
+\end{center}
+\end{table*}
 
 
 \subsection{Games} \label{ssec:games}
@@ -123,7 +184,7 @@ The GVG-AI framework is a Java port of py-vgdl, re-engineered for the GVG-AI Com
 \textbf{Zelda} & The avatar must find a key in a maze to open a door and exit. The player is also equipped with a sword to kill enemies existing in the maze. The player wins if it exits the maze, and loses if it is hit by an enemy. & \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $2$ points for killing an enemy, $1$ for collecting the key, and another point for reaching the door with it. \item $-1$ point if the avatar is killed. \end{list} & LEFT, RIGHT, UP, DOWN, USE. \\
 \hline
 \end{tabular}
-\caption{Games in the training set of the GVGAI Competition, employed in the experiments of this paper.}
+\caption{Games in the training set of the GVGAI Competition, employed in the experiments of this paper. All games also include the possibility of using the NIL action.}
 \label{tab:games}
 \end{center}
 \end{table*}
