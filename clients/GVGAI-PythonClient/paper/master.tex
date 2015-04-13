@@ -46,7 +46,7 @@ General Video Game Playing (GVGP) allows for the fair evaluation of algorithms a
 
 \section{Introduction} \label{sec:intro}
 
-Learning how to act in unknown environments is often termed the ``Reinforcement Learning'' problem\cite{RL}. The problem encapsulates the core of artificial intelligence and has been studied widely under different contexts. Broadly speaking, an agents tries to maximize some long term notion of utility or reward by selecting appropriate actions at each state. Classic RL assumes that state can somehow be identified by the agent in a unique fashion, but it is often the case that function approximators are used to help with state spaces that cannot be enumerated. 
+Learning how to act in unknown environments is often termed the ``Reinforcement Learning'' problem~\cite{sutton1998introduction}. The problem encapsulates the core of artificial intelligence and has been studied widely under different contexts. Broadly speaking, an agents tries to maximize some long term notion of utility or reward by selecting appropriate actions at each state. Classic RL assumes that state can somehow be identified by the agent in a unique fashion, but it is often the case that function approximators are used to help with state spaces that cannot be enumerated. 
 
 A possible way of attacking the problem in the general sense is Neuroevolution (for an example use in games see ~\cite{stanley2005real}. Neuroevolution adapts the weights of a local or global function approximator (in the form of a neural network) in order to maximize reward. The appeal of neurovolution over traditional gradient-based Reinforcement kerning methods is three-fold. First, the gradient in RL problems might be unstable and/or hard to approximate, thus requiring extensive hyper-parameter tuning in order to get any performance. Secondly, the tournament-ranking schemes used by evolutionary approaches are robust to outliers, as they are effectively calculations of medians rather than means. Thirdly, classic RL algorithms (at least their critic-only versions~\cite{singh1994learning} can be greatly impacted by the lack of a perfect markov state. Sensor aliasing is a known and common problem in RL under function approximation. 
 
@@ -68,9 +68,9 @@ The paper is structured as follows: Section \ref{sec:lit} does a brief review of
 \section{Related Research} \label{sec:lit}
 While there has been considerable research in the topic of both Neuroevolution and General Game Playing (GGP). GGP~\cite{genesereth2005general} was initially mostly concerned with approaches that included access to a forward model, i.e. agents/players have the ability to predict the future to a certain extend and plan their actions, with domains that are more closely aligned to board games. Recently, a competition termed ``The general video game playing competition''~\cite{Perez2015} has focused on similar problems, but this time in the real-time game domain. The competition provided the competitors with internal models they could sample from (but not access to specific future event probabilities), while limiting the amount of ``thinking'' time provided for an agent to 40ms (imposing an-almost-real-time constraint). 
 
-There has also been considerable effort in learning how to play games in a generic fashion outside competitions,  using the Atari framework~\cite{13jair-ale}, which provides a multitude of games for testing. The games where attacked recently~\cite{mnih2015human} using a combination of neural networks and Q-learning with experience replay. The method was widely seen as a success (though it could still not outperform humans in all games). The method operates on a pixel level and requires a significant amount of training, but the results achieved when successful are really good. 
+There has also been considerable effort in learning how to play games in a generic fashion outside competitions,  using the Atari framework~\cite{13jair}, which provides a multitude of games for testing. The games where attacked recently~\cite{mnih2015human} using a combination of neural networks and Q-learning with experience replay. The method was widely seen as a success (though it could still not outperform humans in all games). The method operates on a pixel level and requires a significant amount of training, but the results achieved when successful are really good. 
 
-Neuroevolution has been used for real time video games~cite{stanley2005real},  General Game Playing see~\cite{reisinger2007coevolving} and playing Atari games~\cite{hausknecht2012hyperneat}, with varying degrees of success.
+Neuroevolution has been used for real time video games~\cite{stanley2005real},  General Game Playing see~\cite{reisinger2007coevolving} and playing Atari games~\cite{hausknecht2012hyperneat}, with varying degrees of success.
 
 
 
@@ -87,7 +87,7 @@ The original version of this framework provided a \textit{forward model}, that a
 
 2015 will feature a new track for this competition, named ``learning track''. In this track, controllers do \textbf{not} have access to forward model, so they cannot foresee the states reached after applying any of the available actions of the game. In contrast, they will be offered with the possibility of playing the game many times, with the aim of allowing the agents to learn how to play each given game. 
 
-Information is given regarding the state of the game to the controllers, at three different stages: initialization, at each game step (\textit{act} call, called repeatedly, until the game is finished) and termination. Table~\ref{tab:inf} summarizes the information given to the agent and at which stages:
+Information is given regarding the state of the game to the controllers, at three different stages: initialization, at each game step (\textit{act} call, called repeatedly, until the game is finished) and termination. Table~\ref{tab:inf} summarizes the information given to the agent and at which stages this is passed.
 
 
 \begin{table*}[!t]
@@ -148,51 +148,101 @@ Information is given regarding the state of the game to the controllers, at thre
 
 \subsection{Games} \label{ssec:games}
 
-\todo[inline]{Games description}
+The games employed for this research are the ones from the training set of the GVG-AI competition. Table~\ref{tab:games} describes each one of these games in detail. In order to show the diversity of these games, Table~\ref{tab:gamesComparative} shows the features of each one of them. 
 
-\todo[inline]{The table with the games is exactly the same...}
 
 \begin{table*}[!t]
 \begin{center}
-\begin{tabular}{|m{1.4cm}|m{8cm}|m{5cm}|m{1cm}|}
+\begin{tabular}{|m{1.4cm}|m{8cm}|m{6cm}|}
 \hline
-\textbf{Game}  & \textbf{Description} & \textbf{Score} &  \textbf{Actions} \\ 
+\textbf{Game}  & \textbf{Description} & \textbf{Score} \\ 
 \hline
-\textbf{Aliens} & Similar to traditional Space Invaders, Aliens features the player (avatar) in the bottom of the screen, shooting upwards at aliens that approach Earth, who also shoot back at the avatar. The player loses if any alien touches it, and wins if all aliens are eliminated. & \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $1$ point is awarded for each alien or protective structure destroyed by the avatar. \item $-1$ point is given if the player is hit. \end{list}  & LEFT, RIGHT, USE.\\
+\textbf{Aliens} & Similar to traditional Space Invaders, Aliens features the player (avatar) in the bottom of the screen, shooting upwards at aliens that approach Earth, who also shoot back at the avatar. The player loses if any alien touches it, and wins if all aliens are eliminated. & \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $1$ point is awarded for each alien or protective structure destroyed by the avatar. \item $-1$ point is given if the player is hit. \end{list} \\
 \hline
-\textbf{Boulderdash} & The avatar must dig in a cave to find at least $10$ diamonds, with the aid of a shovel, before exiting through a door. Some heavy rocks may fall while digging, killing the player if it is hit from above. There are enemies in the cave that might kill the player, but if two different enemies collide, a new diamond is spawned.& \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $2$ points are awarded for each diamond collected, and $1$ point every time a new diamond is spawned. \item $-1$ point is given if the avatar is killed by a rock or an enemy. \end{list} & LEFT, RIGHT, UP, DOWN, USE.\\
+\textbf{Boulderdash} & The avatar must dig in a cave to find at least $10$ diamonds, with the aid of a shovel, before exiting through a door. Some heavy rocks may fall while digging, killing the player if it is hit from above. There are enemies in the cave that might kill the player, but if two different enemies collide, a new diamond is spawned.& \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $2$ points are awarded for each diamond collected, and $1$ point every time a new diamond is spawned. \item $-1$ point is given if the avatar is killed by a rock or an enemy. \end{list} \\
 \hline
-\textbf{Butterflies} & The avatar must capture butterflies that move randomly around the level. If a butterfly touches a cocoon, more butterflies are spawned. The player wins if it collects all butterflies, but loses if all cocoons are opened. & \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $2$ points are awarded for each butterfly captured. \end{list} & LEFT, RIGHT, UP, DOWN.\\
+\textbf{Butterflies} & The avatar must capture butterflies that move randomly around the level. If a butterfly touches a cocoon, more butterflies are spawned. The player wins if it collects all butterflies, but loses if all cocoons are opened. & \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $2$ points are awarded for each butterfly captured. \end{list} \\
 \hline
-\textbf{Chase} & The avatar must chase and kill scared goats that flee from the player. If a goat finds another goat's corpse, it becomes angry and chases the player. The player wins if all scared goats are dead, but it loses if is hit by an angry goat. & \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $1$ point for killing a goat. \item $-1$ point for being hit by an angry goat. \end{list} & LEFT, RIGHT, UP, DOWN.\\
+\textbf{Chase} & The avatar must chase and kill scared goats that flee from the player. If a goat finds another goat's corpse, it becomes angry and chases the player. The player wins if all scared goats are dead, but it loses if is hit by an angry goat. & \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $1$ point for killing a goat. \item $-1$ point for being hit by an angry goat. \end{list} \\
 \hline
-\textbf{Frogs} & The avatar is a frog that must cross a road, full of tracks, and a river, only traversable by logs, to reach a goal.  The player wins if the goal is reached, but loses if it is hit by a truck or falls into the water. & \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $1$ point for reaching the goal. \item $-2$ points for being hit by a truck. \end{list} &  LEFT, RIGHT, UP, DOWN. \\
+\textbf{Frogs} & The avatar is a frog that must cross a road, full of tracks, and a river, only traversable by logs, to reach a goal.  The player wins if the goal is reached, but loses if it is hit by a truck or falls into the water. & \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $1$ point for reaching the goal. \item $-2$ points for being hit by a truck. \end{list} \\
 \hline
-\textbf{Missile Command} & The avatar must shoot at several missiles that fall from the sky, before they reach the cities they are directed towards. The player wins if it is able to save at least one city, and loses if all cities are hit. &  \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $2$ points are given for destroying a missile. \item $-1$ point for each city hit. \end{list} & LEFT, RIGHT, UP, DOWN, USE.\\
+\textbf{Missile Command} & The avatar must shoot at several missiles that fall from the sky, before they reach the cities they are directed towards. The player wins if it is able to save at least one city, and loses if all cities are hit. &  \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $2$ points are given for destroying a missile. \item $-1$ point for each city hit. \end{list} \\
 \hline
-\textbf{Portals} & The avatar must find the goal while avoiding lasers that kill him. There are many portals that teleport the player from one location to another. The player wins if the goal is reached, and loses if killed by a laser.& \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $1$ point is given for reaching the goal. \end{list} & LEFT, RIGHT, UP, DOWN.\\
+\textbf{Portals} & The avatar must find the goal while avoiding lasers that kill him. There are many portals that teleport the player from one location to another. The player wins if the goal is reached, and loses if killed by a laser.& \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $1$ point is given for reaching the goal. \end{list} \\
 \hline
-\textbf{Sokoban} & The avatar must push boxes so they fall into holes. The player wins if all boxes are made to disappear, and loses when the timer runs out. & \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $1$ point is given for each box pushed into a hole. \end{list} & LEFT, RIGHT, UP, DOWN.\\
+\textbf{Sokoban} & The avatar must push boxes so they fall into holes. The player wins if all boxes are made to disappear, and loses when the timer runs out. & \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $1$ point is given for each box pushed into a hole. \end{list} \\
 \hline
-\textbf{Survive Zombies} & The avatar must stay alive while being attacked by spawned zombies. It may collect honey, dropped by bees, in order to avoid being killed by zombies. The player wins if the timer runs out, and loses if hit by a zombie while having no honey (otherwise, the zombie dies).& \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $1$ point is given for collecting one piece of honey, and also for killing a zombie. \item $-1$ point if the avatar is killed, or it falls into the zombie spawn point. \end{list} & LEFT, RIGHT, UP, DOWN.\\
+\textbf{Survive Zombies} & The avatar must stay alive while being attacked by spawned zombies. It may collect honey, dropped by bees, in order to avoid being killed by zombies. The player wins if the timer runs out, and loses if hit by a zombie while having no honey (otherwise, the zombie dies).& \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $1$ point is given for collecting one piece of honey, and also for killing a zombie. \item $-1$ point if the avatar is killed, or it falls into the zombie spawn point. \end{list} \\
 \hline
-\textbf{Zelda} & The avatar must find a key in a maze to open a door and exit. The player is also equipped with a sword to kill enemies existing in the maze. The player wins if it exits the maze, and loses if it is hit by an enemy. & \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $2$ points for killing an enemy, $1$ for collecting the key, and another point for reaching the door with it. \item $-1$ point if the avatar is killed. \end{list} & LEFT, RIGHT, UP, DOWN, USE. \\
+\textbf{Zelda} & The avatar must find a key in a maze to open a door and exit. The player is also equipped with a sword to kill enemies existing in the maze. The player wins if it exits the maze, and loses if it is hit by an enemy. & \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $2$ points for killing an enemy, $1$ for collecting the key, and another point for reaching the door with it. \item $-1$ point if the avatar is killed. \end{list} \\
 \hline
 \end{tabular}
-\caption{Games in the training set of the GVGAI Competition, employed in the experiments of this paper. All games also include the possibility of using the NIL action.}
+\caption{Games in the training set of the GVGAI Competition, employed in the experiments of this paper.}
 \label{tab:games}
 \end{center}
 \end{table*}
 
+
+\begin{table*}[!t]
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\multirow{2}{*}{\textbf{Game}} & \multirow{2}{*}{\textbf{Score System}} & \multicolumn{3}{c|}{\textbf{NPC Types}} & \multirow{2}{*}{\textbf{Resouces}} & \multicolumn{3}{c|}{\textbf{Terminations}} & \multirow{2}{*}{\textbf{Action Set}}\\ 
+\cline{3-5}
+ \cline{7-9}
+ &  &  Friendly & Enemies & $>1$ type & & Counters & Exit Door & Timeout & \\
+ 
+\hline
+\hline
+\textbf{Aliens} & I &  & \checkmark &  &  & \checkmark &  & & A2\\
+\hline
+\textbf{Boulderdash} & I  &  & \checkmark & \checkmark & \checkmark &  & \checkmark & & A0\\
+\hline
+\textbf{Butterflies} & I & \checkmark &  &  &  & \checkmark &  & & A1\\
+\hline
+\textbf{Chase} & I & \checkmark & \checkmark &  &  & \checkmark &  & & A1\\
+\hline
+\textbf{Frogs} & B  &  &  &  &  &  & \checkmark & & A1\\
+\hline
+\textbf{Missile Command} & I  &  & \checkmark &  &  & \checkmark &  & & A0\\
+\hline
+\textbf{Portals} & B  &  &  &  &  &  & \checkmark & & A1\\
+\hline
+\textbf{Sokoban} & I  &  &  &  &  & \checkmark &  & & A1\\
+\hline
+\textbf{Survive Zombies} & I  & \checkmark & \checkmark &  & \checkmark &  &  & \checkmark & A1\\
+\hline
+\textbf{Zelda} & I &  & \checkmark &  & \checkmark &  & \checkmark &  & A0\\
+\hline
+\end{tabular}
+\caption{Games feature comparative. All games of the competition are listed, divided into the $3$ game sets: training (first $10$), validation (next $10$) and test (last $10$). Legend: I: Incremental; B: Binary; D:Discontinuous; A0: All moves; A1: Only directional; A2: Left, right and use. Check Section~\ref{ssec:games} for a full description of the meaning of all terms in this table.}
+\label{tab:gamesComparative}
+\end{center}
+\end{table*}
+
+
+In this table, the \texttt{Score System} indicates how the reward is given to the avatar by means of a numeric score. This system can be either \textbf{binary} (B) or \textbf{incremental} (I). In the former case, the score of the game will always be $0$ until victory is achieved, when the reward will become $1$. In the latter scenario, points are regularly awarded throughout the course of the game.
+
+The second column, \texttt{NPC Types}, indicates the sort of other moving entities that can be found in the game. \textit{Friendly} refers to those Non Player Characters (NPC) that do not harm the player, whereas \textit{Enemies} refer to those NPCs that pose some hazard in the game. Additionally, one game also features more than one type of enemies (\textit{Boulderdash}).
+
+\texttt{Resources} indicates if the game contains sprites that can be picked up by the player or not, and \texttt{Terminations} relate to how the game can end. A game can finish either by creating or destroying one or more sprites of a given type (column \textit{Counters}), reaching a goal (\textit{Exit Door}) or when a timer runs out (\textit{Timeout}). Independently, all games can finish eventually (with a loss) it the maximum number of game steps that can be played, set to $1000$ for all games, is reached. This limit is introduced in order to avoid degenerate players from never finishing the game.
+
+Finally, each one of these games provides a different set of available actions to the player. Those games labelled in Table~\ref{tab:gamesComparative} as $a0$ provide the complete set of actions ($\left \{ nil, up, down, left, right, use \right \}$). $A1$ games are those where the actions are only directional (this is, the complete set without the $use$ action). Finally, $A2$ indicates the subset composed by $\left \{ nil, left, right, use \right \}$.
+
+It is worthwhile highlighting that the variety of these games poses a serious hazard to the playing agents. The learning algorithm needs to learn how the game has to be played in order to achieve victory and maximize score. It is important to realize that the description of the game is not passed to the agent at any time, thus the only way the agent can learn how to play the game is to analyze the game state (maybe by extracting features) and build relations between the observations and the games played.
+
+Of course, one could try to identify the game that is being played and act consequently. However, this is of a limited research interest, as the long term objective is to find agents that can learn any game (rather than building an agent that uses a database of known games, heuristically prepared to play these).  Figure~\ref{fig:games} shows screenshots of four of the games employed in this research.
+
 \todo[inline]{Maybe I can put a different picture here, not to be repetitive with last CIG.}
 
-% \begin{figure*}[!t]
-% \begin{center}
-% \includegraphics[width=1.8\columnwidth]{img/games}
-% \end{center}
-% \caption{Four of the ten training set games: from top to bottom, left to right, \textit{Boulderdash}, \textit{Survive Zombies}, \textit{Aliens} and \textit{Frogs}.}
-% \label{fig:games}
-% \end{figure*}
+\begin{figure*}[!t]
+\begin{center}
+\includegraphics[width=1.8\columnwidth]{img/games}
+\end{center}
+\caption{Four of the ten training set games: from top to bottom, left to right, \textit{Butterflies}, \textit{Portals}, \textit{Sokoban} and \textit{Zelda}.}
+\label{fig:games}
+\end{figure*}
 
 
 
@@ -212,10 +262,39 @@ Information is given regarding the state of the game to the controllers, at thre
 \todo[inline]{Everything took so long}
 
 
+\begin{figure*}[ht]
+	\begin{center}
+%	\vspace{-3mm}
+	\includegraphics[width = .36\textwidth]{img/aliens_scores}
+	\includegraphics[width = .36\textwidth]{img/boulderdash_scores}\\
+	\vspace{-3.5mm}
+	\includegraphics[width = .36\textwidth]{img/butterflies_scores}
+	\includegraphics[width = .36\textwidth]{img/chase_scores}\\
+
+	\vspace{-3.5mm}
+	\includegraphics[width = .36\textwidth]{img/frogs_scores}
+	\includegraphics[width = .36\textwidth]{img/missilecommand_scores}\\
+
+	\vspace{-3.5mm}
+	\includegraphics[width = .36\textwidth]{img/portals_scores}
+	\includegraphics[width = .36\textwidth]{img/sokoban_scores}\\
+
+	\vspace{-3.5mm}
+	\includegraphics[width = .36\textwidth]{img/survivezombies_scores}
+	\includegraphics[width = .36\textwidth]{img/zelda_scores}\\
+
+	\vspace{-1mm}
+	\caption{Progression of the average score during $1000$ trials. Horizontal axis denotes the trial, while vertical axis shows the average score. Shadowed area indicates the standard error of the measure.}
+	\label{fig:breakdown}
+	\end{center}
+\end{figure*}
+
 
 \section{Conclusions} \label{sec:conc}
 
 \todo[inline]{Everything is so pretty}
+
+\todo[inline]{Future work: deeper NN, EA, More games. Learn to play in different levels.}
 
 % use section* for acknowledgement
  
