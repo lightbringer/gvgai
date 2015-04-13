@@ -13,8 +13,9 @@ import os
 games = ["aliens", "boulderdash", "butterflies", "chase", "frogs",
          "missilecommand", "portals", "sokoban", "survivezombies", "zelda"]
 
+locs = [4, 2, 4, 2, 4, 2, 4, 1, 4, 2]
 
-def errorfill(x, y, yerr, color=None, alpha_fill=0.3, ax=None):
+def errorfill(x, y, yerr, ls, color=None, alpha_fill=0.3, ax=None):
     ax = ax if ax is not None else plt.gca()
     if color is None:
         color = ax._get_lines.color_cycle.next()
@@ -24,13 +25,13 @@ def errorfill(x, y, yerr, color=None, alpha_fill=0.3, ax=None):
     elif len(yerr) == 2:
         ymin, ymax = yerr
 
-    ax.plot(x, y, color=color)
+    ax.plot(x, y, linestyle=ls, color=color)
     #print ymin
     #print y
     #print ymax
     ax.fill_between(x, ymax, ymin, color=color, alpha=alpha_fill)
 
-def plot_error_bar(numLines, data):
+def plot_error_bar(numLines, ls, data):
     #All data we need is in avarage*AtTrial. Calculate averages for each repeat, stddev and stderr
     averages = []
     std_dev = []
@@ -42,10 +43,10 @@ def plot_error_bar(numLines, data):
         std_err.append(stdev / np.sqrt(numLines))
 
 
-    errorfill(range(numLines), averages, std_err)
+    errorfill(range(numLines), averages, std_err, ls)
 
 
-def plot_res(data_mult, numLines, labels, ylabel, filename, show_plot, ylims=None):
+def plot_res(data_mult, numLines, labels, ls, loc, ylabel, filename, show_plot, ylims=None):
 
     #Create a figure
     fig = pylab.figure()
@@ -53,11 +54,13 @@ def plot_res(data_mult, numLines, labels, ylabel, filename, show_plot, ylims=Non
     #Add a subplot (Grid of plots 1x1, adding plot 1)
     ax = fig.add_subplot(111)
 
+    ls_idx = 0
     for data in data_mult:
-        plot_error_bar(numLines, data)
+        plot_error_bar(numLines, ls[ls_idx], data)
+        ls_idx+=1
 
     plt.legend(labels,
-               shadow=True, fancybox=True, loc=2)
+               shadow=True, fancybox=True, loc=loc)
 
     #Titles and labels
     #plt.title('Heuristic estimation: 8 routes')
@@ -138,7 +141,7 @@ def get_data(input_dir, game_number):
     return numLines, averageWinAtTrial, averageScoresAtTrial, averageTimesAtTrial
 
 
-def plot_game(input_dirs, output_dir, labels, game_number, show_plot = False):
+def plot_game(input_dirs, output_dir, labels, ls, game_number, show_plot = False):
 
     minNumLines = 10000
     all_wins = []
@@ -154,11 +157,11 @@ def plot_game(input_dirs, output_dir, labels, game_number, show_plot = False):
         if numLines < minNumLines:
             minNumLines = numLines
 
+    loc = locs[game_number]
 
-
-    plot_res(all_wins, minNumLines, labels, "Average number of victories", output_dir+str(games[game_number])+"_wins.pdf", show_plot, [-0.2,1.2])
-    plot_res(all_scores, minNumLines, labels, "Average score", output_dir+str(games[game_number])+"_scores.pdf", show_plot)
-    plot_res(all_times, minNumLines, labels, "Average time spent", output_dir+str(games[game_number])+"_times.pdf", show_plot, [0,1100])
+    plot_res(all_wins, minNumLines, labels, ls, loc, "Average number of victories", output_dir+str(games[game_number])+"_wins.pdf", show_plot, [-0.2,1.2])
+    plot_res(all_scores, minNumLines, labels, ls, loc, "Average score", output_dir+str(games[game_number])+"_scores.pdf", show_plot)
+    plot_res(all_times, minNumLines, labels, ls, loc, "Average time spent", output_dir+str(games[game_number])+"_times.pdf", show_plot, [0,1100])
 
 
 
@@ -168,6 +171,7 @@ if __name__=="__main__":
 
     RESULTS_DIRS = ["results/GreedyLinear/", "results/SoftmaxLinear/", "results/GreedyNN/", "results/SoftmaxNN/"]
     LABELS = ["eGreedyLinear", "SoftmaxLinear", "eGreedyNN", "SoftmaxNN"]
+    LS = ['-','--','-.',':']
     PIC_DIR = "pics/All/"
     for i in range(10):
 
@@ -176,4 +180,4 @@ if __name__=="__main__":
         #plot_game(["results/SoftmaxLinear/"], "pics/SoftmaxLinear/", ["SoftmaxLinear"], i)
 
         #USE THIS FOR PLOTTING ALL TOGETHER (the ones specified in RESULTS_DIRS).
-        plot_game(RESULTS_DIRS, PIC_DIR, LABELS, i)
+        plot_game(RESULTS_DIRS, PIC_DIR, LABELS, LS, i)
