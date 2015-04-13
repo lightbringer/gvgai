@@ -38,48 +38,43 @@ ssamot@essex.ac.uk, dperez@essex.ac.uk, sml@essex.ac.uk}
 
 \begin{abstract}
 %\boldmath
-General Video Game Playing (GVGP) allows for the fair evaluation of algorithms and agents, as it minimiz es the ability of an agent to exploit apriori knowledge in the form of game specific heuristics. In this paper we compare four different, but straightforward, evolutionary algorithms in the new learning stream of the GVGP competition. We show that "crappy results"
+General Video Game Playing (GVGP) allows for the fair evaluation of algorithms and agents, as it minimizes the ability of an agent to exploit apriori knowledge in the form of game specific heuristics. In this paper we compare four possible combinations of evolutionary learning, using Separable Natural Evolution Strategies as our evolutionary algorithm of choice; linear function approximation with softmax search and e-greedy policies and neural networks with the same policies. We show \todo[inline]{Diego put results}
+
 \end{abstract}
 
 \IEEEpeerreviewmaketitle
 
 \section{Introduction} \label{sec:intro}
 
+Learning how to act in unknown environments is often termed the ``Reinforcement Learning'' problem\cite{RL}. The problem encapsulates the core of artificial intelligence and has been studied widely under different contexts. Broadly speaking, an agents tries to maximize some long term notion of utility or reward by selecting appropriate actions at each state. Classic RL assumes that state can somehow be identified by the agent in a unique fashion, but it is often the case that function approximators are used to help with state spaces that cannot be enumerated. 
 
-\todo[inline]{We have to say somewhere that this is the first time this is done for GVG}
+A possible way of attacking the problem in the general sense is Neuroevolution (for an example use in games see ~\cite{stanley2005real}. Neuroevolution adapts the weights of a local or global function approximator (in the form of a neural network) in order to maximize reward. The appeal of neurovolution over traditional gradient-based Reinforcement kerning methods is three-fold. First, the gradient in RL problems might be unstable and/or hard to approximate, thus requiring extensive hyper-parameter tuning in order to get any performance. Secondly, the tournament-ranking schemes used by evolutionary approaches are robust to outliers, as they are effectively calculations of medians rather than means. Thirdly, classic RL algorithms (at least their critic-only versions~\cite{singh1994learning} can be greatly impacted by the lack of a perfect markov state. Sensor aliasing is a known and common problem in RL under function approximation. 
 
-\todo[inline]{I'm not sure if this is up to date with the experiments actually run}
+On the other hand the lack of direct gradient information limits the possible size of the parameters of the function approximator to be evolved. If provided with the correct setup and hyperparameters, RL algorithms might be able to perform at superhuman level in a number of hard problems. In practical terms, research into RL has often been coupled with the use of strong heuristics. General Game Playing allows for completely arbitrary games, making the easy application of temporal based methods non-trivial. On the other hand, modern evolutionary algorithms require minimum fine-tuning and can help greatly with providing a quick baseline. In this paper we perform experiments using evolutionary algorithms to learn actors in the following setup. 
 
-Learning how to act in unknown environments is often termed the ``Reinforcement Learning'' problem\cite{RL}. The problem encapsulates the core of artificial intelligence and has been studied widely under different contexts. Broadly speaking, an agents tries to maximize some long term notion of utility or reward by selecting appropriate actions at each state. Classic RL assumes that state can somehow be identified by the agent in a unique fashion (i.e. the environment has the Markov Property). 
-
-A possible way of attacking the problem in the general sense Neuroevolution\cite{neurocrap}. Neuroevolution adapts adapts the weights of a local or global function approximator (in the form of a neural network) in order to maximize reward. The appeal of neurovolution over traditional gradient-based Reinforcement kerning methods is two fold. First, the gradient in RL problems might be unstable and/or hard to approximate, thus requiring extensive hyper-parameter tuning in order to get any performance. Secondly, the tournament-ranking schemes used by evolutionary approaches are robust to outliers, as they are effectively calculations of medians rather than means. Thirdly, classic RL algorithms (at least their critic-only versions~\cite{jakollacrap} can be greatly impacted by the lack of a perfect markov state. Sensor aliasing is a known and common problem in RL under function approximation. 
-
-On the other hand the lack of direct gradient information limits the possible size of the parameters of the function approximator to be evolved. If provided with the correct setup and hyperparameters, RL algorithms might be able to perform at superhuman level in a number of hard problems. 
-
-In practical terms, research into RL has often been coupled with the use of strong heuristics. General Game Playing allows for completely arbitrary games, making the easy application of temporal based methods non-trivial. On the other hand, modern evolutionary algorithms require minimum fine-tuning and can help greatly with providing a great baseline. In this paper we perform experiments using evolutionary algorithms to learn actors in the following setup. 
+Among evolutionary algorithms, for problems with continuous state variables,  a simple yet robust algorithm is Separable Natural Evolution Strategies (S-NES)~\cite{schaul2011high}. Coupling the algorithm with different policy schemes and different approximators yields the experimental substrate of this article: 
 
 \begin{itemize}
-\item CMA-ES using e-greedy policy and linear function approximator 
-\item CMA-ES using e-gredy policy and neural network
-\item CMA-ES using softmax policy and a linear function approximator
-\item CMA-ES using softmax policy and a neural network
+\item S-NES using e-greedy policy and linear function approximator 
+\item S-NES using e-gredy policy and neural network
+\item S-NES using softmax policy and a linear function approximator
+\item S-NES using softmax policy and a neural network
 \end{itemize}
 
-We will see specifics of this setup later. In order to make this research easy to replicate and interesting in its own right, the environmental substrate is provided by a the new track of the General Game Playing AI Competition. We evaluate our players in this setup. 
+We will see specifics of this setup in later sections. In order to make this research easy to replicate and interesting in its own right, the environmental substrate is provided by a the new track of the General Game Playing AI Competition. We evaluate our players in this setup. 
 
-
-The paper is structured as follows: blah
+The paper is structured as follows: Section \ref{sec:lit} does a brief review of the current state of the art in General Game Playing. Section ~\ref{sec:framework} describes the framework used in this paper for evaluating games. We describe the algorithms used in Section~\ref{sec:fastEvo}, while in Section~\ref{sec:exp} we present the experimental results. We conclude with a small discussion in Section~\ref{sec:conc}. 
  
 \section{Related Research} \label{sec:lit}
+While there has been considerable research in the topic of both Neuroevolution and General Game Playing (GGP). GGP~\cite{genesereth2005general} was initially mostly concerned with approaches that included access to a forward model, i.e. agents/players have the ability to predict the future to a certain extend and plan their actions, with domains that are more closely aligned to board games. Recently, a competition termed ``The general video game playing competition''~\cite{Perez2015} has focused on similar problems, but this time in the real-time game domain. The competition provided the competitors with internal models they could sample from (but not access to specific future event probabilities), while limiting the amount of ``thinking'' time provided for an agent to 40ms (imposing an-almost-real-time constraint). 
+
+There has also been considerable effort in learning how to play games in a generic fashion outside competitions,  using the Atari framework~\cite{13jair-ale}, which provides a multitude of games for testing. The games where attacked recently~\cite{mnih2015human} using a combination of neural networks and Q-learning with experience replay. The method was widely seen as a success (though it could still not outperform humans in all games). The method operates on a pixel level and requires a significant amount of training, but the results achieved when successful are really good. 
+
+Neuroevolution has been used for real time video games~cite{stanley2005real},  General Game Playing see~\cite{reisinger2007coevolving} and playing Atari games~\cite{hausknecht2012hyperneat}, with varying degrees of success.
 
 
-\todo[inline]{Everything is so well documented}
-
-\todo[inline]{Include here definitions of GGP, GVGP, first attempts. Also GVGAI competition with the planning track (2014)}
 
 \section{The GVGAI Framework} \label{sec:framework}
-
-This section describes the framework and games employed in this research.
 
 
 \subsection{The framework} \label{ssec:framework}
