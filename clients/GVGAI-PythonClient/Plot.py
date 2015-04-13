@@ -160,7 +160,7 @@ def plot_game(input_dirs, output_dir, labels, ls, game_number, show_plot = False
     loc = locs[game_number]
 
     plot_res(all_wins, minNumLines, labels, ls, loc, "Average number of victories", output_dir+str(games[game_number])+"_wins.pdf", show_plot, [-0.2,1.2])
-    plot_res(all_scores, minNumLines, labels, ls, loc, "Average score", output_dir+str(games[game_number])+"_scores.pdf", show_plot)
+    plot_res(all_scores, minNumLines, labels, ls, loc, "Average score on " + games[game_number], output_dir+str(games[game_number])+"_scores.pdf", show_plot)
     plot_res(all_times, minNumLines, labels, ls, loc, "Average time spent", output_dir+str(games[game_number])+"_times.pdf", show_plot, [0,1100])
 
 

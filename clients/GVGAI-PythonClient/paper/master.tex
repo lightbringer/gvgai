@@ -234,8 +234,6 @@ It is worthwhile highlighting that the variety of these games poses a serious ha
 
 Of course, one could try to identify the game that is being played and act consequently. However, this is of a limited research interest, as the long term objective is to find agents that can learn any game (rather than building an agent that uses a database of known games, heuristically prepared to play these).  Figure~\ref{fig:games} shows screenshots of four of the games employed in this research.
 
-\todo[inline]{Maybe I can put a different picture here, not to be repetitive with last CIG.}
-
 \begin{figure*}[!t]
 \begin{center}
 \includegraphics[width=1.8\columnwidth]{img/games}
@@ -247,20 +245,19 @@ Of course, one could try to identify the game that is being played and act conse
 
 
 
-\section{Background} \label{sec:fastEvo}
+\section{Background} \label{sec:background}
 
 \todo[inline]{Everything is so powerful}
 
 
-\subsection{Approaches} \label{sec:fastEvoMem}
+\section{Approaches} \label{sec:approaches}
 
 \todo[inline]{Everything is so cool}
 
 
 \section{Experiments} \label{sec:exp}
 
-\todo[inline]{Everything took so long}
-
+The algorithms proposed in the previous section have been tested in the games described previously in Section~\ref{ssec:games}. For each one of the $10$ present games, the first available level has been used for a learning process where each algorithm played $1000$ consecutive times. For each game, $50$ experiments where run, and the average of the progression of the score is plotted in Figure~\ref{fig:results}. 
 
 \begin{figure*}[ht]
 	\begin{center}
@@ -285,9 +282,21 @@ Of course, one could try to identify the game that is being played and act conse
 
 	\vspace{-1mm}
 	\caption{Progression of the average score during $1000$ trials. Horizontal axis denotes the trial, while vertical axis shows the average score. Shadowed area indicates the standard error of the measure.}
-	\label{fig:breakdown}
+	\label{fig:results}
 	\end{center}
 \end{figure*}
+
+This figure shows the average of score, including the standard error (shadowed area), as it progresses with the number of matches, for each one of the games played.
+
+Things to comment:
+
+no clear winner, depends on the game.
+
+they are grouped sometimes: either green and blue (softmax) or darkblue and red (eGreedy)
+
+sometimes nothing works, no improvement: happens in Binary score system (portals and sokoban)
+
+in some games there is steep improvement towards the end, it's possible that more trials would give better results.
 
 
 \section{Conclusions} \label{sec:conc}
