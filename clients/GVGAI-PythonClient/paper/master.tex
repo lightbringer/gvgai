@@ -310,20 +310,17 @@ The algorithms proposed in the previous section have been tested in the games de
 	\end{center}
 \end{figure*}
 
-This figure shows the average of score, including the standard error (shadowed area), as it progresses with the number of matches, for each one of the games played.
+This figure shows the average of score, including the standard error (shadowed area), as it progresses with the number of matches, for each one of the games played. The first aspect to realize is that learning can be appreciated in $8$ out of the $10$ games employed in the experimental study. It is not possible to declare any of the algorithms as an overall best option, as it general depends on the game played. 
 
-The first aspect to realize is that learning can be appreciated in $8$ out of the $10$ games employed in the experimental study. The exceptions are \textit{Portals} (where the score is $0$ through the whole process) and \textit{Sokoban} 
+It seems clear that in some games (such as \textit{Aliens}, \textit{MissileCommand} or \textit{SurviveZombies}) the algorithms with an $\epsilon$-\textit{greedy} policy learn better, while in others (such as \textit{Frogs} or \textit{Zelda}) it is the algorithms with a \textit{Softmax} policy the ones with a better performance. For instance, in the game Frogs, $\epsilon$-\textit{greedy} algorithms are not able to survive (a score of $-2$ reflects that the player is killed by a truck), while \textit{Softmax}  approaches are capable to learn how to avoid these. Regarding the approximations used, even when the difference is small, the results suggest that the linear approximator works better than the neural network, for both policies tested and most of the games. 
 
+The cases where learning cannot be achieved by any of the algorithms tested here happen in the games \textit{Portals} (where the score is $0$ through the whole process) and \textit{Sokoban} (with an interesting jagged curve). The low performance of all algorithms in these two games can be due to different reasons.
 
-Things to comment:
+In the case of \textit{Portals}, the game requires a long sequence of movements (traversing portals) before reaching the goal, which is the only moment where the agent receives positive feedback. As reaching the exit is extremely unlikely, the flat landscape of rewards avoids the agent from learning how to score points in the game. Interestingly, the hazards in the game that kill the player are well avoided in general. The results show that the time spent in the game (not depicted due to lack of space) is close to $60$ and $100\%$ of the maximum time allowed (for algorithms with $\epsilon$-\textit{greedy} and \textit{Softmax} policies, respectively). This means that the algorithms, specially the ones with a \textit{Softmax} policy, are able to learn very quickly how to survive in this game, albeit ending with a score of $0$.
 
-no clear winner, depends on the game.
+An explanation for the strange results on \textit{Sokoban} may be related to the features used for learning. In this game, score is achieved when a box is introduced into a hole in the level. With the features extracted from the game state (see Section~\ref{ssec:feat}), this can be related to minimizing distances between avatar and the closest box, and between the avatar and the closest hole. The problem is that these minimizations must happen simultaneously, and with the avatar pushing the box in the right direction and when a hole is at the other side. These situations happen rarely, and it is reflected in this game's plot with picks along the curve. As the features only allow the algorithms to determine distances (and not the supplementary needed requirements), they are not able to learn properly and performance decreases. The game of \textit{Sokoban} has been traditionally one of the most difficult ones from the GVGAI framework and competition~\cite{Perez2015}.
 
-they are grouped sometimes: either green and blue (softmax) or darkblue and red (eGreedy)
-
-sometimes nothing works, no improvement: happens in Binary score system (portals and sokoban)
-
-in some games there is steep improvement towards the end, it's possible that more trials would give better results.
+It is also worthwhile highlighting that in some games, after the $1000$ matches, the improvement on the score average has not stopped, what suggest that better results can be found with longer execution trials.
 
 
 \section{Conclusions} \label{sec:conc}
