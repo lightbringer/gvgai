@@ -22,6 +22,27 @@
 \setlength{\parskip}{0pt}
 \setlength{\parsep}{0pt}}{\end{itemize}}
 
+\newcommand{\twopartdef}[4]
+{
+  \left\{
+    \begin{array}{ll}
+      #1 & \mbox{if } #2 \\
+      #3 & \mbox{if } #4
+    \end{array}
+  \right.
+}
+
+\newcommand{\twopartdefo}[3]
+{
+  \left\{
+    \begin{array}{ll}
+      #1 & \mbox{if } #2 \\
+      #3 & \mbox{otherwise}
+    \end{array}
+  \right.
+}
+
+
 % correct bad hyphenation here
 \hyphenation{op-tical net-works semi-conduc-tor}
 
@@ -32,10 +53,10 @@
 % can use linebreaks \\ within to get better formatting as desired
 \title{Neuroevolution for General Video Game Playing}
 
-\author{\IEEEauthorblockN{Spyridon Samothrakis, Diego Perez and Simon Lucas}
+\author{\IEEEauthorblockN{Diego Perez, Spyridon Samothrakis,  and Simon Lucas}
 \IEEEauthorblockA{School of Computer Science and Electronic Engineering\\
 University of Essex, Colchester CO4 3SQ, UK\\
-ssamot@essex.ac.uk, dperez@essex.ac.uk, sml@essex.ac.uk}
+dperez@essex.ac.uk, ssamot@essex.ac.uk, sml@essex.ac.uk}
 }
 
 
@@ -59,18 +80,18 @@ A possible way of attacking the problem in the general sense is Neuroevolution (
 
 On the other hand the lack of direct gradient information limits the possible size of the parameters of the function approximator to be evolved. If provided with the correct setup and hyperparameters, RL algorithms might be able to perform at superhuman level in a number of hard problems. In practical terms, research into RL has often been coupled with the use of strong heuristics. General Game Playing allows for completely arbitrary games, making the easy application of temporal based methods non-trivial. On the other hand, modern evolutionary algorithms require minimum fine-tuning and can help greatly with providing a quick baseline. In this paper we perform experiments using evolutionary algorithms to learn actors in the following setup. 
 
-Among evolutionary algorithms, for problems with continuous state variables,  a simple yet robust algorithm is Separable Natural Evolution Strategies (S-NES)~\cite{schaul2011high}. Coupling the algorithm with different policy schemes and different approximators yields the experimental substrate of this article: 
+Among evolutionary algorithms, for problems with continuous state variables,  a simple yet robust algorithm is Separable Natural Evolution Strategies (S-NES)~\cite{schaul2011high}. Coupling the algorithm with different policy schemes and different approximators yields the experimental methods: 
 
 \begin{mitems}
 \item S-NES using e-greedy policy and linear function approximator 
-\item S-NES using e-gredy policy and neural network
+\item S-NES using e-greedy policy and neural network
 \item S-NES using softmax policy and a linear function approximator
 \item S-NES using softmax policy and a neural network
 \end{mitems}
 
 We will see specifics of this setup in later sections. In order to make this research easy to replicate and interesting in its own right, the environmental substrate is provided by a the new track of the General Game Playing AI Competition. We evaluate our players in this setup. 
 
-The paper is structured as follows: Section \ref{sec:lit} does a brief review of the current state of the art in General Game Playing. Section ~\ref{sec:framework} describes the framework used in this paper for evaluating games. We describe the algorithms used in Section~\ref{sec:fastEvo}, while in Section~\ref{sec:exp} we present the experimental results. We conclude with a small discussion in Section~\ref{sec:conc}. 
+The paper is structured as follows: Section \ref{sec:lit} does a brief review of the current state of the art in General Game Playing. Section ~\ref{sec:framework} describes the framework used in this paper for evaluating games. We describe the algorithms used in Section~\ref{sec:approaches}, while in Section~\ref{sec:exp} we present the experimental results. We conclude with a small discussion in Section~\ref{sec:conc}. 
  
 \section{Related Research} \label{sec:lit}
 While there has been considerable research in the topic of both Neuroevolution and General Game Playing (GGP). GGP~\cite{genesereth2005general} was initially mostly concerned with approaches that included access to a forward model, i.e. agents/players have the ability to predict the future to a certain extend and plan their actions, with domains that are more closely aligned to board games. Recently, a competition termed ``The general video game playing competition''~\cite{Perez2015} has focused on similar problems, but this time in the real-time game domain. The competition provided the competitors with internal models they could sample from (but not access to specific future event probabilities), while limiting the amount of ``thinking'' time provided for an agent to 40ms (imposing an-almost-real-time constraint). 
@@ -251,15 +272,22 @@ Of course, one could try to identify the game that is being played and act conse
 
 
 
-
-\section{Background} \label{sec:background}
-
-\todo[inline]{Everything is so powerful}
-
-
 \section{Approaches} \label{sec:approaches}
 
-\todo[inline]{Everything is so cool}
+\subsection{Learning Algorithms}
+As stated in the introduction we coupled two different kinds of function approximators with two different exploration polices and evolved the weights. Assuming input features $\phi$ and a set of action $\a in A$ we evolved a set of weights for each action $w_a$:
+\begin{itemize}
+\item $p^{linear}_a = w_a^0 \cdot \phi$ for the linear function approximator, 
+\item $p^{nn}_a = w_a^0 \cdot \max { w_1 \cdot \phi, 0} $ for the rectifier neural network~\cite{glorot2011deep}
+\end{itemize}
+The types of exploration used are softmax and e-greedy. We normalise all inputs on the function approximators incremental between -1 and 1. Notice that the output layer of weights $w_a^0$ for the neural network approximator is the same for all actions and set to $20$ (i.e., the total number of hidden neurons). Using $p_a$ we define two different policies 
+
+\begin{itemize}
+\item $\pi^\epsilon(\phi,a) = \twopartdefo{ 1-\epsilon + \epsilon/|A| }{ a = \argmax\limits_{a \in A}  p_a}{\epsilon/|A|}$
+\item $\pi^{softmax}(\phi,a) = e^{p_a}/ \sum\limits_{b \in A} p_b $
+\end{itemize}
+
+All the possible combination of polices and function approximators are used in the experiments. Training the function approximators involves learning the weights $w$. We use Separable Natural Evolution Strategies for this~\cite{schaul2011high}. Since we used $7$ features for each action, and GVG-AI supports $4$ actions, we would have a $28$ dimensional problem for the linear approximator and a $220$ dimensional problem for the neural network appoximator.  
 
 \subsection{Game features} \label{ssec:feat}
 
@@ -275,7 +303,7 @@ All algorithms employed in this experimental study use the same set of features 
 \item Speed of the avatar.
 \end{mitems}
 
-\subsection{Algorithms} \label{ssec:alg}
+
 
 
 
@@ -325,9 +353,7 @@ It is also worthwhile highlighting that in some games, after the $1000$ matches,
 
 \section{Conclusions} \label{sec:conc}
 
-\todo[inline]{Everything is so pretty}
-
-\todo[inline]{Future work: deeper NN, EA, More games. Learn to play in different levels.}
+We have performed a first comparison different policies and functions approximators using evolution as our learning scheme. We have shown that linear function approximators seem to perform best in this limited setup. Though the robustness of evolutionary computation is commendable, it might be worth attacking the same problems using more traditional, gradient-based approaches (e.g, Monte Carlo methods, SARSA/Q Learning). This would allow for the training of deeper networks which could possibly help. This could be coupled without using features at all, but rather using the raw bitplanes as input. It is also obvious that more training would be very beneficial for a number of games. Finally, an important point to make here is that effectively testing and learning are happening on the same levels; if we are to see generalisational abilities different levels should be used for testing for each game. 
 
 % use section* for acknowledgement
  
