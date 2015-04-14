@@ -15,6 +15,13 @@
 \providecommand{\e}[1]{\ensuremath{\times 10^{#1}}}
 \DeclareMathOperator*{\argmax}{arg\,max}
 
+
+\newenvironment{mitems}
+{\begin{itemize}
+\setlength{\itemsep}{1pt}
+\setlength{\parskip}{0pt}
+\setlength{\parsep}{0pt}}{\end{itemize}}
+
 % correct bad hyphenation here
 \hyphenation{op-tical net-works semi-conduc-tor}
 
@@ -54,12 +61,12 @@ On the other hand the lack of direct gradient information limits the possible si
 
 Among evolutionary algorithms, for problems with continuous state variables,  a simple yet robust algorithm is Separable Natural Evolution Strategies (S-NES)~\cite{schaul2011high}. Coupling the algorithm with different policy schemes and different approximators yields the experimental substrate of this article: 
 
-\begin{itemize}
+\begin{mitems}
 \item S-NES using e-greedy policy and linear function approximator 
 \item S-NES using e-gredy policy and neural network
 \item S-NES using softmax policy and a linear function approximator
 \item S-NES using softmax policy and a neural network
-\end{itemize}
+\end{mitems}
 
 We will see specifics of this setup in later sections. In order to make this research easy to replicate and interesting in its own right, the environmental substrate is provided by a the new track of the General Game Playing AI Competition. We evaluate our players in this setup. 
 
@@ -254,6 +261,23 @@ Of course, one could try to identify the game that is being played and act conse
 
 \todo[inline]{Everything is so cool}
 
+\subsection{Game features} \label{ssec:feat}
+
+All algorithms employed in this experimental study use the same set of features for learning. These features are  extracted from the game state, which is received in the format explained in Section~\ref{ssec:framework} and Table~\ref{tab:inf}. The features employed in this research are all numeric, and detailed next:
+
+\begin{mitems}
+\item Game score.
+\item Game tick.
+\item Game winner ($-1$ if game is still ongoing, $0$ if the player lost and $1$ if the player won).
+\item Game over ($1$ if game is over, $0$ otherwise).
+\item Resources: list of the amount of resources owned by the avatar\footnote{In order to have a fixed number of features, the length of this list is set to $5$ (the number of avatar resources can vary from game to game, from none to $N$ types).}
+\item List with the Euclidean distances to the closest sprite of each type. 
+\item Speed of the avatar.
+\end{mitems}
+
+\subsection{Algorithms} \label{ssec:alg}
+
+
 
 \section{Experiments} \label{sec:exp}
 
@@ -287,6 +311,9 @@ The algorithms proposed in the previous section have been tested in the games de
 \end{figure*}
 
 This figure shows the average of score, including the standard error (shadowed area), as it progresses with the number of matches, for each one of the games played.
+
+The first aspect to realize is that learning can be appreciated in $8$ out of the $10$ games employed in the experimental study. The exceptions are \textit{Portals} (where the score is $0$ through the whole process) and \textit{Sokoban} 
+
 
 Things to comment:
 
