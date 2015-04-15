@@ -332,32 +332,43 @@ All algorithms employed in this experimental study use the same set of features 
 
 \section{Experiments} \label{sec:exp}
 
-The algorithms proposed in the previous section have been tested in the games described previously in Section~\ref{ssec:games}. For each one of the $10$ present games, the first available level has been used for a learning process where each algorithm played $1000$ consecutive times. For each game, $50$ experiments where run, and the average of the progression of the score is plotted in Figure~\ref{fig:results}. 
+The algorithms proposed in the previous section have been tested in the games described previously in Section~\ref{ssec:games}. For each one of the $10$ present games, the first available level has been used for a learning process where each algorithm played $1000$ consecutive times. For each game, $50$ experiments where run, and the average of the progression of the score is plotted in Figures~\ref{fig:results1} and~\ref{fig:results2}. 
+
+\begin{figure*}[!t]
+	\begin{center}
+%	\vspace{-3mm}
+	\includegraphics[width = .45\textwidth]{img/aliens_scores}
+	\includegraphics[width = .45\textwidth]{img/boulderdash_scores}\\
+%	\vspace{-3.5mm}
+	\includegraphics[width = .45\textwidth]{img/butterflies_scores}
+	\includegraphics[width = .45\textwidth]{img/chase_scores}\\
+
+%	\vspace{-3.5mm}
+	\includegraphics[width = .45\textwidth]{img/frogs_scores}
+	\includegraphics[width = .45\textwidth]{img/missilecommand_scores}\\
+
+%	\vspace{-1mm}
+	\caption{Progression of the average score during $1000$ trials. Horizontal axis denotes the trial, while vertical axis shows the average score. Shadowed area indicates the standard error of the measure. From left to right, top to bottom, the games are \textit{Aliens}, \textit{Boulderdash}, \textit{Butterflies}, \textit{Chase}, \textit{Frogs} and \textit{MissileCommand}.}
+	\label{fig:results1}
+	\end{center}
+\end{figure*}
+
 
 \begin{figure*}[ht]
 	\begin{center}
 %	\vspace{-3mm}
-	\includegraphics[width = .36\textwidth]{img/aliens_scores}
-	\includegraphics[width = .36\textwidth]{img/boulderdash_scores}\\
-	\vspace{-3.5mm}
-	\includegraphics[width = .36\textwidth]{img/butterflies_scores}
-	\includegraphics[width = .36\textwidth]{img/chase_scores}\\
 
-	\vspace{-3.5mm}
-	\includegraphics[width = .36\textwidth]{img/frogs_scores}
-	\includegraphics[width = .36\textwidth]{img/missilecommand_scores}\\
+%	\vspace{-3.5mm}
+	\includegraphics[width = .45\textwidth]{img/portals_scores}
+	\includegraphics[width = .45\textwidth]{img/sokoban_scores}\\
 
-	\vspace{-3.5mm}
-	\includegraphics[width = .36\textwidth]{img/portals_scores}
-	\includegraphics[width = .36\textwidth]{img/sokoban_scores}\\
+%	\vspace{-3.5mm}
+	\includegraphics[width = .45\textwidth]{img/survivezombies_scores}
+	\includegraphics[width = .45\textwidth]{img/zelda_scores}\\
 
-	\vspace{-3.5mm}
-	\includegraphics[width = .36\textwidth]{img/survivezombies_scores}
-	\includegraphics[width = .36\textwidth]{img/zelda_scores}\\
-
-	\vspace{-1mm}
-	\caption{Progression of the average score during $1000$ trials. Horizontal axis denotes the trial, while vertical axis shows the average score. Shadowed area indicates the standard error of the measure.}
-	\label{fig:results}
+%	\vspace{-1mm}
+	\caption{Progression of the average score during $1000$ trials. Horizontal axis denotes the trial, while vertical axis shows the average score. Shadowed area indicates the standard error of the measure. From left to right, top to bottom, the games are \textit{Portals}, \textit{Sokoban}, \textit{SurviveZombies} and \textit{Zelda}.}
+	\label{fig:results2}
 	\end{center}
 \end{figure*}
 
