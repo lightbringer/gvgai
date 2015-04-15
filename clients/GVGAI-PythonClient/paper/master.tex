@@ -76,29 +76,36 @@ General Video Game Playing (GVGP) allows for the fair evaluation of algorithms a
 
 Learning how to act in unknown environments is often termed the ``Reinforcement Learning'' problem~\cite{sutton1998introduction}. The problem encapsulates the core of artificial intelligence and has been studied widely under different contexts. Broadly speaking, an agents tries to maximize some long term notion of utility or reward by selecting appropriate actions at each state. Classic RL assumes that state can somehow be identified by the agent in a unique fashion, but it is often the case that function approximators are used to help with state spaces that cannot be enumerated. 
 
-A possible way of attacking the problem in the general sense is Neuroevolution (for an example use in games see ~\cite{stanley2005real}. Neuroevolution adapts the weights of a local or global function approximator (in the form of a neural network) in order to maximize reward. The appeal of neurovolution over traditional gradient-based Reinforcement kerning methods is three-fold. First, the gradient in RL problems might be unstable and/or hard to approximate, thus requiring extensive hyper-parameter tuning in order to get any performance. Secondly, the tournament-ranking schemes used by evolutionary approaches are robust to outliers, as they are effectively calculations of medians rather than means. Thirdly, classic RL algorithms (at least their critic-only versions~\cite{singh1994learning} can be greatly impacted by the lack of a perfect markov state. Sensor aliasing is a known and common problem in RL under function approximation. 
+A possible way of attacking the problem in the general sense is Neuroevolution (for an example use in games see ~\cite{stanley2005real}. Neuroevolution adapts the weights of a local or global function approximator (in the form of a neural network) in order to maximize reward. The appeal of neurovolution over traditional gradient-based Reinforcement Learning methods is three-fold. First, the gradient in RL problems might be unstable and/or hard to approximate, thus requiring extensive hyper-parameter tuning in order to get any performance. Secondly, the tournament-ranking schemes used by evolutionary approaches are robust to outliers, as they are effectively calculations of medians rather than means. Thirdly, classic RL algorithms (at least their critic-only versions~\cite{singh1994learning}) can be greatly impacted by the lack of a perfect markov state. Sensor aliasing is a known and common problem in RL under function approximation. 
 
 On the other hand the lack of direct gradient information limits the possible size of the parameters of the function approximator to be evolved. If provided with the correct setup and hyperparameters, RL algorithms might be able to perform at superhuman level in a number of hard problems. In practical terms, research into RL has often been coupled with the use of strong heuristics. General Game Playing allows for completely arbitrary games, making the easy application of temporal based methods non-trivial. On the other hand, modern evolutionary algorithms require minimum fine-tuning and can help greatly with providing a quick baseline. In this paper we perform experiments using evolutionary algorithms to learn actors in the following setup. 
 
 Among evolutionary algorithms, for problems with continuous state variables,  a simple yet robust algorithm is Separable Natural Evolution Strategies (S-NES)~\cite{schaul2011high}. Coupling the algorithm with different policy schemes and different approximators yields the experimental methods: 
 
 \begin{mitems}
-\item S-NES using e-greedy policy and linear function approximator 
-\item S-NES using e-greedy policy and neural network
-\item S-NES using softmax policy and a linear function approximator
-\item S-NES using softmax policy and a neural network
+\item S-NES using e-greedy policy and linear function approximator. 
+\item S-NES using e-greedy policy and neural network.
+\item S-NES using softmax policy and a linear function approximator.
+\item S-NES using softmax policy and a neural network.
 \end{mitems}
 
-We will see specifics of this setup in later sections. In order to make this research easy to replicate and interesting in its own right, the environmental substrate is provided by a the new track of the General Game Playing AI Competition. We evaluate our players in this setup. 
+We will see specifics of this setup in later sections. In order to make this research easy to replicate and interesting in its own right, the environmental substrate is provided by the new track of the General Video Game Playing AI Competition\footnote{\url{www.gvgai.net}}. The players evaluated in this research are tested in this setup.
 
-The paper is structured as follows: Section \ref{sec:lit} does a brief review of the current state of the art in General Game Playing. Section ~\ref{sec:framework} describes the framework used in this paper for evaluating games. We describe the algorithms used in Section~\ref{sec:approaches}, while in Section~\ref{sec:exp} we present the experimental results. We conclude with a small discussion in Section~\ref{sec:conc}. 
+The paper is structured as follows: Section \ref{sec:lit} does a brief review of the current state of the art in General Game and Video Game Playing. Section ~\ref{sec:framework} describes the framework used in this paper for evaluating games. We describe the algorithms used in Section~\ref{sec:approaches}, while in Section~\ref{sec:exp} we present the experimental results. We conclude with a small discussion in Section~\ref{sec:conc}. 
  
 \section{Related Research} \label{sec:lit}
-While there has been considerable research in the topic of both Neuroevolution and General Game Playing (GGP). GGP~\cite{genesereth2005general} was initially mostly concerned with approaches that included access to a forward model, i.e. agents/players have the ability to predict the future to a certain extend and plan their actions, with domains that are more closely aligned to board games and are deterministic. Recently, a competition termed ``The general video game playing competition''~\cite{Perez2015} has focused on similar problems, but this time in the real-time game domain. The competition provided the competitors with internal models they could sample from (but not access to specific future event probabilities), while limiting the amount of ``thinking'' time provided for an agent to 40ms (imposing an-almost-real-time constraint). In both contexts, algorithms that dominated where sample based search methods~\cite{finnsson2008simulation, Perez2015}, also known as Monte Carlo Tree Search. In the case of GVG-AI~\cite{Perez2015}, which allows for stochastic environments, open loop monte-carlo tree search methods seem to perform best. 
+
+While there has been considerable research in the topic of both Neuroevolution and General Game Playing (GGP), GGP~\cite{genesereth2005general} was initially mostly concerned with approaches that included access to a forward model. In this scenario, agents (or players) have the ability to predict the future to a certain extend and plan their actions, typically in domains that are more closely aligned to board games and of a deterministic nature.
+
+Recently, a competition termed ``The General Video Game Playing Competition''~\cite{Perez2015} has focused on similar problems, but this time in the real-time game domain. The competition provided the competitors with internal models they could sample from (but not access to specific future event probabilities), while limiting the amount of ``thinking'' time provided for an agent to $40$ms (imposing an-almost-real-time constraint). In both contexts, algorithms that dominated where sample based search methods~\cite{finnsson2008simulation, Perez2015}, also known as Monte Carlo Tree Search (MCTS). In the case of GVG-AI~\cite{Perez2015}, which allows for stochastic environments, Open Loop MCTS methods seem to perform best. A recent paper studies the use of open loop methods, employing both tree search and evolutionary algorithms, in this domain~\cite{Perez2015a}.
+
+This competition and framework has brought more research in this area during the last months, after the end of the contest. For instance, Blaine Ross, in his Master thesis~\cite{Ross2014}, explores enhancements to the short-sight of MCTS in this domain by adding a long term goal based approach. Also recently, T. Nielsen et al.~\cite{Nielsen2015} employed different game playing algorithms to identify well and bad designed games, under the assumption that good games should differentiate well the performance of these different agents.
 
 There has also been considerable effort in learning how to play games in a generic fashion outside competitions,  using the Atari framework~\cite{13jair}, which provides a multitude of games for testing. The games where attacked recently~\cite{mnih2015human} using a combination of neural networks and Q-learning with experience replay. The method was widely seen as a success (though it could still not outperform humans in all games). The methods for these games operate on a pixel level and require a significant amount of training, but the results achieved when successful cover the full AI loop (from vision to actions). 
 
-Neuroevolution has been used for real time video games~\cite{stanley2005real},  General Game Playing see~\cite{reisinger2007coevolving} and playing Atari games~\cite{hausknecht2012hyperneat}, with varying degrees of success. In the front of solving Atari games, Neuroevolution showed strong results using NEAT~\cite{stanley2002efficient}, a method that evolves all network parameters (including the topology of the network). 
+This latest work (by Mihn et al.) is of special interest to this research, as it tackles the problem in a similar way as it is done here. The agents that play those games have no access to a forward model that allows them to anticipate the state that will be found after applying an action. Learning is performed by maximizing the score obtained in the games after playing them during a number of consecutive trials. 
+
+Neuroevolution has been used for real time video games~\cite{stanley2005real},  General Game Playing (see~\cite{reisinger2007coevolving}) and playing Atari games~\cite{hausknecht2012hyperneat}, with varying degrees of success. In the front of solving Atari games, Neuroevolution showed strong results using NEAT~\cite{stanley2002efficient}, a method that evolves all network parameters, including the topology of the network. 
 
 
 
@@ -271,8 +278,6 @@ In order to show the diversity of these games, Table~\ref{tab:gamesComparative} 
 \end{table*}
 
 
-In this table, the \texttt{Score System} indicates how the reward is given to the avatar by means of a numeric score. This system can be either \textbf{binary} (B) or \textbf{incremental} (I). In the former case, the score of the game will always be $0$ until victory is achieved, when the reward will become $1$. In the latter scenario, points are regularly awarded throughout the course of the game.
-
 The second column, \texttt{NPC Types}, indicates the sort of other moving entities that can be found in the game. \textit{Friendly} refers to those Non Player Characters (NPC) that do not harm the player, whereas \textit{Enemies} refer to those NPCs that pose some hazard in the game. Additionally, one game also features more than one type of enemies (\textit{Boulderdash}).
 
 \texttt{Resources} indicates if the game contains sprites that can be picked up by the player or not, and \texttt{Terminations} relate to how the game can end. A game can finish either by creating or destroying one or more sprites of a given type (column \textit{Counters}), reaching a goal (\textit{Exit Door}) or when a timer runs out (\textit{Timeout}). Independently, all games can finish eventually (with a loss) it the maximum number of game steps that can be played, set to $1000$ for all games, is reached. This limit is introduced in order to avoid degenerate players from never finishing the game.
@@ -296,25 +301,27 @@ Of course, one could try to identify the game that is being played and act conse
 \section{Approaches} \label{sec:approaches}
 
 \subsection{Learning Algorithms}
-As stated in the introduction we coupled two different kinds of function approximators with two different exploration polices and evolved the weights. Assuming input features $\phi$ and a set of action $\a in A$ we evolved a set of weights for each action $w_a$:
+As stated in the introduction, we coupled two different kinds of function approximators with two different exploration polices, and evolved their weights. Assuming input features $\phi$ and a set of actions $A$ (with each action $a \in A$) we evolved a set of weights for each action $w_a$:
 \begin{itemize}
 \item $p^{linear}_a = w_a^0 \cdot \phi$ for the linear function approximator, 
-\item $p^{nn}_a = w_a^0 \cdot \max { w_1 \cdot \phi, 0} $ for the rectifier neural network~\cite{glorot2011deep}
+\item $p^{nn}_a = w_a^0 \cdot \max { (w_1 \cdot \phi, 0) } $ for the rectifier neural network~\cite{glorot2011deep}.
 \end{itemize}
-The types of exploration used are softmax and e-greedy. We normalise all inputs on the function approximators incremental between -1 and 1. Notice that the output layer of weights $w_a^0$ for the neural network approximator is the same for all actions and set to $20$ (i.e., the total number of hidden neurons). Using $p_a$ we define two different policies 
+The types of exploration used are \textit{Softmax} and $\epsilon$-\textit{greedy}. We normalise all inputs on the function approximators between -1 and 1. Notice that the output layer of weights $w_a^0$ for the neural network approximator is the same for all actions and set to $20$ (i.e., the total number of hidden neurons). 
+
+Using $p_a$ we define two different policies:
 
 \begin{itemize}
 \item $\pi^\epsilon(\phi,a) = \twopartdefo{ 1-\epsilon + \epsilon/|A| }{ a = \argmax\limits_{a \in A}  p_a}{\epsilon/|A|}$
 \item $\pi^{softmax}(\phi,a) = e^{p_a}/ \sum\limits_{b \in A} p_b $
 \end{itemize}
 
-All the possible combinations of polices and function approximators are used in the experiments. Training the function approximators involves learning the weights $w$. We use Separable Natural Evolution Strategies (S-NES) for this~\cite{schaul2011high}. Since we used $7$ features for each action, and GVG-AI supports $4$ actions, we would have a $28$ dimensional problem for the linear approximator and a $220$ dimensional problem for the neural network appoximator.  
+All the four possible combinations of polices and function approximators are used in the experiments. Training the function approximators involves learning the weights $w$. We use Separable Natural Evolution Strategies (S-NES) for this~\cite{schaul2011high}. Since we used $7$ features for each action, and GVG-AI supports $4$ actions, we would have a $28$ dimensional problem for the linear approximator and a $220$ dimensional problem for the neural network appoximator.  
 
-S-NES is an evolution strategy that learns that follows the natural gradient (which can be seen as a gradient that uses KL-divergence between as a measure of distance instead of euclidean distance). It assumes that the search parameters come from a multi-variate Gaussian distribution and tries to adapt the Gaussian's mean and covariance-matrix using the natural gradient. A transformation on the fitness structure of the problem also takes place; using a populations of samples, the fitness is transformed to $[0,1]$ using a ranking scheme, which makes the algorithm invariant to transformations of the target function as long as these tranformations do not impact ranking order. The ``Seperable'' element of the algorithm used here refers to adapting only the diagonal elements of the covariance matrix. This speeds up learning significantly, allowing the S-NES to scale linearly to problems of arbitrary size (instead of quadratically). 
+S-NES is an evolution strategy that learns that follows the natural gradient (which can be seen as a gradient that uses KL-divergence between as a measure of distance instead of euclidean distance). It assumes that the search parameters come from a multi-variate Gaussian distribution and tries to adapt the Gaussian's mean and covariance-matrix using the natural gradient. A transformation on the fitness structure of the problem also takes place; using a populations of samples, the fitness is transformed to $[0,1]$ using a ranking scheme, which makes the algorithm invariant to transformations of the target function as long as these tranformations do not impact ranking order. The ``Seperable'' element of the algorithm used here refers to adapting only the diagonal elements of the covariance matrix. This speeds up learning significantly, allowing the S-NES to scale linearly to problems of arbitrary size (instead of quadratically). For a more detailed explanation of the algorithm, the reader is referred to~\cite{schaul2011high}.
 
 \subsection{Game features} \label{ssec:feat}
 
-All algorithms employed in this experimental study use the same set of features for learning. These features are  extracted from the game state, which is received in the format explained in Section~\ref{ssec:framework} and Table~\ref{tab:inf}. The features employed in this research are all numeric, and detailed next:
+All algorithms employed in this experimental study use the same set of features $\phi$ for learning. These features are extracted from the game state, which is received in the format explained in Section~\ref{ssec:framework} and Table~\ref{tab:inf}. The features employed in this research are all of a numeric nature, and they are detailed next:
 
 \begin{mitems}
 \item Game score.
@@ -354,7 +361,7 @@ The algorithms proposed in the previous section have been tested in the games de
 \end{figure*}
 
 
-\begin{figure*}[ht]
+\begin{figure*}[!t]
 	\begin{center}
 %	\vspace{-3mm}
 
@@ -372,35 +379,35 @@ The algorithms proposed in the previous section have been tested in the games de
 	\end{center}
 \end{figure*}
 
-This figure shows the average of score, including the standard error (shadowed area), as it progresses with the number of matches, for each one of the games played. The first aspect to realize is that learning can be appreciated in $8$ out of the $10$ games employed in the experimental study. It is not possible to declare any of the algorithms as an overall best option, as it general depends on the game played. 
+These figures show the average of score, including the standard error (shadowed area), as it progresses with the number of matches, for each one of the games played. The first aspect to realize is that learning can be appreciated in $8$ out of the $10$ games employed in the experimental study. It is not possible to declare any of the algorithms as an overall best option, as it general depends on the game played. 
 
 It seems clear that in some games (such as \textit{Aliens}, \textit{MissileCommand} or \textit{SurviveZombies}) the algorithms with an $\epsilon$-\textit{greedy} policy learn better, while in others (such as \textit{Frogs} or \textit{Zelda}) it is the algorithms with a \textit{Softmax} policy the ones with a better performance. For instance, in the game Frogs, $\epsilon$-\textit{greedy} algorithms are not able to survive (a score of $-2$ reflects that the player is killed by a truck), while \textit{Softmax}  approaches are capable to learn how to avoid these. Regarding the approximations used, even when the difference is small, the results suggest that the linear approximator works better than the neural network, for both policies tested and most of the games. A possible explanation for this is that the neural network operates in a larger search space, which can potentially inhibit its learning capabilities in the short term.
 
 The cases where learning cannot be achieved by any of the algorithms tested here happen in the games \textit{Portals} (where the score is $0$ through the whole process) and \textit{Sokoban} (with an interesting jagged curve). The low performance of all algorithms in these two games can be due to different reasons.
 
-In the case of \textit{Portals}, the game requires a long sequence of movements (traversing portals) before reaching the goal, which is the only moment where the agent receives positive feedback. As reaching the exit is extremely unlikely, the flat landscape of rewards avoids the agent from learning how to score points in the game. Interestingly, the hazards in the game that kill the player are well avoided in general. The results show that the time spent in the game (not depicted due to lack of space) is close to $60$ and $100\%$ of the maximum time allowed (for algorithms with $\epsilon$-\textit{greedy} and \textit{Softmax} policies, respectively). This means that the algorithms, specially the ones with a \textit{Softmax} policy, are able to learn very quickly how to survive in this game, albeit ending with a score of $0$.
+In the case of \textit{Portals}, the game requires a long sequence of movements (traversing portals) before reaching the goal, which is the only moment where the agent receives positive feedback. As reaching the exit is extremely unlikely, the flat landscape of rewards avoids the agent from learning how to score points in the game. Interestingly, the hazards in the game that kill the player are well avoided in general. The results show that the time spent in the game (a measure not depicted here for clarity) is close to $60$ and $100\%$ of the maximum time allowed (for algorithms with $\epsilon$-\textit{greedy} and \textit{Softmax} policies, respectively). This means that the algorithms, specially the ones with a \textit{Softmax} policy, are able to learn very quickly how to survive in this game, albeit ending with a score of $0$.
 
-An explanation for the strange results on \textit{Sokoban} may be related to the features used for learning. In this game, score is achieved when a box is introduced into a hole in the level. With the features extracted from the game state (see Section~\ref{ssec:feat}), this can be related to minimizing distances between avatar and the closest box, and between the avatar and the closest hole. The problem is that these minimizations must happen simultaneously, and with the avatar pushing the box in the right direction and when a hole is at the other side. These situations happen rarely, and it is reflected in this game's plot with picks along the curve. As the features only allow the algorithms to determine distances (and not the supplementary needed requirements), they are not able to learn properly and performance decreases. The game of \textit{Sokoban} has been traditionally one of the most difficult ones from the GVGAI framework and competition~\cite{Perez2015}.
+An explanation for the strange results on \textit{Sokoban} may be related to the features used for learning. In this game, score is awarded when a box is introduced into a hole in the level. With the features extracted from the game state (see Section~\ref{ssec:feat}), this can be related to minimizing distances between avatar and the closest box, and between the avatar and the closest hole, both at the same time. The problem is that these minimizations must happen simultaneously, having the avatar pushing in the right direction and with the presence of a hole at the other side of the box. These situations happen rarely, and it is reflected in this game's plot with picks along the curve. As the features only allow the algorithms to determine distances (and not the supplementary needed requirements), they are not able to learn properly and their performance decreases. The game of \textit{Sokoban} has been traditionally one of the most difficult ones from the GVGAI framework and competition~\cite{Perez2015}, as it requires long term plans for its completion.
 
-It is also worthwhile highlighting that in some games, after the $1000$ matches, the improvement on the score average has not stopped, what suggest that better results can be found with longer execution trials.
+It is also worthwhile highlighting that in some games, after the $1000$ matches, the improvement on the score average has not stopped, what suggests that better results can be found with longer execution trials.
 
 
 \section{Conclusions} \label{sec:conc}
 
-This paper shows a first comparison of different policies ($\epsilon$-\textit{greedy} and \textit{Softmax}) and function approximators, using an evolutionary algorithm (S-NES) as learning scheme. The objective of the agents that implement these algorithms is to learn how to maximize the score in ten different games, without the help of any domain knowledge that indicates how this can be achieved. Additionally, all these games have different characteristics, which allows to examine in what conditions learning is performed better.
+This paper shows a first comparison of different policies ($\epsilon$-\textit{greedy} and \textit{Softmax}) and function approximators, using an evolutionary algorithm (S-NES) as a learning scheme. The objective of the agents that implement these algorithms is to learn how to maximize the score in $10$ different games, without the help of any domain knowledge that indicates how this can be achieved. Additionally, all these games have different characteristics, which allows to examine in what conditions learning is performed better.
 
-In this study, the algorithms tested are able to learn in most of the games tested. In particular, linear function approximators seem to perform best in this setup. 
+In this study, the algorithms tested are able to learn in most of the games tested. In particular, linear function approximators seem to perform best in this setup, although results may vary from game to game, with different algorithms providing a distinct performance. Results also suggest that games requiring a long term plan (such as \textit{Sokoban} or \textit{Portals}) may require a different approach for an appropriate learning. 
 
 Although the robustness of evolutionary computation is commendable, it might be worth attacking the same problems using more traditional, gradient-based approaches (e.g, Monte Carlo methods, SARSA/Q Learning). This would allow for the training of deeper networks which could possibly help. This could be coupled without using features at all, but rather using the raw bitplanes as input. It is also obvious that more training would be very beneficial for a number of games. 
 
-Finally, an important point to make here is that effectively testing and learning are happening on the same levels; if we are to see generalisational abilities different levels should be used for testing for each game. 
+Finally, an important point to make here is that effectively testing and learning is happening on the same levels. Including more levels (and also increasing the size of the game set used for experiments) of each game will bring further details about how general the algorithms tested in this research are, and will allow for a deeper analysis on their learning abilities in the domain of General Video Game Playing.
 
 % use section* for acknowledgement
  
 \section*{Acknowledgment}
 
 
-\noindent This work was supported by EPSRC grant EP/H048588/1.
+\todo[inline]{TODO: Any grant to acknowledge?}
 
 \bibliographystyle{IEEEtran} 
 \bibliography{biblio}
