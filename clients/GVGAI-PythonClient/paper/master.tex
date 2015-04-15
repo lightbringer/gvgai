@@ -287,7 +287,9 @@ The types of exploration used are softmax and e-greedy. We normalise all inputs 
 \item $\pi^{softmax}(\phi,a) = e^{p_a}/ \sum\limits_{b \in A} p_b $
 \end{itemize}
 
-All the possible combination of polices and function approximators are used in the experiments. Training the function approximators involves learning the weights $w$. We use Separable Natural Evolution Strategies for this~\cite{schaul2011high}. Since we used $7$ features for each action, and GVG-AI supports $4$ actions, we would have a $28$ dimensional problem for the linear approximator and a $220$ dimensional problem for the neural network appoximator.  
+All the possible combination of polices and function approximators are used in the experiments. Training the function approximators involves learning the weights $w$. We use Separable Natural Evolution Strategies (S-NES) for this~\cite{schaul2011high}. Since we used $7$ features for each action, and GVG-AI supports $4$ actions, we would have a $28$ dimensional problem for the linear approximator and a $220$ dimensional problem for the neural network appoximator.  
+
+S-NES is an evolution strategy that learns that follows the natural gradient (which can be seen as a gradient that uses KL-divergence between as a measure of distance instead of euclidean distance). It assumes that the search parameters come from a multi-variate Gaussian distribution and tries to adapt the Gaussian's mean and covariance-matrix using the natural gradient. A transformation on the fitness structure of the problem also takes place; using a populations of samples, the fitness is transformed to $[0,1]$ using a ranking scheme, which makes the algorithm invariant to transformations of the target function as long as these tranformations do not impact ranking order. The ``Seperable'' element of the algorithm used here refers to adapting only the diagonal elements of the covariance matrix. This speeds up learning significantly, allowing the S-NES to scale linearly to problems of arbitrary size (instead of quadratically). 
 
 \subsection{Game features} \label{ssec:feat}
 
