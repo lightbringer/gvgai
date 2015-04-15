@@ -94,11 +94,11 @@ We will see specifics of this setup in later sections. In order to make this res
 The paper is structured as follows: Section \ref{sec:lit} does a brief review of the current state of the art in General Game Playing. Section ~\ref{sec:framework} describes the framework used in this paper for evaluating games. We describe the algorithms used in Section~\ref{sec:approaches}, while in Section~\ref{sec:exp} we present the experimental results. We conclude with a small discussion in Section~\ref{sec:conc}. 
  
 \section{Related Research} \label{sec:lit}
-While there has been considerable research in the topic of both Neuroevolution and General Game Playing (GGP). GGP~\cite{genesereth2005general} was initially mostly concerned with approaches that included access to a forward model, i.e. agents/players have the ability to predict the future to a certain extend and plan their actions, with domains that are more closely aligned to board games and are deterministic. Recently, a competition termed ``The general video game playing competition''~\cite{Perez2015} has focused on similar problems, but this time in the real-time game domain. The competition provided the competitors with internal models they could sample from (but not access to specific future event probabilities), while limiting the amount of ``thinking'' time provided for an agent to 40ms (imposing an-almost-real-time constraint). In both contexts, algorithms that dominated where sample based search methods~\cite{finnsson2008simulation7, Perez2015}, also known as Monte Carlo Tree Search. In the case of GVG-AI~\cite{Perez2015}, which allows for stochastic environments, open loop monte-carlo tree search methods seem to perform best. 
+While there has been considerable research in the topic of both Neuroevolution and General Game Playing (GGP). GGP~\cite{genesereth2005general} was initially mostly concerned with approaches that included access to a forward model, i.e. agents/players have the ability to predict the future to a certain extend and plan their actions, with domains that are more closely aligned to board games and are deterministic. Recently, a competition termed ``The general video game playing competition''~\cite{Perez2015} has focused on similar problems, but this time in the real-time game domain. The competition provided the competitors with internal models they could sample from (but not access to specific future event probabilities), while limiting the amount of ``thinking'' time provided for an agent to 40ms (imposing an-almost-real-time constraint). In both contexts, algorithms that dominated where sample based search methods~\cite{finnsson2008simulation, Perez2015}, also known as Monte Carlo Tree Search. In the case of GVG-AI~\cite{Perez2015}, which allows for stochastic environments, open loop monte-carlo tree search methods seem to perform best. 
 
 There has also been considerable effort in learning how to play games in a generic fashion outside competitions,  using the Atari framework~\cite{13jair}, which provides a multitude of games for testing. The games where attacked recently~\cite{mnih2015human} using a combination of neural networks and Q-learning with experience replay. The method was widely seen as a success (though it could still not outperform humans in all games). The methods for these games operate on a pixel level and require a significant amount of training, but the results achieved when successful cover the full AI loop (from vision to actions). 
 
-Neuroevolution has been used for real time video games~\cite{stanley2005real},  General Game Playing see~\cite{reisinger2007coevolving} and playing Atari games~\cite{hausknecht2012hyperneat}, with varying degrees of success. In the front of solving Atari games, Neuroevolution showed strong results using NEAT~\cite{stanley2002efficient}, a method that evolves all network parameters at the same time. 
+Neuroevolution has been used for real time video games~\cite{stanley2005real},  General Game Playing see~\cite{reisinger2007coevolving} and playing Atari games~\cite{hausknecht2012hyperneat}, with varying degrees of success. In the front of solving Atari games, Neuroevolution showed strong results using NEAT~\cite{stanley2002efficient}, a method that evolves all network parameters (including the topology of the network). 
 
 
 
@@ -176,62 +176,41 @@ Information is given regarding the state of the game to the controllers, at thre
 
 \subsection{Games} \label{ssec:games}
 
-The games employed for this research are the ones from the training set of the GVG-AI competition. These games are described in detail here: 
-
-\subsubsection{Aliens} Similar to traditional Space Invaders, Aliens features the player (avatar) in the bottom of the screen, shooting upwards at aliens that approach Earth, who also shoot back at the avatar. The player loses if any alien touches it, and wins if all aliens are eliminated. \textit{Scoring:} $1$ point is awarded for each alien or protective structure destroyed by the avatar, and $-1$ point is given if the player is hit. 
-
-\subsubsection{Boulderdash} The avatar must dig in a cave to find at least $10$ diamonds, with the aid of a shovel, before exiting through a door. Some heavy rocks may fall while digging, killing the player if it is hit from above. There are enemies in the cave that might kill the player, but if two different enemies collide, a new diamond is spawned. \textit{Scoring:} $2$ points are awarded for each diamond collected, and $1$ point every time a new diamond is spawned. Also, $-1$ point is given if the avatar is killed by a rock or an enemy.
-
-\subsubsection{Butterflies} The avatar must capture butterflies that move randomly around the level. If a butterfly touches a cocoon, more butterflies are spawned. The player wins if it collects all butterflies, but loses if all cocoons are opened. \textit{Scoring:} $2$ points are awarded for each butterfly captured. 
-
-\subsubsection{Chase} The avatar must chase and kill scared goats that flee from the player. If a goat finds another goat's corpse, it becomes angry and chases the player. The player wins if all scared goats are dead, but it loses if is hit by an angry goat. \textit{Scoring:} $1$ point for killing a goat and $-1$ point for being hit by an angry goat.
-
-\subsubsection{Frogs} The avatar is a frog that must cross a road, full of tracks, and a river, only traversable by logs, to reach a goal.  The player wins if the goal is reached, but loses if it is hit by a truck or falls into the water. \textit{Scoring:}  $1$ point for reaching the goal, and $-2$ points for being hit by a truck.
-
-\subsubsection{Missile Command} The avatar must shoot at several missiles that fall from the sky, before they reach the cities they are directed towards. The player wins if it is able to save at least one city, and loses if all cities are hit.\textit{Scoring:} $2$ points are given for destroying a missile and $-1$ point for each city hit.
-
-\subsubsection{Portals} The avatar must find the goal while avoiding lasers that kill him. There are many portals that teleport the player from one location to another. The player wins if the goal is reached, and loses if killed by a laser.\textit{Scoring:} $1$ point is given for reaching the goal. 
-
-\subsubsection{Sokoban} The avatar must push boxes so they fall into holes. The player wins if all boxes are made to disappear, and loses when the timer runs out. \textit{Scoring:} $1$ point is given for each box pushed into a hole. 
-
-\subsubsection{Survive Zombies} The avatar must stay alive while being attacked by spawned zombies. It may collect honey, dropped by bees, in order to avoid being killed by zombies. The player wins if the timer runs out, and loses if hit by a zombie while having no honey (otherwise, the zombie dies). \textit{Scoring:} $1$ point is given for collecting one piece of honey, and also for killing a zombie. Additionally, $-1$ point if the avatar is killed, or it falls into the zombie spawn point.
-
-\subsubsection{ Zelda} The avatar must find a key in a maze to open a door and exit. The player is also equipped with a sword to kill enemies existing in the maze. The player wins if it exits the maze, and loses if it is hit by an enemy. \textit{Scoring:} $2$ points for killing an enemy, $1$ for collecting the key, and another point for reaching the door with it. $-1$ point is given if the avatar is killed. 
+The games employed for this research are the ones from the training set of the GVG-AI competition. Table~\ref{tab:games} describes each one of these games in detail. In order to show the diversity of these games, Table~\ref{tab:gamesComparative} shows the features of each one of them. 
 
 
-%\begin{table*}[!t]
-%\begin{center}
-%\begin{tabular}{|m{1.4cm}|m{8cm}|m{6cm}|}
-%\hline
-%\textbf{Game}  & \textbf{Description} & \textbf{Score} \\ 
-%\hline
-%\textbf{Aliens} & Similar to traditional Space Invaders, Aliens features the player (avatar) in the bottom of the screen, shooting upwards at aliens that approach Earth, who also shoot back at the avatar. The player loses if any alien touches it, and wins if all aliens are eliminated. & \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $1$ point is awarded for each alien or protective structure destroyed by the avatar. \item $-1$ point is given if the player is hit. \end{list} \\
-%\hline
-%\textbf{Boulderdash} & The avatar must dig in a cave to find at least $10$ diamonds, with the aid of a shovel, before exiting through a door. Some heavy rocks may fall while digging, killing the player if it is hit from above. There are enemies in the cave that might kill the player, but if two different enemies collide, a new diamond is spawned.& \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $2$ points are awarded for each diamond collected, and $1$ point every time a new diamond is spawned. \item $-1$ point is given if the avatar is killed by a rock or an enemy. \end{list} \\
-%\hline
-%\textbf{Butterflies} & The avatar must capture butterflies that move randomly around the level. If a butterfly touches a cocoon, more butterflies are spawned. The player wins if it collects all butterflies, but loses if all cocoons are opened. & \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $2$ points are awarded for each butterfly captured. \end{list} \\
-%\hline
-%\textbf{Chase} & The avatar must chase and kill scared goats that flee from the player. If a goat finds another goat's corpse, it becomes angry and chases the player. The player wins if all scared goats are dead, but it loses if is hit by an angry goat. & \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $1$ point for killing a goat. \item $-1$ point for being hit by an angry goat. \end{list} \\
-%\hline
-%\textbf{Frogs} & The avatar is a frog that must cross a road, full of tracks, and a river, only traversable by logs, to reach a goal.  The player wins if the goal is reached, but loses if it is hit by a truck or falls into the water. & \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $1$ point for reaching the goal. \item $-2$ points for being hit by a truck. \end{list} \\
-%\hline
-%\textbf{Missile Command} & The avatar must shoot at several missiles that fall from the sky, before they reach the cities they are directed towards. The player wins if it is able to save at least one city, and loses if all cities are hit. &  \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $2$ points are given for destroying a missile. \item $-1$ point for each city hit. \end{list} \\
-%\hline
-%\textbf{Portals} & The avatar must find the goal while avoiding lasers that kill him. There are many portals that teleport the player from one location to another. The player wins if the goal is reached, and loses if killed by a laser.& \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $1$ point is given for reaching the goal. \end{list} \\
-%\hline
-%\textbf{Sokoban} & The avatar must push boxes so they fall into holes. The player wins if all boxes are made to disappear, and loses when the timer runs out. & \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $1$ point is given for each box pushed into a hole. \end{list} \\
-%\hline
-%\textbf{Survive Zombies} & The avatar must stay alive while being attacked by spawned zombies. It may collect honey, dropped by bees, in order to avoid being killed by zombies. The player wins if the timer runs out, and loses if hit by a zombie while having no honey (otherwise, the zombie dies).& \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $1$ point is given for collecting one piece of honey, and also for killing a zombie. \item $-1$ point if the avatar is killed, or it falls into the zombie spawn point. \end{list} \\
-%\hline
-%\textbf{Zelda} & The avatar must find a key in a maze to open a door and exit. The player is also equipped with a sword to kill enemies existing in the maze. The player wins if it exits the maze, and loses if it is hit by an enemy. & \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $2$ points for killing an enemy, $1$ for collecting the key, and another point for reaching the door with it. \item $-1$ point if the avatar is killed. \end{list} \\
-%\hline
-%\end{tabular}
-%\caption{Games in the training set of the GVGAI Competition, employed in the experiments of this paper.}
-%\label{tab:games}
-%\end{center}
-%\end{table*}
+\begin{table*}[!t]
+\begin{center}
+\begin{tabular}{|m{1.4cm}|m{8cm}|m{6cm}|}
+\hline
+\textbf{Game}  & \textbf{Description} & \textbf{Score} \\ 
+\hline
+\textbf{Aliens} & Similar to traditional Space Invaders, Aliens features the player (avatar) in the bottom of the screen, shooting upwards at aliens that approach Earth, who also shoot back at the avatar. The player loses if any alien touches it, and wins if all aliens are eliminated. & \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $1$ point is awarded for each alien or protective structure destroyed by the avatar. \item $-1$ point is given if the player is hit. \end{list} \\
+\hline
+\textbf{Boulderdash} & The avatar must dig in a cave to find at least $10$ diamonds, with the aid of a shovel, before exiting through a door. Some heavy rocks may fall while digging, killing the player if it is hit from above. There are enemies in the cave that might kill the player, but if two different enemies collide, a new diamond is spawned.& \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $2$ points are awarded for each diamond collected, and $1$ point every time a new diamond is spawned. \item $-1$ point is given if the avatar is killed by a rock or an enemy. \end{list} \\
+\hline
+\textbf{Butterflies} & The avatar must capture butterflies that move randomly around the level. If a butterfly touches a cocoon, more butterflies are spawned. The player wins if it collects all butterflies, but loses if all cocoons are opened. & \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $2$ points are awarded for each butterfly captured. \end{list} \\
+\hline
+\textbf{Chase} & The avatar must chase and kill scared goats that flee from the player. If a goat finds another goat's corpse, it becomes angry and chases the player. The player wins if all scared goats are dead, but it loses if is hit by an angry goat. & \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $1$ point for killing a goat. \item $-1$ point for being hit by an angry goat. \end{list} \\
+\hline
+\textbf{Frogs} & The avatar is a frog that must cross a road, full of tracks, and a river, only traversable by logs, to reach a goal.  The player wins if the goal is reached, but loses if it is hit by a truck or falls into the water. & \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $1$ point for reaching the goal. \item $-2$ points for being hit by a truck. \end{list} \\
+\hline
+\textbf{Missile Command} & The avatar must shoot at several missiles that fall from the sky, before they reach the cities they are directed towards. The player wins if it is able to save at least one city, and loses if all cities are hit. &  \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $2$ points are given for destroying a missile. \item $-1$ point for each city hit. \end{list} \\
+\hline
+\textbf{Portals} & The avatar must find the goal while avoiding lasers that kill him. There are many portals that teleport the player from one location to another. The player wins if the goal is reached, and loses if killed by a laser.& \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $1$ point is given for reaching the goal. \end{list} \\
+\hline
+\textbf{Sokoban} & The avatar must push boxes so they fall into holes. The player wins if all boxes are made to disappear, and loses when the timer runs out. & \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $1$ point is given for each box pushed into a hole. \end{list} \\
+\hline
+\textbf{Survive Zombies} & The avatar must stay alive while being attacked by spawned zombies. It may collect honey, dropped by bees, in order to avoid being killed by zombies. The player wins if the timer runs out, and loses if hit by a zombie while having no honey (otherwise, the zombie dies).& \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $1$ point is given for collecting one piece of honey, and also for killing a zombie. \item $-1$ point if the avatar is killed, or it falls into the zombie spawn point. \end{list} \\
+\hline
+\textbf{Zelda} & The avatar must find a key in a maze to open a door and exit. The player is also equipped with a sword to kill enemies existing in the maze. The player wins if it exits the maze, and loses if it is hit by an enemy. & \begin{list}{$\bullet$}{\leftmargin=2pt \itemindent=0em} \item $2$ points for killing an enemy, $1$ for collecting the key, and another point for reaching the door with it. \item $-1$ point if the avatar is killed. \end{list} \\
+\hline
+\end{tabular}
+\caption{Games in the training set of the GVGAI Competition, employed in the experiments of this paper.}
+\label{tab:games}
+\end{center}
+\end{table*}
 
-In order to show the diversity of these games, Table~\ref{tab:gamesComparative} shows the features of each one of them. In this table, the \texttt{Score System} indicates how the reward is given to the avatar by means of a numeric score. This system can be either \textbf{binary} (B) or \textbf{incremental} (I). In the former case, the score of the game will always be $0$ until victory is achieved, when the reward will become $1$. In the latter scenario, points are regularly awarded throughout the course of the game.
 
 \begin{table*}[!t]
 \begin{center}
@@ -265,10 +244,13 @@ In order to show the diversity of these games, Table~\ref{tab:gamesComparative} 
 \textbf{Zelda} & I &  & \checkmark &  & \checkmark &  & \checkmark &  & A0\\
 \hline
 \end{tabular}
-\caption{Games feature comparative. All games of the competition are listed, divided into the $3$ game sets: training (first $10$), validation (next $10$) and test (last $10$). Legend: I: Incremental; B: Binary; A0: All moves; A1: Only directional; A2: Left, right and use. Check Section~\ref{ssec:games} for a full description of the meaning of all terms in this table.}
+\caption{Games feature comparative. All games of the competition are listed, divided into the $3$ game sets: training (first $10$), validation (next $10$) and test (last $10$). Legend: I: Incremental; B: Binary; D:Discontinuous; A0: All moves; A1: Only directional; A2: Left, right and use. Check Section~\ref{ssec:games} for a full description of the meaning of all terms in this table.}
 \label{tab:gamesComparative}
 \end{center}
 \end{table*}
+
+
+In this table, the \texttt{Score System} indicates how the reward is given to the avatar by means of a numeric score. This system can be either \textbf{binary} (B) or \textbf{incremental} (I). In the former case, the score of the game will always be $0$ until victory is achieved, when the reward will become $1$. In the latter scenario, points are regularly awarded throughout the course of the game.
 
 The second column, \texttt{NPC Types}, indicates the sort of other moving entities that can be found in the game. \textit{Friendly} refers to those Non Player Characters (NPC) that do not harm the player, whereas \textit{Enemies} refer to those NPCs that pose some hazard in the game. Additionally, one game also features more than one type of enemies (\textit{Boulderdash}).
 
@@ -291,10 +273,6 @@ Of course, one could try to identify the game that is being played and act conse
 
 
 \section{Approaches} \label{sec:approaches}
-
-\subsection{Separable Natural Evolution Strategies}
-
-\todo[inline]{Description of S-NES here}
 
 \subsection{Learning Algorithms}
 As stated in the introduction we coupled two different kinds of function approximators with two different exploration polices and evolved the weights. Assuming input features $\phi$ and a set of action $\a in A$ we evolved a set of weights for each action $w_a$:
@@ -381,9 +359,8 @@ We have performed a first comparison between different policies and functions ap
  
 \section*{Acknowledgment}
 
-\todo[inline]{Any grant to acknowledge?}
 
-%\noindent This work was supported by EPSRC grant EP/H048588/1.
+\noindent This work was supported by EPSRC grant EP/H048588/1.
 
 \bibliographystyle{IEEEtran} 
 \bibliography{biblio}
