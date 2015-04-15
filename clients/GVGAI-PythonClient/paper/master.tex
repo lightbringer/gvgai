@@ -375,7 +375,13 @@ It is also worthwhile highlighting that in some games, after the $1000$ matches,
 
 \section{Conclusions} \label{sec:conc}
 
-We have performed a first comparison different policies and functions approximators using evolution as our learning scheme. We have shown that linear function approximators seem to perform best in this limited setup. Though the robustness of evolutionary computation is commendable, it might be worth attacking the same problems using more traditional, gradient-based approaches (e.g, Monte Carlo methods, SARSA/Q Learning). This would allow for the training of deeper networks which could possibly help. This could be coupled without using features at all, but rather using the raw bitplanes as input. It is also obvious that more training would be very beneficial for a number of games. Finally, an important point to make here is that effectively testing and learning are happening on the same levels; if we are to see generalisational abilities different levels should be used for testing for each game. 
+This paper shows a first comparison of different policies ($\epsilon$-\textit{greedy} and \textit{Softmax}) and function approximators, using an evolutionary algorithm (S-NES) as learning scheme. The objective of the agents that implement these algorithms is to learn how to maximize the score in ten different games, without the help of any domain knowledge that indicates how this can be achieved. Additionally, all these games have different characteristics, which allows to examine in what conditions learning is performed better.
+
+In this study, the algorithms tested are able to learn in most of the games tested. In particular, linear function approximators seem to perform best in this setup. 
+
+Although the robustness of evolutionary computation is commendable, it might be worth attacking the same problems using more traditional, gradient-based approaches (e.g, Monte Carlo methods, SARSA/Q Learning). This would allow for the training of deeper networks which could possibly help. This could be coupled without using features at all, but rather using the raw bitplanes as input. It is also obvious that more training would be very beneficial for a number of games. 
+
+Finally, an important point to make here is that effectively testing and learning are happening on the same levels; if we are to see generalisational abilities different levels should be used for testing for each game. 
 
 % use section* for acknowledgement
  
