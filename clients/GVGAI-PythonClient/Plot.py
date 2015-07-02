@@ -159,9 +159,9 @@ def plot_game(input_dirs, output_dir, labels, ls, game_number, show_plot = False
 
     loc = locs[game_number]
 
-    plot_res(all_wins, minNumLines, labels, ls, loc, "Average number of victories", output_dir+str(games[game_number])+"_wins.pdf", show_plot, [-0.2,1.2])
-    plot_res(all_scores, minNumLines, labels, ls, loc, "Average score on " + games[game_number], output_dir+str(games[game_number])+"_scores.pdf", show_plot)
-    plot_res(all_times, minNumLines, labels, ls, loc, "Average time spent", output_dir+str(games[game_number])+"_times.pdf", show_plot, [0,1100])
+    #plot_res(all_wins, minNumLines, labels, ls, loc, "Average number of victories", output_dir+str(games[game_number])+"_wins.pdf", show_plot, [-0.2,1.2])
+    plot_res(all_scores, minNumLines, labels, ls, loc, "Average score on " + games[game_number], output_dir+str(games[game_number])+"_scores.pdf", show_plot, [-1.4,1.0])
+    #plot_res(all_times, minNumLines, labels, ls, loc, "Average time spent", output_dir+str(games[game_number])+"_times.pdf", show_plot, [0,1100])
 
 
 
@@ -173,11 +173,12 @@ if __name__=="__main__":
     LABELS = ["eGreedyLinear", "SoftmaxLinear", "eGreedyNN", "SoftmaxNN"]
     LS = ['-','--','-.',':']
     PIC_DIR = "pics/All/"
-    for i in range(10):
+    plot_game(RESULTS_DIRS, PIC_DIR, LABELS, LS, 6)
+    #for i in range(10):
 
         #EACH ONE OF THESE LINES PLOTS EACH ALGORITHM SEPARATELY.
         #plot_game(["results/GreedyLinear/"], "pics/GreedyLinear/", ["GreedyLinear"], i)
         #plot_game(["results/SoftmaxLinear/"], "pics/SoftmaxLinear/", ["SoftmaxLinear"], i)
 
         #USE THIS FOR PLOTTING ALL TOGETHER (the ones specified in RESULTS_DIRS).
-        plot_game(RESULTS_DIRS, PIC_DIR, LABELS, LS, i)
+    #    plot_game(RESULTS_DIRS, PIC_DIR, LABELS, LS, i)
