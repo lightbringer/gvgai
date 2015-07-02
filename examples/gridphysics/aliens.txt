@@ -14,10 +14,6 @@ BasicGame
         0 > base
         1 > portalSlow
         2 > portalFast
-
-    TerminationSet
-        SpriteCounter      stype=avatar               limit=0 win=False
-        MultiSpriteCounter stype1=portal stype2=alien limit=0 win=True
         
     InteractionSet
         avatar  EOS  > stepBack
@@ -30,3 +26,7 @@ BasicGame
         avatar alien > killSprite scoreChange=-1
         avatar bomb  > killSprite scoreChange=-1
         alien  sam   > killSprite scoreChange=2
+
+    TerminationSet
+        SpriteCounter      stype=avatar               limit=0 win=False
+        MultiSpriteCounter stype1=portal stype2=alien limit=0 win=True
