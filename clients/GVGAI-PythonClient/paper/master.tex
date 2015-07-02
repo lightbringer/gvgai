@@ -1,6 +1,6 @@
 \documentclass[conference]{IEEEtran}
 
-\usepackage{subfigure,graphicx,url,times,multirow,amsmath,amssymb,algorithm,xspace,epsfig,todonotes,array,caption,color}
+\usepackage{subcaption,graphicx,url,times,multirow,amsmath,amssymb,algorithm,xspace,epsfig,todonotes,array,caption,color}
 \hyphenation{op-tical net-works semi-conduc-tor IEEEtran des-cri-bed}
 \usepackage{float}
 \usepackage[noend]{algpseudocode}
@@ -89,7 +89,7 @@ Among evolutionary algorithms, for problems with continuous state variables,  a 
 \item S-NES using softmax policy and a neural network.
 \end{mitems}
 
-The motivation behind this is checking if there is an exploration method that works better in the general sense, without misguiding the evolution. We will see specifics of this setup in later sections. In order to make this research easy to replicate and interesting in its own right, the environmental substrate is provided by the new track of the General Video Game Playing AI Competition\footnote{\url{www.gvgai.net}}. The players evaluated in this research are tested in this setup.
+The motivation behind this is to check whether there is an exploration method which works better in a general sense, without misguiding the evolution. We will see specifics of this setup in later sections. In order to make this research easy to replicate and interesting in its own right, the environmental substrate is provided by the new track of the General Video Game Playing AI Competition\footnote{\url{www.gvgai.net}}. The players evaluated in this research are tested in this setup.
 
 The paper is structured as follows: Section \ref{sec:lit} does a brief review of the current state of the art in General Game and Video Game Playing. Section ~\ref{sec:framework} analyses the framework used in this paper for evaluating games. We describe the algorithms used in Section~\ref{sec:approaches}, while in Section~\ref{sec:exp} we present the experimental results. We conclude with a discussion in Section~\ref{sec:conc}. 
  
@@ -122,7 +122,7 @@ The GVG-AI framework is a Java port of py-vgdl, re-engineered for the GVG-AI Com
 
 The original version of this framework provided a \textit{forward model}, that allowed the agent to simulate actions on the current state to devise the consequences of the available actions. In this case, the agents counted on $40ms$ of CPU time to decide an action on each game cycle. This version of the framework was employed by the organizers of the competition to run what is now called the ``planning track'' of the contest, which took part during the Computational Intelligence in Games (CIG) conference in Dortmund (Germany) in 2014. A complete description of this competition, framework, rules, entries and results have been published in~\cite{Perez2015}.
 
-2016 will feature a new track for this competition, named ``learning track''. In this track, controllers do \textbf{not} have access to a forward model, so they cannot foresee the states reached after applying any of the available actions of the game. In contrast, they will be offered the possibility of playing the game multiple times, with the aim of allowing the agents to learn how to play each given game. Note that the competition is not limited by some of the drawbacks related to using Atari as an approach (e.g., no true stochasticity~\cite{hausknecht2015impact}) and that it allows for games that are custom tailored, without requiring the use of a vision module. Thus, we think, it provides different challenges than Atari General Game Playing. 
+2016 will feature a new track for this competition, named ``learning track''. In this track, controllers do \textbf{not} have access to a forward model, so they cannot foresee the states reached after applying any of the available actions of the game. In contrast, they will be offered the possibility of playing the game multiple times, with the aim of allowing the agents to learn how to play each given game. Note that the competition is not limited by some of the drawbacks related to using Atari as an approach (e.g., no true stochasticity~\cite{hausknecht2015impact}) and that it allows for games that can be customised easily, and also allows for great flexibility in the choice of interface between the game andthe AI agent, which could be vision based (as with ALE) or game-object based (as with the current experiments). Thus, we think, it provides different challenges than Atari General Game Playing. 
 
 Information is given regarding the state of the game to the controllers at three different stages: at initialization, each game step (\textit{act} call, called repeatedly, until the game is finished) and at termination. Table~\ref{tab:inf} summarizes the information given to the agent and at which stages this is passed.
 
@@ -343,19 +343,36 @@ Note that the features are common in all games and are very general (i.e. they d
 
 The algorithms proposed in the previous section have been tested in the games described previously in Section~\ref{ssec:games}. For each one of the $10$ present games, the first available level has been used for a learning process where each algorithm played $1000$ consecutive times. For each game, $50$ experiments where run, and the average of the progression of the score is plotted in Figures~\ref{fig:results1} and~\ref{fig:results2}. 
 
+\newcommand*{\lefig}{0.43}%
+
 \begin{figure*}[!t]
 	\begin{center}
 %	\vspace{-3mm}
-	\includegraphics[width = .45\textwidth]{img/aliens_scores}
-	\includegraphics[width = .45\textwidth]{img/boulderdash_scores}\\
+\begin{subfigure} {\lefig\textwidth}
+	\includegraphics[width =\textwidth]{img/aliens_scores}
+  \caption{Aliens}
+\end{subfigure}\begin{subfigure} {\lefig\textwidth}
+	\includegraphics[width = \textwidth]{img/boulderdash_scores}\\
+  \caption{Boulderdash}
+\end{subfigure}
 %	\vspace{-3.5mm}
-	\includegraphics[width = .45\textwidth]{img/butterflies_scores}
-	\includegraphics[width = .45\textwidth]{img/chase_scores}\\
 
+\begin{subfigure} {\lefig\textwidth}
+	\includegraphics[width = \textwidth]{img/butterflies_scores}
+  \caption{Butterflies}
+\end{subfigure}\begin{subfigure} {\lefig\textwidth}
+	\includegraphics[width = \textwidth]{img/chase_scores}\\
+  \caption{Chase}
+  \end{subfigure}
 %	\vspace{-3.5mm}
-	\includegraphics[width = .45\textwidth]{img/frogs_scores}
-	\includegraphics[width = .45\textwidth]{img/missilecommand_scores}\\
 
+\begin{subfigure} {\lefig\textwidth}
+	\includegraphics[width = \textwidth]{img/frogs_scores}
+  \caption{Frogs}
+\end{subfigure}\begin{subfigure} {\lefig\textwidth}
+	\includegraphics[width = \textwidth]{img/missilecommand_scores}\\  
+  \caption{Missile Command}
+\end{subfigure}
 %	\vspace{-1mm}
 	\caption{Progression of the average score during $1000$ trials. Horizontal axis denotes the trial, while the vertical axis shows the average score. Shadowed area indicates the standard error of the measure. From left to right, top to bottom, the games are \textit{Aliens}, \textit{Boulderdash}, \textit{Butterflies}, \textit{Chase}, \textit{Frogs} and \textit{MissileCommand}.}
 	\label{fig:results1}
@@ -368,12 +385,21 @@ The algorithms proposed in the previous section have been tested in the games de
 %	\vspace{-3mm}
 
 %	\vspace{-3.5mm}
-	\includegraphics[width = .45\textwidth]{img/portals_scores}
-	\includegraphics[width = .45\textwidth]{img/sokoban_scores}\\
+\begin{subfigure} {\lefig\textwidth}
+	\includegraphics[width = \textwidth]{img/portals_scores}
+  \caption{Portals}
+\end{subfigure}\begin{subfigure} {\lefig\textwidth}
+	\includegraphics[width = \textwidth]{img/sokoban_scores}\\
+  \caption{Sokoban}
+\end{subfigure}
 
-%	\vspace{-3.5mm}
-	\includegraphics[width = .45\textwidth]{img/survivezombies_scores}
-	\includegraphics[width = .45\textwidth]{img/zelda_scores}\\
+\begin{subfigure} {\lefig\textwidth}
+	\includegraphics[width = \textwidth]{img/survivezombies_scores}
+  \caption{Survival Zombies}
+\end{subfigure}\begin{subfigure} {\lefig\textwidth}
+	\includegraphics[width = \textwidth]{img/zelda_scores}\\
+  \caption{Zelda}
+\end{subfigure}
 
 %	\vspace{-1mm}
 	\caption{Progression of the average score during $1000$ trials. Horizontal axis denotes the trial, while vertical axis shows the average score. Shadowed area indicates the standard error of the measure. From left to right, top to bottom, the games are \textit{Portals}, \textit{Sokoban}, \textit{SurviveZombies} and \textit{Zelda}.}
