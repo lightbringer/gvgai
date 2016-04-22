@@ -9,7 +9,9 @@ import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
@@ -163,6 +165,16 @@ public abstract class VGDLSprite {
      * If true, this sprite is never present in the observations passed to the controller.
      */
     public boolean hidden;
+    
+    /**
+     * Indicates if the tile support autotiling
+     */
+    public boolean autotiling;
+    
+    /**
+     * Indicates if the tile picking is random
+     */
+    public double randomtiling;
 
     /**
      * List of types this sprite belongs to. It contains the ids, including itself's, from this sprite up
@@ -179,6 +191,11 @@ public abstract class VGDLSprite {
      * Image of this sprite.
      */
     public Image image;
+    
+    /**
+     * Dictionary for autoTiling
+     */
+    public HashMap<Integer, Image> allImages;
 
     /**
      * String that represents the image in VGDL.
@@ -271,6 +288,9 @@ public abstract class VGDLSprite {
         is_from_avatar = false;
         mass = 1;
         shrinkfactor = 1.0;
+        autotiling = false;
+        randomtiling = -1;
+        allImages = new HashMap<Integer, Image>();
         is_oriented = false;
         draw_arrow = false;
         orientation = Types.DNONE;
@@ -694,15 +714,36 @@ public abstract class VGDLSprite {
         {
             //load image.
             try {
-                if (!(str.contains(".png"))) str = str + ".png";
-                String image_file = CompetitionParameters.IMG_PATH + str;
-                if((new File(image_file).exists())) {
-                    image = ImageIO.read(new File(image_file));
-                }
-                else {
-                    //System.out.println(image_file);
-                    image = ImageIO.read(this.getClass().getResource("/" + image_file));
-                }
+            	if (this.autotiling || this.randomtiling >= 0){
+            		if (str.contains(".png")) str = str.substring(0, str.length() - 3);
+            		String imagePath = CompetitionParameters.IMG_PATH + str + "_";
+            		boolean noMoreFiles = false;
+            		int i = 0;
+            		do{
+            			String currentFile = imagePath + i + ".png";
+            			if((new File(currentFile).exists())) {
+            				allImages.put(i, ImageIO.read(new File(currentFile)));
+    	                }
+    	                else {
+    	                    //System.out.println(currentFile);
+    	                	//tempImage = ImageIO.read(this.getClass().getResource("/" + currentFile));
+    	                	noMoreFiles = true;
+    	                }
+            			i += 1;
+            		}while(!noMoreFiles);
+            		image = allImages.get(0);
+            	}
+            	else{
+	                if (!(str.contains(".png"))) str = str + ".png";
+	                String image_file = CompetitionParameters.IMG_PATH + str;
+	                if((new File(image_file).exists())) {
+	                    image = ImageIO.read(new File(image_file));
+	                }
+	                else {
+	                    //System.out.println(image_file);
+	                    image = ImageIO.read(this.getClass().getResource("/" + image_file));
+	                }
+            	}
 
             } catch (IOException e) {
                 System.out.println("Image " + str + " could not be found.");
@@ -769,12 +810,18 @@ public abstract class VGDLSprite {
         toSprite.color = this.color;
         toSprite.draw_arrow = this.draw_arrow;
         toSprite.is_npc = this.is_npc;
+        toSprite.allImages = new HashMap<Integer, Image>();
+        for(Entry<Integer, Image> e:this.allImages.entrySet()){
+        	toSprite.allImages.put(e.getKey(), e.getValue());
+        }
         toSprite.image = this.image;
         toSprite.spriteID = this.spriteID;
         toSprite.is_from_avatar = this.is_from_avatar;
         toSprite.bucket = this.bucket;
         toSprite.bucketSharp = this.bucketSharp;
         toSprite.invisible = this.invisible;
+        toSprite.autotiling = this.autotiling;
+        toSprite.randomtiling = this.randomtiling;
         toSprite.rotateInPlace = this.rotateInPlace;
         toSprite.isFirstTick = this.isFirstTick;
         toSprite.hidden = this.hidden;
@@ -826,6 +873,8 @@ public abstract class VGDLSprite {
         if(other.is_npc != this.is_npc) return false;
         if(other.is_from_avatar != this.is_from_avatar) return false;
         if(other.invisible != this.invisible) return false;
+        if(other.autotiling != this.autotiling) return false;
+        if(other.randomtiling != this.randomtiling) return false;
         if(other.spriteID != this.spriteID) return false;
         if(other.isFirstTick != this.isFirstTick) return false;
         if(other.hidden != this.hidden) return false;
