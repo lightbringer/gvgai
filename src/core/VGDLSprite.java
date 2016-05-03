@@ -411,12 +411,14 @@ public abstract class VGDLSprite {
     {
         lastrect = new Rectangle(rect);
         lastmove += 1;
-        
-        frameRemaining -= 1;
-        if(frameRate > 0 && frameRemaining <= 0){
-        	currentFrame = (currentFrame + 1) % allImages.size();
-        	frameRemaining = frameRate;
-        	image = allImages.get(currentFrame);
+
+        if(VGDLSprite.loadImages) {
+            frameRemaining -= 1;
+            if (frameRate > 0 && frameRemaining <= 0) {
+                currentFrame = (currentFrame + 1) % allImages.size();
+                frameRemaining = frameRate;
+                image = allImages.get(currentFrame);
+            }
         }
     }
 
@@ -617,7 +619,7 @@ public abstract class VGDLSprite {
             r.x += (rect.width-r.width)/2;
             r.y += (rect.height-r.height)/2;
         }
-        
+
         int w = image.getWidth(null);
         int h = image.getHeight(null);
         float scale = (float)r.width/w; //assume all sprites are quadratic.
