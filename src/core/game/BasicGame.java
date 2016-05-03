@@ -108,16 +108,20 @@ public class BasicGame extends Game {
         }
         screenSize = new Dimension(size.width * block_size, size.height * block_size);
 
+        for(int i = 0; i < size.height; ++i)
+        {
+            String line = desc_lines[i];
+            if(line.length() < size.width)
+            {
+                //This might happen. We just concat ' ' until size.
+                desc_lines[i] = completeLine(line, size.width - line.length(), " ");
+            }
+        }
+
         //All sprites are created and placed here:
         for(int i = 0; i < size.height; ++i)
         {
             String line = desc_lines[i];
-
-            if(line.length() < size.width)
-            {
-                //This might happen. We just concat ' ' until size.
-                line = completeLine(line, size.width - line.length(), " ");
-            }
 
             //For each character
             for(int j = 0; j < size.width; ++j)
@@ -206,8 +210,7 @@ public class BasicGame extends Game {
     public void addSpritesIn(ArrayList<String> keys, Vector2d position)
     {
         //We might have more than one sprite in the same position.
-        for(String objectType : keys)
-        {
+        for(String objectType : keys) {
             addSpriteIn(objectType, position);
         }
     }
