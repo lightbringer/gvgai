@@ -13,13 +13,19 @@ public class GameClass {
     public final static String KEY_HANDLER = "key_handler";
     public final static String KEY_HANDLER_PULSE = "Pulse";
 
-    public static void handleGameClassOption( Set<Feature> requiredFeatures, GeneratorAdapter currentMehod, Class<?> parentClass, OptionContext o ) {
+    public static void handleGameClassOption( Set<Feature> requiredFeatures, GeneratorAdapter currentMehod, Type parent, OptionContext o ) {
+        Class<?> parentClass;
+        try {
+            parentClass = Class.forName( parent.getClassName() );
+        }
+        catch (final ClassNotFoundException e1) {
+            throw new RuntimeException( e1 );
+        }
         switch (o.option_key().getText()) {
             case KEY_HANDLER:
                 injectKeyHandler( requiredFeatures, currentMehod, o.option_value().getText() );
                 break;
             default:
-                final Type parent = Type.getType( parentClass );
 
                 try {
                     currentMehod.loadThis();

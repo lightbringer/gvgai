@@ -52,10 +52,6 @@ import net.gvgai.vgdl.game.VGDLSprite;
 import net.gvgai.vgdl.game.Wall;
 
 public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
-    private class LevelMapping {
-        String[] classes;
-        Label label;
-    }
 
     private class VGDLClassLoader extends ClassLoader {
         Class<?> defineClass( String name, ClassWriter cw ) {
@@ -95,23 +91,23 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
     }
 
-    private final static String PACKAGE = "net.gvgai.game";
+    private final static String PACKAGE = "net/gvgai/game";
 
-    private final Map<String, Set<String>> definedInteractions;
+    private final Map<Type, Set<Type>> definedInteractions;
 
-    private final Map<String, Integer> classIds;
+    private final Map<Type, Integer> classIds;
     /**
      *
      */
 
     private VGDLClassLoader classLoader;
 
-    private final String gameName;
+//    private final String gameName;
 
-    private final Map<String, ClassWriter> classes;
+    private final Map<Type, ClassWriter> classes;
     private final Stack<GeneratorAdapter> methods;
 
-    private final SortedMap<Integer, LevelMapping> levelMapping;
+    private final SortedMap<Integer, String[]> levelMapping;
 
     private final boolean writeClassesToDisk;
 
@@ -121,6 +117,8 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
     private int nextClassId;
 
+    private final Type gameType;
+
     VGDLCompiler( String gameName ) {
         this( gameName, false );
     }
@@ -129,15 +127,17 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
      * @param gameName name of the game class
      */
     VGDLCompiler( String gameName, boolean writeClassesToDisk ) {
-        this.gameName = gameName;
+//        this.gameName = gameName;
+        gameType = Type.getType( "L" + PACKAGE + "/" + gameName + ";" );
+        System.out.println( gameType.getInternalName() );
         this.writeClassesToDisk = writeClassesToDisk;
-        classes = new HashMap<String, ClassWriter>();
+        classes = new HashMap<Type, ClassWriter>();
 
-        levelMapping = new TreeMap<Integer, LevelMapping>();
+        levelMapping = new TreeMap<Integer, String[]>();
         methods = new Stack<GeneratorAdapter>();
         requiredFeatures = new HashSet<VGDLRuntime.Feature>();
-        definedInteractions = new HashMap<String, Set<String>>();
-        classIds = new HashMap<String, Integer>();
+        definedInteractions = new HashMap<Type, Set<Type>>();
+        classIds = new HashMap<Type, Integer>();
     }
 
     @Override
@@ -158,11 +158,10 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
         final String simpleName = ctx.name.getText();
 
-        final Class<?> parentClass = getClassForSimpleName( simpleName );
-        final Type parent = Type.getType( parentClass );
+        final Type parent = getTypeForSimpleName( simpleName );
 
         final ClassWriter cw = new ClassWriter( ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES );
-        cw.visit( V1_8, ACC_PUBLIC, Type.getType( "L" + PACKAGE + "." + gameName ).getInternalName(), null, Type.getInternalName( parentClass ), null );
+        cw.visit( V1_8, ACC_PUBLIC, gameType.getInternalName(), null, parent.getInternalName(), null );
 
 //        try {
 //            for (final OptionContext o : ctx.option()) {
@@ -193,27 +192,28 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         currentMehod.loadThis();
         currentMehod.invokeConstructor( parent, m );
         for (final OptionContext o : ctx.option()) {
-            GameClass.handleGameClassOption( requiredFeatures, currentMehod, parentClass, o );
+            GameClass.handleGameClassOption( requiredFeatures, currentMehod, parent, o );
         }
 
         currentMehod.returnValue();
         currentMehod.endMethod();
         methods.pop();
 
-        classes.put( gameName, cw );
+        classes.put( gameType, cw );
     }
 
     @Override
     public void enterInteraction( InteractionContext ctx ) {
         final List<String> actors = ctx.known_sprite_name().stream().map( ktx -> ktx.Identifier().getText() ).collect( Collectors.toList() );
-        final ClassWriter cw = classes.get( actors.get( 0 ) );
+        final ClassWriter cw = classes.get( getTypeForSimpleName( actors.get( 0 ) ) );
         assert cw != null;
         assert actors.size() >= 2;
 
         System.out.println( "Setting interaction " + actors );
-        definedInteractions.get( actors.get( 0 ) ).add( actors.get( 1 ) );
-        final Class<?> a1 = getClassForSimpleName( actors.get( 1 ) );
-        final Type t = a1 != null ? Type.getType( a1 ) : Type.getType( "L" + actors.get( 1 ) + ";" );
+        final Type actorType = getTypeForSimpleName( actors.get( 0 ) );
+        final Type otherType = getTypeForSimpleName( actors.get( 1 ) );
+        definedInteractions.get( actorType ).add( otherType );
+        final Type t = getTypeForSimpleName( actors.get( 1 ) );
 
         final Method m = Method.getMethod( "void collide (" + t.getClassName() + ")" );
         final GeneratorAdapter mg = new GeneratorAdapter( ACC_PROTECTED, m, null, null, cw );
@@ -227,9 +227,9 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
     @Override
     public void enterInteraction_set( Interaction_setContext ctx ) {
-        for (final String n : classes.keySet()) {
-            if (!n.equals( gameName )) {
-                definedInteractions.put( n, new HashSet<String>() );
+        for (final Type n : classes.keySet()) {
+            if (!n.equals( gameType )) {
+                definedInteractions.put( n, new HashSet<Type>() );
             }
         }
     }
@@ -237,27 +237,26 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
     @SuppressWarnings( "unchecked" )
     @Override
     public void enterLevel_mapping( Level_mappingContext ctx ) {
-        final LevelMapping mapping = new LevelMapping();
-        final GeneratorAdapter currentMehod = methods.peek();
-        mapping.label = currentMehod.newLabel();
 
-        mapping.classes = new String[ctx.known_sprite_name().size()];
+        final GeneratorAdapter currentMehod = methods.peek();
+
+        final String[] classes = new String[ctx.known_sprite_name().size()];
         int i = 0;
         for (final Known_sprite_nameContext c : ctx.known_sprite_name()) {
-            mapping.classes[i] = c.Identifier().getText(); //getClassForSimpleName( c.Identifier().getText() );
+            classes[i] = getTypeForSimpleName( c.Identifier().getText() ).getClassName();
             i++;
         }
 
         if (levelMapping.containsKey( Integer.valueOf( ctx.symbol.getText().charAt( 0 ) ) )) {
             throw new IllegalStateException( "level mapping " + ctx.symbol.getText().charAt( 0 ) + " already defined" );
         }
-        levelMapping.put( Integer.valueOf( ctx.symbol.getText().charAt( 0 ) ), mapping );
+        levelMapping.put( Integer.valueOf( ctx.symbol.getText().charAt( 0 ) ), classes );
     }
 
     @Override
     public void enterLevel_mappings( Level_mappingsContext ctx ) {
         final GeneratorAdapter currentMehod = new GeneratorAdapter( ACC_PUBLIC, Method.getMethod( "Class[] getMappedSpriteClass (char)" ), null, null,
-                        classes.get( gameName ) );
+                        classes.get( gameType ) );
         methods.push( currentMehod );
         levelMapping.clear();
     }
@@ -272,17 +271,17 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
         //If it's a known class, parentClass will be != null, if it's one of the classes we're currently generating, it's null. Then use ctx.parentClass
         //if it's neither, the next call will throw an exception
-        final Class<? extends VGDLSprite> parentClass = (Class<? extends VGDLSprite>) getClassForSimpleName( ctx.parentClass );
-        final Type t = parentClass != null ? Type.getType( parentClass ) : Type.getType( "L" + ctx.parentClass + ";" );
-        System.out.println( "Parent of " + ctx.name.getText() + " is " + t );
-        spcw.visit( V1_8, ACC_PUBLIC, ctx.name.getText(), null, t.getInternalName(), null );
+        final Type spriteType = Type.getType( "L" + PACKAGE + "/" + ctx.name.getText() + ";" );
+        final Type parentType = getTypeForSimpleName( ctx.parentClass );
+        System.out.println( "Parent of " + ctx.name.getText() + " is " + parentType );
+        spcw.visit( V1_8, ACC_PUBLIC, spriteType.getInternalName(), null, parentType.getInternalName(), null );
 
         // creates a GeneratorAdapter for the (implicit) constructor
         final Method m = Method.getMethod( "void <init> ()" );
         final GeneratorAdapter mg = new GeneratorAdapter( ACC_PUBLIC, m, null, null, spcw );
         mg.loadThis();
 
-        mg.visitMethodInsn( INVOKESPECIAL, t.getInternalName(), "<init>", "()V", false );
+        mg.visitMethodInsn( INVOKESPECIAL, parentType.getInternalName(), "<init>", "()V", false );
 //        mg.invokeConstructor( Type.getType( parentClass ), m );
 
         //Handle options
@@ -324,7 +323,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         if (classIds.containsKey( id )) {
             throw new IllegalStateException( "FIXME duplicate classid" );
         }
-        classIds.put( ctx.name.getText(), id );
+        classIds.put( spriteType, id );
         idGetter.push( id );
         idGetter.returnValue();
         idGetter.endMethod();
@@ -339,7 +338,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         mg.endMethod();
 
         spcw.visitEnd();
-        classes.put( ctx.name.getText(), spcw );
+        classes.put( spriteType, spcw );
 
     }
 
@@ -349,7 +348,8 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         currentMethod.loadLocal( local );
 
         try {
-            final Class<? extends Termination> clazz = (Class<? extends Termination>) getClassForSimpleName( ctx.termination_class.getText() );
+            final Class<? extends Termination> clazz = (Class<? extends Termination>) Class
+                            .forName( getTypeForSimpleName( ctx.termination_class.getText() ).getClassName() );
             final Termination t = clazz.newInstance();
             for (final OptionContext o : ctx.option()) {
                 final Field f = clazz.getDeclaredField( o.option_key().getText() );
@@ -365,9 +365,9 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
                     throw new IllegalStateException( "unhandled field type" );
                 }
             }
-            t.generate( gameName, requiredFeatures, classes.get( gameName ), currentMethod );
+            t.generate( this, gameType, requiredFeatures, classes.get( gameType ), currentMethod );
         }
-        catch (InstantiationException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
+        catch (InstantiationException | IllegalAccessException | NoSuchFieldException | SecurityException | ClassNotFoundException e) {
             throw new RuntimeException( e );
         }
 
@@ -377,7 +377,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
     @Override
     public void enterTermination_set( Termination_setContext ctx ) {
         final GeneratorAdapter currentMehod = new GeneratorAdapter( ACC_PUBLIC, Method.getMethod( "boolean isGameOver()" ), null, null,
-                        classes.get( gameName ) );
+                        classes.get( gameType ) );
         methods.push( currentMehod );
         local = currentMehod.newLocal( Type.BOOLEAN_TYPE );
         currentMehod.push( false );
@@ -386,7 +386,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
     @Override
     public void exitGame( GameContext ctx ) {
-        final ClassWriter cw = classes.get( gameName );
+        final ClassWriter cw = classes.get( gameType );
         cw.visitField( ACC_STATIC | ACC_FINAL | ACC_PRIVATE, "REQUIRED_FEATURES", "[Lnet/gvgai/vgdl/VGDLRuntime$Feature;", null, null );
         final Type at = Type.getType( Array.class );
         final Method staticinit = Method.getMethod( "void <clinit>()" );
@@ -405,14 +405,14 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         }
 
         staticblock.loadLocal( array );
-        staticblock.visitFieldInsn( PUTSTATIC, gameName, "REQUIRED_FEATURES", "[Lnet/gvgai/vgdl/VGDLRuntime$Feature;" );
+        staticblock.visitFieldInsn( PUTSTATIC, gameType.getInternalName(), "REQUIRED_FEATURES", "[Lnet/gvgai/vgdl/VGDLRuntime$Feature;" );
 
         staticblock.returnValue();
         staticblock.endMethod();
 
         final Method getter = Method.getMethod( "net.gvgai.vgdl.VGDLRuntime$Feature[] getRequiredFeatures ()" );
         final GeneratorAdapter getterA = new GeneratorAdapter( ACC_PUBLIC, getter, null, null, cw );
-        getterA.visitFieldInsn( GETSTATIC, gameName, "REQUIRED_FEATURES", "[Lnet/gvgai/vgdl/VGDLRuntime$Feature;" );
+        getterA.visitFieldInsn( GETSTATIC, gameType.getInternalName(), "REQUIRED_FEATURES", "[Lnet/gvgai/vgdl/VGDLRuntime$Feature;" );
         getterA.returnValue();
         getterA.endMethod();
 
@@ -424,16 +424,15 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
     public void exitInteraction_set( Interaction_setContext ctx ) {
         //now implement the abstract lookup method
         final Method overLoadMethod = Method.getMethod( "void collide (" + VGDLSprite.class.getName() + ")" );
-        for (final Map.Entry<String, ClassWriter> e : classes.entrySet()) {
-            if (e.getKey().equals( gameName )) {
+        for (final Map.Entry<Type, ClassWriter> e : classes.entrySet()) {
+            if (e.getKey().equals( gameType )) {
                 continue;
             }
             final ClassWriter cw = e.getValue();
-            final Class<?> clazz = getClassForSimpleName( e.getKey() );
-            final Type actorType = clazz != null ? Type.getType( clazz ) : Type.getType( "L" + e.getKey() + ";" );
+            final Type actorType = e.getKey();
             final GeneratorAdapter m = new GeneratorAdapter( ACC_PUBLIC, overLoadMethod, null, null, cw );
 
-            final Set<String> interactions = definedInteractions.get( e.getKey() );
+            final Set<Type> interactions = definedInteractions.get( actorType );
             if (interactions.isEmpty()) {
                 //TODO call super
                 m.returnValue();
@@ -443,12 +442,12 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
             m.loadArg( 0 );
             m.invokeVirtual( Type.getType( VGDLSprite.class ), Method.getMethod( "int getClassId( )" ) );
             final List<Integer> keysList = new LinkedList<Integer>();
-            for (final String otherClass : interactions) {
-                if (otherClass.equals( "wall" )) {
+            for (final Type otherType : interactions) {
+                if (otherType.equals( Type.getType( Wall.class ) )) {
                     keysList.add( Wall.VGDL_WALL_ID );
                 }
                 else {
-                    keysList.add( classIds.get( otherClass ) );
+                    keysList.add( classIds.get( otherType ) );
                 }
             }
             Collections.sort( keysList );
@@ -464,12 +463,11 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
                 public void generateCase( int key, Label end ) {
                     m.loadThis();
                     m.loadArg( 0 );
-                    final String otherName = key != Wall.VGDL_WALL_ID
-                                    ? classIds.entrySet().stream().filter( e -> e.getValue().equals( key ) ).findAny().get().getKey() : "wall";
-                    final Class<?> otherType = getClassForSimpleName( otherName );
-                    final Type t = otherType != null ? Type.getType( otherType ) : Type.getType( "L" + otherName + ";" );
-                    final Method typedCollide = Method.getMethod( "void collide (" + t.getClassName() + ")" );
-                    m.visitTypeInsn( CHECKCAST, t.getInternalName() );
+                    final Type otherType = key != Wall.VGDL_WALL_ID
+                                    ? classIds.entrySet().stream().filter( e -> e.getValue().equals( key ) ).findAny().get().getKey()
+                                    : Type.getType( Wall.class );
+                    final Method typedCollide = Method.getMethod( "void collide (" + otherType.getClassName() + ")" );
+                    m.visitTypeInsn( CHECKCAST, otherType.getInternalName() );
                     m.invokeVirtual( actorType, typedCollide );
                     m.returnValue();
                 }
@@ -504,7 +502,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         final int[] keys = new int[levelMapping.size()];
         final Object[] temp = levelMapping.entrySet().toArray();
         for (int i = 0; i < temp.length; i++) {
-            keys[i] = ((Map.Entry<Integer, LevelMapping>) temp[i]).getKey();
+            keys[i] = ((Map.Entry<Integer, String[]>) temp[i]).getKey();
         }
         final TableSwitchGenerator generator = new TableSwitchGenerator() {
 
@@ -512,7 +510,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
             public void generateCase( int key, Label end ) {
                 final Type at = Type.getType( Array.class );
                 @SuppressWarnings( "rawtypes" )
-                final String[] clazzes = levelMapping.get( key ).classes;
+                final String[] clazzes = levelMapping.get( key );
                 final int length = clazzes.length;
 
                 currentMehod.push( length );
@@ -584,8 +582,8 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
     public Set<Class> getClasses() {
         final Set<Class> clazzes = new HashSet<Class>();
-        for (final Entry<String, ClassWriter> e : classes.entrySet()) {
-            clazzes.add( classLoader.defineClass( e.getKey(), e.getValue() ) );
+        for (final Entry<Type, ClassWriter> e : classes.entrySet()) {
+            clazzes.add( classLoader.defineClass( e.getKey().getClassName(), e.getValue() ) );
         }
         return clazzes;
     }
@@ -594,28 +592,29 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         return classLoader;
     }
 
-    private Class<?> getClassForSimpleName( String name ) {
+    public Type getTypeForSimpleName( String name ) {
         if (name.equals( "wall" )) {
-            return Wall.class;
+            return Type.getType( Wall.class );
         }
-        else if (classes.containsKey( name )) {
-            //caller will know it's a dynamic class
-            return null;
-        }
-        else {
-            try {
-                final Set<Class> fqns = classLoader.getFQNs( name );
 
-                if (fqns.size() != 1) {
-                    throw new IllegalStateException( "class \"" + name + " is either unknown or ambiguous " );
-                }
-
-                return fqns.iterator().next();
-            }
-            catch (final IOException e) {
-                throw new RuntimeException( e );
-            }
+        final Type ret = classes.keySet().stream().filter( t -> t.getClassName().endsWith( name ) ).findAny().orElse( null );
+        if (ret != null) {
+            return ret;
         }
+
+        try {
+            final Set<Class> fqns = classLoader.getFQNs( name );
+
+            if (fqns.size() != 1) {
+                throw new IllegalStateException( "class \"" + name + " is " + (fqns.isEmpty() ? "unknown" : "ambiguous") );
+            }
+
+            return Type.getType( fqns.iterator().next() );
+        }
+        catch (final IOException e) {
+            throw new RuntimeException( e );
+        }
+
     }
 
 }
