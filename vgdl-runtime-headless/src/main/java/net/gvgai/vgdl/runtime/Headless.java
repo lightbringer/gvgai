@@ -13,6 +13,7 @@ import java.util.function.Function;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
 import net.gvgai.vgdl.AutoWire;
 import net.gvgai.vgdl.SpriteInfo;
@@ -42,13 +43,15 @@ public class Headless implements VGDLRuntime {
 
     private VGDLGame game;
 
-    private GameState gameState;
+    GameState gameState;
 
     private Controller controller;
 
     private double updateFrequency;
 
     private MovingAvatar avatar;
+
+    private DebugRenderer renderer;
 
     @Override
     public void loadGame( Class<? extends VGDLGame> gameClass ) {
@@ -78,6 +81,12 @@ public class Headless implements VGDLRuntime {
                     throw new IllegalStateException();
             }
             wireObject( game );
+
+            //FIXME Remove this
+            renderer = new DebugRenderer( this );
+            final JPanel p = new JPanel();
+            p.setUI( renderer );
+            window.getContentPane().add( p );
         }
         catch (InstantiationException | IllegalAccessException e) {
             throw new RuntimeException( e );
@@ -169,12 +178,16 @@ public class Headless implements VGDLRuntime {
             game.update( delta );
             time = System.currentTimeMillis();
 
+            //FIXME Remove me
+            window.repaint();
         }
     }
 
     private <T extends VGDLSprite> void collide( VGDLSprite s ) {
-        for (final VGDLSprite other : gameState.getSpritesAt( gameState.getPosition( s ) )) {
-            if (s != other) {
+        final Object pos = gameState.getPosition( s );
+        assert pos != null;
+        for (final VGDLSprite other : gameState.getSpritesAt( pos )) {
+            if (other != null && s != other) {
                 System.out.println( "Calling collide with " + other + " on " + s );
                 s.collide( other );
             }

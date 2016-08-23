@@ -48,9 +48,17 @@ public class DiscreteGameState implements GameState {
         return avatar;
     }
 
+    public VGDLSprite[][][] getLevel() {
+        return level;
+    }
+
     @Override
     public Object getPosition( VGDLSprite s ) {
         return positions.get( s );
+    }
+
+    public Map<VGDLSprite, SpritePosition> getPositions() {
+        return positions;
     }
 
     @Override
@@ -62,7 +70,7 @@ public class DiscreteGameState implements GameState {
     @Override
     public VGDLSprite[] getSpritesAt( Object pos ) {
         final SpritePosition p = (SpritePosition) pos;
-        return level[p.x][p.y];
+        return level[p.y][p.x];
     }
 
     @Override
@@ -76,7 +84,7 @@ public class DiscreteGameState implements GameState {
         p.direction = SpritePosition.Direction.SOUTH;
         level[p.y][p.x][p.index] = null;
 
-        p.y--;
+        p.y++;
 
         return insertAt( p.x, p.y, s );
     }
@@ -107,7 +115,7 @@ public class DiscreteGameState implements GameState {
         p.direction = SpritePosition.Direction.NORTH;
         level[p.y][p.x][p.index] = null;
 
-        p.y++;
+        p.y--;
         return insertAt( p.x, p.y, s );
     }
 
@@ -162,6 +170,7 @@ public class DiscreteGameState implements GameState {
         VGDLSprite[] newPos = level[y][x];
         if (newPos == null) {
             level[y][x] = new VGDLSprite[] { s };
+            positions.get( s ).index = 0;
             return false;
         }
         else {
@@ -172,6 +181,7 @@ public class DiscreteGameState implements GameState {
                     if (!inserted) {
                         inserted = true;
                         newPos[i] = s;
+                        positions.get( s ).index = i;
                     }
                 }
                 else {
@@ -180,9 +190,12 @@ public class DiscreteGameState implements GameState {
 
             }
             if (!inserted) {
+
                 newPos = Arrays.copyOf( newPos, newPos.length + 1 );
-                newPos[newPos.length - 1] = s;
+                final int i = newPos.length - 1;
+                newPos[i] = s;
                 level[y][x] = newPos;
+                positions.get( s ).index = i;
             }
             return collision;
         }
