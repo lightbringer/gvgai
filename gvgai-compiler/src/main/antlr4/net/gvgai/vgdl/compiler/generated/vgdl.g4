@@ -130,9 +130,9 @@ sprite returns [String parentClass]
   | 
   	{!$sprite_set::lastSpriteClass.isEmpty()}? options=option* {$parentClass=$sprite_set::lastSpriteClass.peek();}
   ) 
-  {sprites.add($name.text); }
+  {sprites.add($name.text); $sprite_set::lastSpriteClass.push($name.text);}
   NEWLINE 
-  (	INDENT? INDENT {$sprite_set::lastSpriteClass.push($name.text);}
+  (	INDENT? INDENT 
   	|DEDENT? DEDENT {$sprite_set::lastSpriteClass.pop(); }
   )* 
  ;
@@ -151,7 +151,6 @@ level_mapping
  
  level_symbol
  	:
- 	{if(_input.LT(1).getText().equals("w")) throw new RuntimeException("w is a reserved character for wall");} 	
  	(Character | SpecialCharacter) 
  ;
  

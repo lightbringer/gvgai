@@ -1,27 +1,20 @@
-BasicGame key_handler=Pulse square_size=50 no_players=2
+BasicGame key_handler=Pulse square_size=40
     SpriteSet
-        hole   > Immovable color=DARKBLUE img=hole
-        ground > Immovable img=water hidden=True
-        avatar > MovingAvatar
-            avatar1 > img=avatar
-            avatar2 > img=alien
-        bbox    > Passive 
-            box > img=box
-            boxin > img=city
-			
+        floor > Immovable img=floor2
+        hole   > Immovable color=DARKBLUE img=cspell4
+        avatar > MovingAvatar img=avatar
+        box    > Passive img=barrel1 shrinkfactor=0.8
+        wall > Immovable img=wall3 autotiling=True
     LevelMapping
-        0 > hole
-        1 > box ground
-        . > ground
-        A > avatar1 ground
-        B > avatar2 ground
-		
+        0 > floor hole
+        1 > floor box
+        w > floor wall
+        A > floor avatar
+        . > floor
     InteractionSet
-        avatar wall avatar > stepBack
-        bbox avatar  > bounceForward
-        bbox wall bbox   > undoAll
-        box hole    > transformTo stype=boxin scoreChange=1,1
-        boxin ground > transformTo stype=box scoreChange=-1,-1
-		
+        avatar wall > stepBack
+        box avatar  > bounceForward
+        box wall box  > undoAll
+        box hole    > killSprite scoreChange=1
     TerminationSet
-        SpriteCounter stype=box    limit=0 win=True,True
+		SpriteCounter stype=box limit=0 win=True
