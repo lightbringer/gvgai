@@ -1,4 +1,4 @@
-package net.gvgai.vgdl.compiler.library;
+package net.gvgai.vgdl.compiler.library.termination;
 
 import java.util.Set;
 import java.util.function.Function;
@@ -14,6 +14,7 @@ import org.objectweb.asm.commons.Method;
 import net.gvgai.vgdl.AutoWire;
 import net.gvgai.vgdl.VGDLRuntime.Feature;
 import net.gvgai.vgdl.compiler.VGDLCompiler;
+import net.gvgai.vgdl.compiler.library.Termination;
 
 public class SpriteCounter implements Termination, Opcodes {
     private String stype;
@@ -33,7 +34,7 @@ public class SpriteCounter implements Termination, Opcodes {
         ga.visitFieldInsn( GETFIELD, gameType.getInternalName(), "countSprites", "Ljava/util/function/Function;" );
         ga.invokeStatic( Type.getType( Thread.class ), Method.getMethod( "Thread currentThread()" ) );
         ga.invokeVirtual( Type.getType( Thread.class ), Method.getMethod( "ClassLoader getContextClassLoader()" ) );
-        ga.push( context.getTypeForSimpleName( stype ).getClassName() );
+        ga.push( context.getTypeForSimpleName( VGDLCompiler.formatClassName( stype ) ).getClassName() );
         ga.invokeVirtual( Type.getType( ClassLoader.class ), Method.getMethod( "Class loadClass(String)" ) );
         final Method m = Method.getMethod( "Object apply(Object)" );
         ga.invokeInterface( Type.getType( Function.class ), m );

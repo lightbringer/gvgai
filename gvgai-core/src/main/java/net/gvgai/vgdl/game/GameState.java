@@ -2,6 +2,8 @@ package net.gvgai.vgdl.game;
 
 public interface GameState {
 
+    boolean forward( VGDLSprite s );
+
     MovingAvatar getAvatar();
 
     Object getPosition( VGDLSprite s );
@@ -39,6 +41,8 @@ public interface GameState {
      * @return
      */
     boolean moveUp( VGDLSprite s );
+
+    void reverse( VGDLSprite s );
 
     void setAvatar( MovingAvatar a );
 }

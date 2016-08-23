@@ -21,8 +21,8 @@ public class VGDL2Java {
 
         // Walk it and attach our listener
         final ParseTreeWalker walker = new ParseTreeWalker();
-        final VGDLCompiler listener = new VGDLCompiler( "Sokoban", true );
-        listener.getClass(); //trigger writeout
+        final VGDLCompiler listener = new VGDLCompiler( "Sokoban", false );
+//        listener.getClass(); //trigger writeout
         walker.walk( listener, game );
 
         Thread.currentThread().setContextClassLoader( listener.getClassLoader() );

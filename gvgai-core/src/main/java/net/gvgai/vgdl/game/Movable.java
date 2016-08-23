@@ -6,13 +6,17 @@ import net.gvgai.vgdl.AutoWire;
 
 public abstract class Movable extends VGDLSprite {
     @AutoWire
-    private static Consumer<VGDLSprite> moveUp;
+    protected Consumer<VGDLSprite> moveUp;
     @AutoWire
-    private static Consumer<VGDLSprite> moveDown;
+    protected Consumer<VGDLSprite> moveDown;
     @AutoWire
-    private static Consumer<VGDLSprite> moveLeft;
+    protected Consumer<VGDLSprite> moveLeft;
     @AutoWire
-    private static Consumer<VGDLSprite> moveRight;
+    protected Consumer<VGDLSprite> moveRight;
+    @AutoWire
+    protected Consumer<VGDLSprite> reverse;
+    @AutoWire
+    protected Consumer<VGDLSprite> forward;
 
     public void moveDown() {
         moveDown.accept( this );

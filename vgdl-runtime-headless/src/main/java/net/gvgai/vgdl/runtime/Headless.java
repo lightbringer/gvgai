@@ -175,6 +175,7 @@ public class Headless implements VGDLRuntime {
     private <T extends VGDLSprite> void collide( VGDLSprite s ) {
         for (final VGDLSprite other : gameState.getSpritesAt( gameState.getPosition( s ) )) {
             if (s != other) {
+                System.out.println( "Calling collide with " + other + " on " + s );
                 s.collide( other );
             }
         }
@@ -183,6 +184,15 @@ public class Headless implements VGDLRuntime {
     private int countSprites( Class<? extends VGDLSprite> clazz ) {
         return gameState.getSpriteCount( clazz );
 
+    }
+
+    private void forward( VGDLSprite s ) {
+        System.out.println( "forward" );
+        final boolean collision = gameState.forward( s );
+        if (collision) {
+            System.out.println( "collision!" );
+            collide( s );
+        }
     }
 
     private void injectMethod( Object o, Field f ) {
@@ -210,6 +220,12 @@ public class Headless implements VGDLRuntime {
                     break;
                 case "lose":
                     f.set( o, (Consumer<Integer>) this::lose );
+                    break;
+                case "reverse":
+                    f.set( o, (Consumer<VGDLSprite>) this::reverse );
+                    break;
+                case "forward":
+                    f.set( o, (Consumer<VGDLSprite>) this::forward );
                     break;
                 default:
                     throw new IllegalArgumentException( "unrecognized field \"" + f.getName() + "\" marked for @AutoWire in class " + f.getDeclaringClass() );
@@ -260,6 +276,12 @@ public class Headless implements VGDLRuntime {
             System.out.println( "collision!" );
             collide( s );
         }
+
+    }
+
+    private void reverse( VGDLSprite s ) {
+        System.out.println( "reverse" );
+        gameState.reverse( s );
 
     }
 

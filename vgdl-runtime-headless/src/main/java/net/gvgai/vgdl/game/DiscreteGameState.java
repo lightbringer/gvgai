@@ -5,10 +5,15 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class DiscreteGameState implements GameState {
-    private class SpritePosition {
+    private static class SpritePosition {
+        enum Direction {
+            NORTH, EAST, SOUTH, WEST
+        }
+
         private int x;
         private int y;
         private int index;
+        private Direction direction;
     }
 
     //We keep to maps to have fast access for Sprite->Position and Position->Sprite
@@ -19,6 +24,23 @@ public class DiscreteGameState implements GameState {
 
     public DiscreteGameState() {
         positions = new LinkedHashMap<VGDLSprite, SpritePosition>();
+    }
+
+    @Override
+    public boolean forward( VGDLSprite s ) {
+        final SpritePosition p = positions.get( s );
+        switch (p.direction) {
+            case EAST:
+                return moveRight( s );
+            case NORTH:
+                return moveUp( s );
+            case SOUTH:
+                return moveDown( s );
+            case WEST:
+                return moveLeft( s );
+            default:
+                throw new RuntimeException();
+        }
     }
 
     @Override
@@ -34,7 +56,6 @@ public class DiscreteGameState implements GameState {
     @Override
     public int getSpriteCount( Class<? extends VGDLSprite> clazz ) {
         final int counter = (int) positions.keySet().stream().filter( s -> clazz.isAssignableFrom( s.getClass() ) ).count();
-//        System.out.println( "Count(" + clazz + ") = " + counter );
         return counter;
     }
 
@@ -52,6 +73,7 @@ public class DiscreteGameState implements GameState {
     @Override
     public boolean moveDown( VGDLSprite s ) {
         final SpritePosition p = positions.get( s );
+        p.direction = SpritePosition.Direction.SOUTH;
         level[p.y][p.x][p.index] = null;
 
         p.y--;
@@ -62,6 +84,7 @@ public class DiscreteGameState implements GameState {
     @Override
     public boolean moveLeft( VGDLSprite s ) {
         final SpritePosition p = positions.get( s );
+        p.direction = SpritePosition.Direction.WEST;
         level[p.y][p.x][p.index] = null;
 
         p.x--;
@@ -71,6 +94,7 @@ public class DiscreteGameState implements GameState {
     @Override
     public boolean moveRight( VGDLSprite s ) {
         final SpritePosition p = positions.get( s );
+        p.direction = SpritePosition.Direction.EAST;
         level[p.y][p.x][p.index] = null;
 
         p.x++;
@@ -80,10 +104,34 @@ public class DiscreteGameState implements GameState {
     @Override
     public boolean moveUp( VGDLSprite s ) {
         final SpritePosition p = positions.get( s );
+        p.direction = SpritePosition.Direction.NORTH;
         level[p.y][p.x][p.index] = null;
 
         p.y++;
         return insertAt( p.x, p.y, s );
+    }
+
+    @Override
+    public void reverse( VGDLSprite s ) {
+        final SpritePosition p = positions.get( s );
+        switch (p.direction) {
+            case EAST:
+                p.direction = SpritePosition.Direction.WEST;
+                break;
+            case NORTH:
+                p.direction = SpritePosition.Direction.SOUTH;
+                break;
+            case SOUTH:
+                p.direction = SpritePosition.Direction.NORTH;
+                break;
+            case WEST:
+                p.direction = SpritePosition.Direction.EAST;
+                break;
+            default:
+                throw new RuntimeException();
+
+        }
+
     }
 
     @Override
