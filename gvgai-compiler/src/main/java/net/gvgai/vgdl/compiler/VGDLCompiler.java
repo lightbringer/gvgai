@@ -6,10 +6,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -47,7 +44,6 @@ import net.gvgai.vgdl.compiler.library.Effect;
 import net.gvgai.vgdl.compiler.library.GameClass;
 import net.gvgai.vgdl.compiler.library.Termination;
 import net.gvgai.vgdl.game.VGDLSprite;
-import net.gvgai.vgdl.game.Wall;
 
 public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
     private final static String PACKAGE = "net/gvgai/game";
@@ -83,9 +79,9 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
     private final Set<VGDLRuntime.Feature> requiredFeatures;
 
-    private int nextClassId;
-
     private final Type gameType;
+
+    private int zLevel;
 
     VGDLCompiler( String gameName ) {
         this( gameName, false );
@@ -106,13 +102,12 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
     @Override
     public void enterGame( GameContext ctx ) {
-
+        zLevel = 0;
         classLoader = new VGDLClassLoader();
         levelMapping.clear();
         requiredFeatures.clear();
         methods.clear();
 
-        nextClassId = 0;
     }
 
     @Override
@@ -174,19 +169,20 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         assert cw != null;
         assert actors.size() >= 2;
 
-        System.out.println( "Setting interaction " + actors );
+        for (int i = 1; i < actors.size(); i++) {
+            final Type otherType = actors.get( i );
+            System.out.println( "Setting interaction " + actorType + " -> " + otherType );
 
-        final Type otherType = actors.get( 1 );
+            g.definedInteractions.add( otherType );
 
-        g.definedInteractions.add( otherType );
-
-        final Method m = Method.getMethod( "void collide (" + otherType.getClassName() + ")" );
-        final GeneratorAdapter mg = new GeneratorAdapter( ACC_PROTECTED, m, null, null, cw );
-        generateConsoleMessage( mg, "Collision " + actorType.getClassName() + " and " + otherType.getClassName() );
-        final Effect e = getEffectForName( formatClassName( ctx.action.getText() ), actors, ctx.option() );
-        e.generate( this, mg );
-        mg.returnValue();
-        mg.endMethod();
+            final Method m = Method.getMethod( "void collide (" + otherType.getClassName() + ")" );
+            final GeneratorAdapter mg = new GeneratorAdapter( ACC_PROTECTED, m, null, null, cw );
+            generateConsoleMessage( mg, "Collision " + actorType.getClassName() + " and " + otherType.getClassName() );
+            final Effect e = getEffectForName( formatClassName( ctx.action.getText() ), actorType, actors.get( i ), ctx.option() );
+            e.generate( this, mg );
+            mg.returnValue();
+            mg.endMethod();
+        }
 
     }
 
@@ -264,16 +260,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 //                                + ctx.name.getText() );
 //            }
         }
-
-        //The class id is needed at runtime
-        final GeneratorAdapter idGetter = new GeneratorAdapter( ACC_PUBLIC, Method.getMethod( "int getClassId( )" ), null, null, spcw );
-        final int id = nextClassId++;
-
-//        classIds.put( spriteType, id );
-        idGetter.push( id );
-        idGetter.returnValue();
-        idGetter.endMethod();
-
+        img += "zLevel=" + zLevel++;
         //Now add the sprite class meta information
         final AnnotationVisitor an = spcw.visitAnnotation( Type.getDescriptor( SpriteInfo.class ), true );
         //We combine the graphics options into a string that may be read out by the runtime.
@@ -285,7 +272,6 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
         spcw.visitEnd();
         final GeneratedType g = new GeneratedType( spriteType, spcw );
-        g.classId = id;
         g.parentType = parentType;
         classLoader.getGeneratedTypes().put( spriteType, g );
 
@@ -395,51 +381,28 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
                 continue;
             }
 
-            m.loadArg( 0 );
-            m.invokeVirtual( Type.getType( VGDLSprite.class ), Method.getMethod( "int getClassId( )" ) );
-            final List<Integer> keysList = new LinkedList<Integer>();
+            //The following block constructs a large if-instanceof-else block. The final else is a delegation to super
             for (final Type otherType : interactions) {
-                if (otherType.equals( Type.getType( Wall.class ) )) {
-                    keysList.add( Wall.VGDL_WALL_ID );
-                }
-                else {
-                    keysList.add( classLoader.getGeneratedTypes().get( otherType ).classId );
-                }
+                final Label falseLabel = m.newLabel();
+                m.loadArg( 0 );
+                m.instanceOf( otherType );
+                m.push( false );
+                m.ifCmp( Type.BOOLEAN_TYPE, IFEQ, falseLabel ); //Skip the method call if sprite is not instance of of whatever
+                m.loadThis();
+                m.loadArg( 0 );
+                final Method typedCollide = Method.getMethod( "void collide (" + otherType.getClassName() + ")" );
+                m.visitTypeInsn( CHECKCAST, otherType.getInternalName() );
+                m.invokeVirtual( actorType, typedCollide );
+                m.returnValue();
+                m.mark( falseLabel );
             }
-            Collections.sort( keysList );
-            final int[] keys = new int[keysList.size()];
-            //Keys have to be ascending, we link them back to the classes in the switch generator
-            for (int i = 0; i < keys.length; i++) {
-                keys[i] = keysList.get( i );
-            }
-
-            final TableSwitchGenerator generator = new TableSwitchGenerator() {
-
-                @Override
-                public void generateCase( int key, Label end ) {
-                    generateConsoleMessage( m, "Collision " + actorType.getClassName() + " and " + key );
-                    m.loadThis();
-                    m.loadArg( 0 );
-                    final Type otherType = key != Wall.VGDL_WALL_ID
-                                    ? classLoader.getGeneratedTypes().values().stream().filter( e -> e.classId == key ).findAny().get().type
-                                    : Type.getType( Wall.class );
-                    final Method typedCollide = Method.getMethod( "void collide (" + otherType.getClassName() + ")" );
-                    m.visitTypeInsn( CHECKCAST, otherType.getInternalName() );
-                    m.invokeVirtual( actorType, typedCollide );
-                    m.returnValue();
-                }
-
-                @Override
-                public void generateDefault() {
-                    generateConsoleMessage( m, "No interactions defined for " + actorType.getClassName() );
-                    m.loadThis();
-                    m.loadArg( 0 );
-                    m.visitMethodInsn( INVOKESPECIAL, parentType.getInternalName(), overLoadMethod.getName(), overLoadMethod.getDescriptor(), false );
-                    m.returnValue();
-                }
-            };
-            m.tableSwitch( keys, generator, true );
+            generateConsoleMessage( m, "No interactions defined for " + actorType.getClassName() + ". Delegating to super" );
+            m.loadThis();
+            m.loadArg( 0 );
+            m.visitMethodInsn( INVOKESPECIAL, parentType.getInternalName(), overLoadMethod.getName(), overLoadMethod.getDescriptor(), false );
+            m.returnValue();
             m.endMethod();
+
         }
     }
 
@@ -558,9 +521,9 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
     }
 
     public Type getTypeForSimpleName( String name ) {
-        if (name.toLowerCase().equals( "wall" )) {
-            return Type.getType( Wall.class );
-        }
+//        if (name.toLowerCase().equals( "wall" )) {
+//            return Type.getType( Wall.class );
+//        }
 
         final Type ret = classLoader.getGeneratedTypes().keySet().stream().filter( t -> t.getClassName().endsWith( name ) ).findAny().orElse( null );
         if (ret != null) {
@@ -582,22 +545,14 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
     }
 
-    private Effect getEffectForName( String text, List<Type> actorTypes, List<OptionContext> list ) {
+    private Effect getEffectForName( String text, Type actorType, Type otherType, List<OptionContext> list ) {
         try {
             final Type t = getTypeForSimpleName( text );
             final Class<? extends Effect> effectClass = (Class<? extends Effect>) Class.forName( t.getClassName() );
-            final Class[] types = new Class[1];
-            types[0] = Type[].class;
 
-            final Type[] parameters = new Type[actorTypes.size()];
-            actorTypes.stream().map( e -> {
-                return Type.getType( "L" + e.getClassName().replace( ".", "/" ) + ";" );
-            } ).collect( Collectors.toList() ).toArray( parameters );
-
-            final Constructor<? extends Effect> c = effectClass.getConstructor( Type[].class );
-            System.out.println( Arrays.toString( c.getAnnotatedParameterTypes() ) );
+            final Constructor<? extends Effect> c = effectClass.getConstructor( Type.class, Type.class );
             //TODO options
-            return c.newInstance( new Object[] { parameters } );
+            return c.newInstance( actorType, otherType );
         }
         catch (InstantiationException | IllegalAccessException | ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalArgumentException |
 

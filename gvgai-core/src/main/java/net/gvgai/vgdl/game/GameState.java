@@ -6,6 +6,8 @@ public interface GameState {
 
     MovingAvatar getAvatar();
 
+    Object getDirection( VGDLSprite s );
+
     Object getPosition( VGDLSprite s );
 
     int getSpriteCount( Class<? extends VGDLSprite> clazz );
@@ -13,6 +15,8 @@ public interface GameState {
     VGDLSprite[] getSpritesAt( Object pos );
 
     boolean isReady();
+
+    boolean move( VGDLSprite s, Object direction );
 
     /**
      * Moves a sprite one unit south (resp. down)

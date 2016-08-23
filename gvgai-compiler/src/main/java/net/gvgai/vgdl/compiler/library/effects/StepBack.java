@@ -13,9 +13,9 @@ import net.gvgai.vgdl.compiler.library.Effect;
 public class StepBack implements Effect, Opcodes {
     private final Type myType;
 
-    public StepBack( Type... myType ) {
+    public StepBack( Type myType, Type otherType ) {
         super();
-        this.myType = myType[0];
+        this.myType = myType;
     }
 
     @Override

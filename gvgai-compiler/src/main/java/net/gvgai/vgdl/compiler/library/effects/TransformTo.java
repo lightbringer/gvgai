@@ -7,7 +7,7 @@ import net.gvgai.vgdl.compiler.VGDLCompiler;
 import net.gvgai.vgdl.compiler.library.Effect;
 
 public class TransformTo implements Effect {
-    public TransformTo( Type... myType ) {
+    public TransformTo( Type myType, Type otherType ) {
         // TODO Auto-generated constructor stub
     }
 

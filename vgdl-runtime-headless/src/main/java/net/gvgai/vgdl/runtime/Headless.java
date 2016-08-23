@@ -8,6 +8,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -16,14 +17,12 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import net.gvgai.vgdl.AutoWire;
-import net.gvgai.vgdl.SpriteInfo;
 import net.gvgai.vgdl.VGDLRuntime;
 import net.gvgai.vgdl.game.DiscreteGameState;
 import net.gvgai.vgdl.game.GameState;
 import net.gvgai.vgdl.game.MovingAvatar;
 import net.gvgai.vgdl.game.VGDLGame;
 import net.gvgai.vgdl.game.VGDLSprite;
-import net.gvgai.vgdl.game.Wall;
 import net.gvgai.vgdl.input.Action;
 import net.gvgai.vgdl.input.Controller;
 import net.gvgai.vgdl.runtime.input.EventKeyHandler;
@@ -119,9 +118,9 @@ public class Headless implements VGDLRuntime {
                     // do something with curChar
                     final VGDLSprite[] sprites;
                     switch (curChar) {
-                        case 'w':
-                            sprites = new VGDLSprite[] { new Wall() };
-                            break;
+//                        case 'w':
+//                            sprites = new VGDLSprite[] { new Wall() };
+//                            break;
                         case ' ':
                             sprites = null; //empty space
                             break;
@@ -137,7 +136,6 @@ public class Headless implements VGDLRuntime {
                                     gameState.setAvatar( (MovingAvatar) sprites[i] );
                                 }
                                 wireObject( sprites[i] );
-                                System.out.println( sprites[i].getClass().getAnnotation( SpriteInfo.class ).resourceInfo() );
                             }
                             break;
                     }
@@ -189,7 +187,9 @@ public class Headless implements VGDLRuntime {
         for (final VGDLSprite other : gameState.getSpritesAt( pos )) {
             if (other != null && s != other) {
                 System.out.println( "Calling collide with " + other + " on " + s );
+                //TODO The order here seems like a bug waiting to happen
                 s.collide( other );
+                other.collide( s );
             }
         }
     }
@@ -203,9 +203,12 @@ public class Headless implements VGDLRuntime {
         System.out.println( "forward" );
         final boolean collision = gameState.forward( s );
         if (collision) {
-            System.out.println( "collision!" );
             collide( s );
         }
+    }
+
+    private Object getDirection( VGDLSprite s ) {
+        return gameState.getDirection( s );
     }
 
     private void injectMethod( Object o, Field f ) {
@@ -240,6 +243,12 @@ public class Headless implements VGDLRuntime {
                 case "forward":
                     f.set( o, (Consumer<VGDLSprite>) this::forward );
                     break;
+                case "move":
+                    f.set( o, (BiConsumer<VGDLSprite, Object>) this::move );
+                    break;
+                case "getDirection":
+                    f.set( o, (Function<VGDLSprite, Object>) this::getDirection );
+                    break;
                 default:
                     throw new IllegalArgumentException( "unrecognized field \"" + f.getName() + "\" marked for @AutoWire in class " + f.getDeclaringClass() );
             }
@@ -255,20 +264,26 @@ public class Headless implements VGDLRuntime {
         JOptionPane.showMessageDialog( null, "Player " + id + " lost" );
     }
 
+    private void move( VGDLSprite s, Object dir ) {
+        System.out.println( "move" );
+        gameState.move( s, dir );
+
+    }
+
     private void moveDown( VGDLSprite s ) {
         System.out.println( "down" );
         final boolean collision = gameState.moveDown( s );
         if (collision) {
-            System.out.println( "collision!" );
             collide( s );
         }
     }
 
     private void moveLeft( VGDLSprite s ) {
         System.out.println( "left" );
+
         final boolean collision = gameState.moveLeft( s );
+
         if (collision) {
-            System.out.println( "collision!" );
             collide( s );
         }
     }
@@ -277,7 +292,6 @@ public class Headless implements VGDLRuntime {
         System.out.println( "right" );
         final boolean collision = gameState.moveRight( s );
         if (collision) {
-            System.out.println( "collision!" );
             collide( s );
         }
     }
@@ -286,7 +300,6 @@ public class Headless implements VGDLRuntime {
         System.out.println( "up" );
         final boolean collision = gameState.moveUp( s );
         if (collision) {
-            System.out.println( "collision!" );
             collide( s );
         }
 

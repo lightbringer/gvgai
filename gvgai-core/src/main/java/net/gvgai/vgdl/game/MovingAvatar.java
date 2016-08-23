@@ -2,7 +2,7 @@ package net.gvgai.vgdl.game;
 
 import net.gvgai.vgdl.input.Action;
 
-public abstract class MovingAvatar extends Movable {
+public abstract class MovingAvatar extends Passive {
 
     public void act( Action a ) {
         switch (a) {

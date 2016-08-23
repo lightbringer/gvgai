@@ -7,7 +7,7 @@ import net.gvgai.vgdl.compiler.VGDLCompiler;
 import net.gvgai.vgdl.compiler.library.Effect;
 
 public class UndoAll implements Effect {
-    public UndoAll( Type... myType ) {
+    public UndoAll( Type myType, Type otherType ) {
         // TODO Auto-generated constructor stub
     }
 

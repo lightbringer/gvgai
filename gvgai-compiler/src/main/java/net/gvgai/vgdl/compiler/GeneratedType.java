@@ -8,7 +8,6 @@ import org.objectweb.asm.Type;
 
 class GeneratedType {
     Type type;
-    int classId;
     Type parentType;
     ClassWriter cw;
     Set<Type> definedInteractions;
