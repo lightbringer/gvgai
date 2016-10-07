@@ -1,27 +1,52 @@
 package net.gvgai.vgdl.game;
 
-import java.util.function.Function;
-
-import net.gvgai.vgdl.AutoWire;
-
 public abstract class VGDLSprite {
-//    @AutoWire
-//    private Function<Object, VGDLSprite> getPosition;
 
-    @AutoWire
-    private Function<Object, VGDLSprite> getDirection;
+    protected Object direction;
+    protected Object frameStartDirection;
+
+    protected Object position;
+    protected Object frameStartPosition;
+
+    protected VGDLSprite() {
+
+    }
 
     public <T extends VGDLSprite> void collide( T other ) {
         System.out.println( "no interaction defined for " + getClass() + "+" + other.getClass() );
     }
 
     public Object getDirection() {
-        return getDirection.apply( this );
+        return direction;
     }
 
-//    public Object getPosition() {
-//        return getPosition.apply( this );
-//    }
+    public Object getPosition() {
+        return position;
+    }
+
+    public void postFrame() {
+
+    }
+
+    public void preFrame() {
+        frameStartDirection = direction;
+        frameStartPosition = position;
+    }
+
+    public void reset() {
+        direction = frameStartDirection;
+        position = frameStartPosition;
+
+    }
+
+    public void setDirection( Object direction ) {
+        this.direction = direction;
+    }
+
+    public void setPosition( Object pos ) {
+        position = pos;
+
+    }
 
     public void update( float seconds ) {
 

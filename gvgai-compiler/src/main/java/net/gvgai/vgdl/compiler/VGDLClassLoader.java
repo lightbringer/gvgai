@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Type;
@@ -14,13 +15,15 @@ import com.google.common.reflect.ClassPath;
 import com.google.common.reflect.ClassPath.ClassInfo;
 
 class VGDLClassLoader extends ClassLoader {
+    private final static String ID_PATTERN = "\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*";
+    private final static Pattern JAVA_CLASS_NAME = Pattern.compile( ID_PATTERN + "(\\." + ID_PATTERN + ")*" );
     private final Map<Type, GeneratedType> generatedTypes;
 
     /**
     * @param vgdlCompiler
     */
     VGDLClassLoader() {
-        generatedTypes = new HashMap<Type, GeneratedType>();
+        generatedTypes = new HashMap<>();
 
     }
 
@@ -46,6 +49,9 @@ class VGDLClassLoader extends ClassLoader {
 
     @Override
     protected Class<?> findClass( String name ) throws ClassNotFoundException {
+        if (!JAVA_CLASS_NAME.matcher( name ).find()) {
+            throw new IllegalArgumentException( name + " is not a valid class name" );
+        }
         final Type t = Type.getType( "L" + name.replace( ".", "/" ) + ";" );
         if (generatedTypes.containsKey( t )) {
             final GeneratedType gt = generatedTypes.get( t );
@@ -61,7 +67,7 @@ class VGDLClassLoader extends ClassLoader {
 
     Set<Class> getFQNs( String simpleName ) throws IOException {
         final ImmutableSet<ClassInfo> allClasses = ClassPath.from( this ).getAllClasses();
-        final Set<Class> ret = new HashSet<Class>();
+        final Set<Class> ret = new HashSet<>();
         for (final ClassInfo c : allClasses) {
             if (c.getSimpleName().equals( simpleName )) {
                 ret.add( c.load() );

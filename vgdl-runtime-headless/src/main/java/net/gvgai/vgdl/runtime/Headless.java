@@ -8,6 +8,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.ServiceLoader;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -16,11 +17,16 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
+import org.apache.commons.lang3.tuple.Pair;
+
 import net.gvgai.vgdl.AutoWire;
 import net.gvgai.vgdl.VGDLRuntime;
+import net.gvgai.vgdl.compiler.VGDL2Java;
 import net.gvgai.vgdl.game.DiscreteGameState;
 import net.gvgai.vgdl.game.GameState;
 import net.gvgai.vgdl.game.MovingAvatar;
+import net.gvgai.vgdl.game.RecordingMap;
+import net.gvgai.vgdl.game.VGDLException;
 import net.gvgai.vgdl.game.VGDLGame;
 import net.gvgai.vgdl.game.VGDLSprite;
 import net.gvgai.vgdl.input.Action;
@@ -28,6 +34,15 @@ import net.gvgai.vgdl.input.Controller;
 import net.gvgai.vgdl.runtime.input.EventKeyHandler;
 
 public class Headless implements VGDLRuntime {
+    public static void main( String[] args ) throws IOException {
+        final Class<? extends VGDLGame> gameClass = VGDL2Java.load( "Sokoban", VGDL2Java.class.getResource( "sokoban.txt" ).openStream() );
+        final ServiceLoader<VGDLRuntime> loader = ServiceLoader.load( VGDLRuntime.class );
+        final VGDLRuntime runtime = loader.iterator().next();
+        runtime.loadGame( gameClass );
+        runtime.loadLevel( VGDL2Java.class.getResourceAsStream( "sokoban_lvl0.txt" ) );
+        runtime.run();
+    }
+
     private static List<Field> getAllFields( List<Field> fields, Class<?> type ) {
         fields.addAll( Arrays.asList( type.getDeclaredFields() ) );
 
@@ -100,46 +115,49 @@ public class Headless implements VGDLRuntime {
         try {
 
             final BufferedReader reader = new BufferedReader( new InputStreamReader( s ) );
-            final List<String> lines = new ArrayList<String>();
+            final List<String> lines = new ArrayList<>();
             String buffer;
             while ((buffer = reader.readLine()) != null) {
                 lines.add( buffer );
             }
-            final VGDLSprite[][][] level = new VGDLSprite[lines.size()][][];
+            final RecordingMap level = new RecordingMap( lines.get( 0 ).length(), lines.size() );
             int lineIndex = 0;
             for (final String line : lines) {
                 int offset = 0;
                 final int strLen = line.length();
-                level[lineIndex] = new VGDLSprite[strLen][];
+
                 int colIndex = 0;
                 while (offset < strLen) {
                     final int curChar = line.codePointAt( offset );
                     offset += Character.charCount( curChar );
                     // do something with curChar
-                    final VGDLSprite[] sprites;
+
                     switch (curChar) {
 //                        case 'w':
 //                            sprites = new VGDLSprite[] { new Wall() };
 //                            break;
                         case ' ':
-                            sprites = null; //empty space
+                            //empty space
                             break;
                         default:
                             final Class<? extends VGDLSprite>[] spriteClasses = game.getMappedSpriteClass( (char) curChar );
-                            sprites = new VGDLSprite[spriteClasses.length];
-                            for (int i = 0; i < sprites.length; i++) {
-                                sprites[i] = spriteClasses[i].newInstance();
-                                if (sprites[i] instanceof MovingAvatar) {
+
+                            for (final Class<? extends VGDLSprite> c : spriteClasses) {
+                                final VGDLSprite sprite = c.newInstance();
+                                if (sprite instanceof MovingAvatar) {
                                     if (gameState.getAvatar() != null) {
                                         throw new IllegalStateException( "avatar already defined" );
                                     }
-                                    gameState.setAvatar( (MovingAvatar) sprites[i] );
+                                    gameState.setAvatar( (MovingAvatar) sprite );
                                 }
-                                wireObject( sprites[i] );
+                                wireObject( sprite );
+                                sprite.setDirection( DiscreteGameState.Direction.NORTH );
+                                sprite.setPosition( Pair.of( colIndex, lineIndex ) );
+                                level.set( colIndex, lineIndex, sprite );
                             }
                             break;
                     }
-                    level[lineIndex][colIndex] = sprites;
+
                     colIndex++;
                 }
                 lineIndex++;
@@ -147,7 +165,7 @@ public class Headless implements VGDLRuntime {
 
             //TODO remove swing stuff
 
-            window.setSize( level[0].length * 50, level.length * 50 );
+            window.setSize( level.getWidth() * 50, level.getHeight() * 50 );
             ((DiscreteGameState) gameState).setLevel( level );
         }
         catch (final IOException | InstantiationException | IllegalAccessException e) {
@@ -166,23 +184,32 @@ public class Headless implements VGDLRuntime {
         long time = System.currentTimeMillis();
         long controllerTime = System.currentTimeMillis();
         while (!game.isGameOver()) {
-            final double delta = (System.currentTimeMillis() - time) / 1000.0;
-            final double controllerDelta = (System.currentTimeMillis() - controllerTime) / 1000.0;
-            if (controllerDelta > updateFrequency) {
-                final Action a = controller.act( controllerDelta );
-                gameState.getAvatar().act( a );
-                controllerTime = System.currentTimeMillis();
+            gameState.preFrame();
+            try {
+                final double delta = (System.currentTimeMillis() - time) / 1000.0;
+                final double controllerDelta = (System.currentTimeMillis() - controllerTime) / 1000.0;
+                if (controllerDelta > updateFrequency) {
+                    final Action a = controller.act( controllerDelta );
+                    gameState.getAvatar().act( a );
+                    controllerTime = System.currentTimeMillis();
+                }
+                game.update( delta );
             }
-            game.update( delta );
+            catch (final VGDLException e) {
+                gameState.resetFrame();
+            }
             time = System.currentTimeMillis();
+
+            gameState.postFrame();
 
             //FIXME Remove me
             window.repaint();
+
         }
     }
 
     private <T extends VGDLSprite> void collide( VGDLSprite s ) {
-        final Object pos = gameState.getPosition( s );
+        final Object pos = s.getPosition();
         assert pos != null;
         for (final VGDLSprite other : gameState.getSpritesAt( pos )) {
             if (other != null && s != other) {
@@ -205,10 +232,6 @@ public class Headless implements VGDLRuntime {
         if (collision) {
             collide( s );
         }
-    }
-
-    private Object getDirection( VGDLSprite s ) {
-        return gameState.getDirection( s );
     }
 
     private void injectMethod( Object o, Field f ) {
@@ -246,8 +269,8 @@ public class Headless implements VGDLRuntime {
                 case "move":
                     f.set( o, (BiConsumer<VGDLSprite, Object>) this::move );
                     break;
-                case "getDirection":
-                    f.set( o, (Function<VGDLSprite, Object>) this::getDirection );
+                case "position":
+                case "direction":
                     break;
                 default:
                     throw new IllegalArgumentException( "unrecognized field \"" + f.getName() + "\" marked for @AutoWire in class " + f.getDeclaringClass() );
@@ -266,8 +289,10 @@ public class Headless implements VGDLRuntime {
 
     private void move( VGDLSprite s, Object dir ) {
         System.out.println( "move" );
-        gameState.move( s, dir );
-
+        final boolean collision = gameState.move( s, dir );
+        if (collision) {
+            collide( s );
+        }
     }
 
     private void moveDown( VGDLSprite s ) {
@@ -316,7 +341,7 @@ public class Headless implements VGDLRuntime {
     }
 
     private void wireObject( Object o ) {
-        final List<Field> allFields = new ArrayList<Field>();
+        final List<Field> allFields = new ArrayList<>();
         getAllFields( allFields, o.getClass() );
         for (final Field f : allFields) {
             if (f.isAnnotationPresent( AutoWire.class )) {
@@ -324,5 +349,4 @@ public class Headless implements VGDLRuntime {
             }
         }
     }
-
 }

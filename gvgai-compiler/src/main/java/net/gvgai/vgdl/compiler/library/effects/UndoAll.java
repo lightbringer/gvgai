@@ -5,6 +5,7 @@ import org.objectweb.asm.commons.GeneratorAdapter;
 
 import net.gvgai.vgdl.compiler.VGDLCompiler;
 import net.gvgai.vgdl.compiler.library.Effect;
+import net.gvgai.vgdl.game.VGDLException;
 
 public class UndoAll implements Effect {
     public UndoAll( Type myType, Type otherType ) {
@@ -13,7 +14,8 @@ public class UndoAll implements Effect {
 
     @Override
     public void generate( VGDLCompiler vgdlCompiler, GeneratorAdapter mg ) {
-        // TODO Auto-generated method stub
+        VGDLCompiler.generateConsoleMessage( mg, "UndoAll" );
+        mg.throwException( Type.getType( VGDLException.class ), "UndoAll" );
 
     }
 

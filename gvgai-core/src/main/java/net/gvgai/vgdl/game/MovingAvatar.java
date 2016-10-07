@@ -4,7 +4,7 @@ import net.gvgai.vgdl.input.Action;
 
 public abstract class MovingAvatar extends Passive {
 
-    public void act( Action a ) {
+    public void act( Action a ) throws VGDLException {
         switch (a) {
             case ACTION_DOWN:
                 moveDown();

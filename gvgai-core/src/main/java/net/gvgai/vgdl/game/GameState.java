@@ -1,18 +1,16 @@
 package net.gvgai.vgdl.game;
 
+import java.util.Collection;
+
 public interface GameState {
 
     boolean forward( VGDLSprite s );
 
     MovingAvatar getAvatar();
 
-    Object getDirection( VGDLSprite s );
-
-    Object getPosition( VGDLSprite s );
-
     int getSpriteCount( Class<? extends VGDLSprite> clazz );
 
-    VGDLSprite[] getSpritesAt( Object pos );
+    Collection<VGDLSprite> getSpritesAt( Object pos );
 
     boolean isReady();
 
@@ -45,6 +43,12 @@ public interface GameState {
      * @return
      */
     boolean moveUp( VGDLSprite s );
+
+    void postFrame();
+
+    void preFrame();
+
+    void resetFrame();
 
     void reverse( VGDLSprite s );
 
