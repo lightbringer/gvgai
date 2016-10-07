@@ -147,6 +147,13 @@ public class DiscreteGameState implements GameState {
     }
 
     @Override
+    public void remove( VGDLSprite s ) {
+        final Pair<Integer, Integer> p = (Pair<Integer, Integer>) s.getPosition();
+        level.remove( p.getLeft(), p.getRight(), s );
+
+    }
+
+    @Override
     public void resetFrame() {
         level = frameStart;
         level.values().forEach( s -> s.reset() );

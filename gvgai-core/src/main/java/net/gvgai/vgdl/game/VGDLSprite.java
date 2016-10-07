@@ -1,5 +1,9 @@
 package net.gvgai.vgdl.game;
 
+import java.util.function.Consumer;
+
+import net.gvgai.vgdl.AutoWire;
+
 public abstract class VGDLSprite {
 
     protected Object direction;
@@ -7,6 +11,9 @@ public abstract class VGDLSprite {
 
     protected Object position;
     protected Object frameStartPosition;
+
+    @AutoWire
+    public Consumer<VGDLSprite> kill;
 
     protected VGDLSprite() {
 

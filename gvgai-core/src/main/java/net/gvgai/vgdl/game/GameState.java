@@ -48,6 +48,8 @@ public interface GameState {
 
     void preFrame();
 
+    void remove( VGDLSprite s );
+
     void resetFrame();
 
     void reverse( VGDLSprite s );

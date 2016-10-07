@@ -269,6 +269,9 @@ public class Headless implements VGDLRuntime {
                 case "move":
                     f.set( o, (BiConsumer<VGDLSprite, Object>) this::move );
                     break;
+                case "kill":
+                    f.set( o, (Consumer<VGDLSprite>) this::kill );
+                    break;
                 case "position":
                 case "direction":
                     break;
@@ -281,6 +284,10 @@ public class Headless implements VGDLRuntime {
             throw new RuntimeException( e );
         }
 
+    }
+
+    private void kill( VGDLSprite s ) {
+        gameState.remove( s );
     }
 
     private void lose( int id ) {
