@@ -7,8 +7,10 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -209,16 +211,23 @@ public class Headless implements VGDLRuntime {
     }
 
     private <T extends VGDLSprite> void collide( VGDLSprite s ) {
-        final Object pos = s.getPosition();
-        assert pos != null;
-        for (final VGDLSprite other : gameState.getSpritesAt( pos )) {
-            if (other != null && s != other) {
-                System.out.println( "Calling collide with " + other + " on " + s );
-                //TODO The order here seems like a bug waiting to happen
-                s.collide( other );
-                other.collide( s );
+        final Set<VGDLSprite> collided = new HashSet<>();
+        final boolean allCollided[] = new boolean[] { true };
+        final Object pos = s.getPosition(); //pos is immutable, so if s actually gets moved, that has no effect as we hold the original position here
+        while (true) {
+            allCollided[0] = true;
+            gameState.getSpritesAt( pos ).stream().filter( t -> t != s && !collided.contains( t ) ).findAny().ifPresent( t -> {
+                collided.add( t );
+                System.out.println( "Calling collide with " + t + " on " + s );
+                s.collide( t );
+                t.collide( s );
+                allCollided[0] = false;
+            } );
+            if (allCollided[0]) {
+                break;
             }
         }
+
     }
 
     private int countSprites( Class<? extends VGDLSprite> clazz ) {
