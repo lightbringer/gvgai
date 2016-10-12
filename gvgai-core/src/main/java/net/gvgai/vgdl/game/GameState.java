@@ -1,12 +1,19 @@
 package net.gvgai.vgdl.game;
 
 import java.util.Collection;
+import java.util.stream.Stream;
 
 public interface GameState {
 
+    GameState advanceFrame();
+
     boolean forward( VGDLSprite s );
 
+    Stream<VGDLSprite> getAllSprites();
+
     MovingAvatar getAvatar();
+
+    double getScore();
 
     int getSpriteCount( Class<? extends VGDLSprite> clazz );
 
@@ -16,34 +23,6 @@ public interface GameState {
 
     boolean move( VGDLSprite s, Object direction );
 
-    /**
-     * Moves a sprite one unit south (resp. down)
-     * @param s
-     * @return
-     */
-    boolean moveDown( VGDLSprite s );
-
-    /**
-     * Moves a sprite one unit west (resp. left)
-     * @param s
-     * @return
-     */
-    boolean moveLeft( VGDLSprite s );
-
-    /**
-     * Moves a sprite one unit east (resp. right)
-     * @param s
-     * @return
-     */
-    boolean moveRight( VGDLSprite s );
-
-    /**
-     * Moves a sprite one unit north (resp. up)
-     * @param s
-     * @return
-     */
-    boolean moveUp( VGDLSprite s );
-
     void postFrame();
 
     void preFrame();
@@ -52,7 +31,8 @@ public interface GameState {
 
     void resetFrame();
 
-    void reverse( VGDLSprite s );
-
     void setAvatar( MovingAvatar a );
+
+    void setScore( double d );
+
 }

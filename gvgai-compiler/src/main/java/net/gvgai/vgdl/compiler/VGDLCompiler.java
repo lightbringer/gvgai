@@ -46,7 +46,7 @@ import net.gvgai.vgdl.compiler.library.Termination;
 import net.gvgai.vgdl.game.VGDLSprite;
 
 public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
-    private final static String PACKAGE = "net/gvgai/game";
+    public final static String PACKAGE = "net/gvgai/game";
 
     public static String formatClassName( String name ) {
         if (Character.isUpperCase( name.codePointAt( 0 ) )) {
@@ -83,6 +83,8 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
     private int zLevel;
 
+    private int nextLambda;
+
     VGDLCompiler( String gameName ) {
         this( gameName, false );
     }
@@ -94,9 +96,9 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         gameType = Type.getType( "L" + PACKAGE + "/" + formatClassName( gameName ) + ";" );
         this.writeClassesToDisk = writeClassesToDisk;
 
-        levelMapping = new TreeMap<Integer, String[]>();
-        methods = new Stack<GeneratorAdapter>();
-        requiredFeatures = new HashSet<VGDLRuntime.Feature>();
+        levelMapping = new TreeMap<>();
+        methods = new Stack<>();
+        requiredFeatures = new HashSet<>();
 
     }
 
@@ -504,7 +506,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
     }
 
     public Set<Class> getClasses() {
-        final Set<Class> clazzes = new HashSet<Class>();
+        final Set<Class> clazzes = new HashSet<>();
         for (final Entry<Type, GeneratedType> e : classLoader.getGeneratedTypes().entrySet()) {
             try {
                 clazzes.add( classLoader.findClass( e.getKey().getClassName() ) );
@@ -545,6 +547,10 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
     }
 
+    public int nextLambda() {
+        return nextLambda++;
+    };
+
     private Effect getEffectForName( String text, Type actorType, Type otherType, List<OptionContext> list ) {
         try {
             final Type t = getTypeForSimpleName( text );
@@ -556,7 +562,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         }
         catch (InstantiationException | IllegalAccessException | ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalArgumentException |
 
-        InvocationTargetException e)
+                        InvocationTargetException e)
 
         {
             throw new RuntimeException( e );

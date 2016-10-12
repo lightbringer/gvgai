@@ -1,19 +1,11 @@
 package net.gvgai.vgdl.game;
 
-import java.util.function.Consumer;
-
-import net.gvgai.vgdl.AutoWire;
-
 public abstract class BasicGame implements VGDLGame {
     protected String key_handler;
     protected int square_size;
     protected int no_players;
 
-    @AutoWire
-    private Consumer<Integer> lose;
-
-    @AutoWire
-    private Consumer<Integer> win;
+    private GameState gameState;
 
     protected BasicGame() {
         System.out.println( "Spawing basic game" );
@@ -21,7 +13,45 @@ public abstract class BasicGame implements VGDLGame {
     }
 
     @Override
+    public GameState getGameState() {
+        return gameState;
+    }
+
+    @Override
     public abstract Class<? extends VGDLSprite>[] getMappedSpriteClass( char c );
+
+    @Override
+    public double getScore() {
+        return gameState.getScore();
+    }
+
+    @Override
+    public void postFrame() {
+        gameState.postFrame();
+
+    }
+
+    @Override
+    public void preFrame() {
+        gameState.preFrame();
+
+    }
+
+    @Override
+    public void resetFrame() {
+        gameState.resetFrame();
+
+    }
+
+    @Override
+    public void setGameState( GameState gameState ) {
+        this.gameState = gameState;
+    }
+
+    @Override
+    public void setScore( double d ) {
+        gameState.setScore( d );
+    }
 
     @Override
     public String toString() {

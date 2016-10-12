@@ -61,7 +61,7 @@ class VGDLClassLoader extends ClassLoader {
             return gt.clazz;
         }
         else {
-            return loadClass( name, false );
+            return super.findClass( name );
         }
     }
 

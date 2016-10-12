@@ -1,39 +1,29 @@
 package net.gvgai.vgdl.game;
 
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-
-import net.gvgai.vgdl.AutoWire;
+import java.util.function.Function;
 
 public abstract class Passive extends Immovable {
-    @AutoWire
-    protected Consumer<VGDLSprite> moveUp;
-    @AutoWire
-    protected Consumer<VGDLSprite> moveDown;
-    @AutoWire
-    protected Consumer<VGDLSprite> moveLeft;
-    @AutoWire
-    protected Consumer<VGDLSprite> moveRight;
-    @AutoWire
-    protected Consumer<VGDLSprite> reverse;
-    @AutoWire
-    protected Consumer<VGDLSprite> forward;
-    @AutoWire
+    protected Function<Object, Object> reverse;
     protected BiConsumer<VGDLSprite, Object> move;
+    protected BiConsumer<VGDLSprite, Object> moveFrameStart;
 
-    public void moveDown() {
-        moveDown.accept( this );
+    public void move( Object direction ) {
+        move.accept( this, direction );
+
     }
 
-    public void moveLeft() {
-        moveLeft.accept( this );
+    @Override
+    public void preFrame() {
+        super.preFrame();
+
+        moveFrameStart = move;
     }
 
-    public void moveRight() {
-        moveRight.accept( this );
-    }
+    @Override
+    public void reset() {
+        super.reset();
 
-    public void moveUp() {
-        moveUp.accept( this );
+        move = moveFrameStart;
     }
 }

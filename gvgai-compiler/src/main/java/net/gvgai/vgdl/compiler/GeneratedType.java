@@ -16,6 +16,6 @@ class GeneratedType {
     GeneratedType( Type t, ClassWriter cw ) {
         type = t;
         this.cw = cw;
-        definedInteractions = new HashSet<Type>();
+        definedInteractions = new HashSet<>();
     }
 }

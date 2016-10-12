@@ -49,8 +49,8 @@ public class RecordingMap<T> {
 
     }
 
-    public RecordingMap advanceFrame() {
-        return new RecordingMap( this );
+    public RecordingMap<T> advanceFrame() {
+        return new RecordingMap<>( this );
     }
 
     public void flatten() {

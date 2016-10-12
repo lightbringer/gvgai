@@ -41,7 +41,7 @@ public class DebugRenderer extends PanelUI {
     public void paint( Graphics g, JComponent c ) {
         super.paint( g, c );
 
-        final DiscreteGameState state = (DiscreteGameState) headless.gameState;
+        final DiscreteGameState state = (DiscreteGameState) headless.getGame().getGameState();
         final RecordingMap level = state.getLevel();
         updateZLevel( level );
 

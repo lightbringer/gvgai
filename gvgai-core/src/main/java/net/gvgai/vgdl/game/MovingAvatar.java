@@ -6,24 +6,15 @@ public abstract class MovingAvatar extends Passive {
 
     public void act( Action a ) throws VGDLException {
         switch (a) {
+            case ACTION_UP:
+            case ACTION_LEFT:
+            case ACTION_RIGHT:
             case ACTION_DOWN:
-                moveDown();
+                move( a );
                 break;
             case ACTION_ESCAPE:
-                break;
-            case ACTION_LEFT:
-                moveLeft();
-                break;
             case ACTION_NIL:
-                break;
-            case ACTION_RIGHT:
-                moveRight();
-                break;
-            case ACTION_UP:
-                moveUp();
-                break;
             case ACTION_USE:
-                break;
             default:
                 break;
 
@@ -31,4 +22,7 @@ public abstract class MovingAvatar extends Passive {
 
     }
 
+    public void stepBack() {
+        move( reverse.apply( direction ) );
+    }
 }
