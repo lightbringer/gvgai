@@ -3,6 +3,7 @@ package net.gvgai.vgdl.runtime.input;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
+import net.gvgai.vgdl.game.GameState;
 import net.gvgai.vgdl.input.Action;
 import net.gvgai.vgdl.input.Controller;
 
@@ -17,7 +18,7 @@ public class EventKeyHandler extends KeyAdapter implements Controller {
     private final Object mutex = new Object();
 
     @Override
-    public Action act( double seconds ) {
+    public Action act( GameState s, double seconds ) {
         try {
             //TODO figure out if key_handler=pulse actually means that the simulation waits for keypresses
             synchronized (mutex) {

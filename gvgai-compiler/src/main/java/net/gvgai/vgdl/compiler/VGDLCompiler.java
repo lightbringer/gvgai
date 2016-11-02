@@ -43,6 +43,8 @@ import net.gvgai.vgdl.compiler.generated.vgdlParser.Termination_setContext;
 import net.gvgai.vgdl.compiler.library.Effect;
 import net.gvgai.vgdl.compiler.library.GameClass;
 import net.gvgai.vgdl.compiler.library.Termination;
+import net.gvgai.vgdl.game.GameState;
+import net.gvgai.vgdl.game.VGDLGame;
 import net.gvgai.vgdl.game.VGDLSprite;
 
 public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
@@ -179,7 +181,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
             final Method m = Method.getMethod( "void collide (" + otherType.getClassName() + ")" );
             final GeneratorAdapter mg = new GeneratorAdapter( ACC_PROTECTED, m, null, null, cw );
-            generateConsoleMessage( mg, "Collision " + actorType.getClassName() + " and " + otherType.getClassName() );
+//            generateConsoleMessage( mg, "Collision " + actorType.getClassName() + " and " + otherType.getClassName() );
             final Effect e = getEffectForName( formatClassName( ctx.action.getText() ), actorType, actors.get( i ), ctx.option() );
             e.generate( this, mg );
             mg.returnValue();
@@ -271,6 +273,8 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
         mg.returnValue();
         mg.endMethod();
+
+        generateCopyMethod( spcw, spriteType, parentType );
 
         spcw.visitEnd();
         final GeneratedType g = new GeneratedType( spriteType, spcw );
@@ -370,7 +374,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
             final Type actorType = e.getKey();
             final Type parentType = e.getValue().parentType;
             final GeneratorAdapter m = new GeneratorAdapter( ACC_PUBLIC, overLoadMethod, null, null, cw );
-            generateConsoleMessage( m, "Collide in class " + actorType.getClassName() + " has been called" );
+//            generateConsoleMessage( m, "Collide in class " + actorType.getClassName() + " has been called" );
 
             final Set<Type> interactions = g.definedInteractions;
             if (interactions.isEmpty()) {
@@ -398,7 +402,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
                 m.returnValue();
                 m.mark( falseLabel );
             }
-            generateConsoleMessage( m, "No interactions defined for " + actorType.getClassName() + ". Delegating to super" );
+//            generateConsoleMessage( m, "No interactions defined for " + actorType.getClassName() + ". Delegating to super" );
             m.loadThis();
             m.loadArg( 0 );
             m.visitMethodInsn( INVOKESPECIAL, parentType.getInternalName(), overLoadMethod.getName(), overLoadMethod.getDescriptor(), false );
@@ -501,6 +505,19 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
     @Override
     public void exitTermination_set( Termination_setContext ctx ) {
         final GeneratorAdapter currentMethod = methods.pop();
+        final int ret = currentMethod.newLocal( Type.BOOLEAN_TYPE );
+        currentMethod.storeLocal( ret );
+
+        //Call the game state's setter and store the outcome there
+        currentMethod.loadThis();
+        final Method getGameState = Method.getMethod( "net.gvgai.vgdl.game.GameState getGameState()" );
+        currentMethod.invokeInterface( Type.getType( VGDLGame.class ), getGameState );
+        currentMethod.loadLocal( ret );
+        final Method setGameOver = Method.getMethod( "void setGameOver(boolean)" );
+        currentMethod.invokeInterface( Type.getType( GameState.class ), setGameOver );
+
+        //Return the outcome
+        currentMethod.loadLocal( ret );
         currentMethod.returnValue();
         currentMethod.endMethod();
     }
@@ -549,6 +566,28 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
     public int nextLambda() {
         return nextLambda++;
+    }
+
+    private void generateCopyMethod( ClassWriter spcw, Type spriteType, Type parentType ) {
+        final Method m = Method.getMethod( "net.gvgai.vgdl.game.VGDLSprite copy ()" );
+        final GeneratorAdapter mg = new GeneratorAdapter( ACC_PUBLIC, m, null, null, spcw );
+        final int ret = mg.newLocal( spriteType );
+
+        mg.newInstance( spriteType );
+        mg.storeLocal( ret );
+        mg.loadLocal( ret );
+        final Method constr = Method.getMethod( "void <init> ()" );
+        mg.invokeConstructor( spriteType, constr );
+
+        mg.loadThis();
+        mg.loadLocal( ret );
+
+        final Method setup = Method.getMethod( "void setup (net.gvgai.vgdl.game.VGDLSprite)" );
+        mg.invokeVirtual( parentType, setup );
+
+        mg.loadLocal( ret );
+        mg.returnValue();
+        mg.endMethod();
     };
 
     private Effect getEffectForName( String text, Type actorType, Type otherType, List<OptionContext> list ) {

@@ -32,7 +32,7 @@ public class SpriteCounter implements Termination, Opcodes {
 
         ga.loadThis();
         ga.visitMethodInsn( INVOKEVIRTUAL, gameType.getInternalName(), "getGameState", "()Lnet/gvgai/vgdl/game/GameState;", false );
-        ga.visitMethodInsn( INVOKEINTERFACE, "net/gvgai/vgdl/game/GameState", "getAllSprites", "()Ljava/util/stream/Stream;", true );
+        ga.visitMethodInsn( INVOKEINTERFACE, "net/gvgai/vgdl/game/GameState", "values", "()Ljava/util/stream/Stream;", true );
         ga.visitInvokeDynamicInsn( "test", "()Ljava/util/function/Predicate;",
                         new Handle( Opcodes.H_INVOKESTATIC, "java/lang/invoke/LambdaMetafactory", "metafactory",
                                         "(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;" ),

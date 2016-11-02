@@ -4,7 +4,7 @@ import net.gvgai.vgdl.input.Action;
 
 public abstract class MovingAvatar extends Passive {
 
-    public void act( Action a ) throws VGDLException {
+    public void act( Action a ) {
         switch (a) {
             case ACTION_UP:
             case ACTION_LEFT:
@@ -23,6 +23,6 @@ public abstract class MovingAvatar extends Passive {
     }
 
     public void stepBack() {
-        move( reverse.apply( direction ) );
+        move( reverseDirection() );
     }
 }

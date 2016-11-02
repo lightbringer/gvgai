@@ -3,9 +3,11 @@ package net.gvgai.vgdl.compiler.library.effects;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
+import org.objectweb.asm.commons.Method;
 
 import net.gvgai.vgdl.compiler.VGDLCompiler;
 import net.gvgai.vgdl.compiler.library.Effect;
+import net.gvgai.vgdl.game.Passive;
 
 public class StepBack implements Effect, Opcodes {
     private final Type myType;
@@ -17,14 +19,13 @@ public class StepBack implements Effect, Opcodes {
 
     @Override
     public void generate( VGDLCompiler vgdlCompiler, GeneratorAdapter mg ) {
-        VGDLCompiler.generateConsoleMessage( mg, "Step back!" );
+//        VGDLCompiler.generateConsoleMessage( mg, "Step back!" );
         mg.loadThis();
         mg.loadThis();
-        mg.visitFieldInsn( GETFIELD, myType.getInternalName(), "reverse", "Ljava/util/function/Function;" );
-        mg.loadThis();
-        mg.visitFieldInsn( GETFIELD, myType.getInternalName(), "direction", "Ljava/lang/Object;" );
-        mg.visitMethodInsn( INVOKEINTERFACE, "java/util/function/Function", "apply", "(Ljava/lang/Object;)Ljava/lang/Object;", true );
-        mg.visitMethodInsn( INVOKEVIRTUAL, myType.getInternalName(), "move", "(Ljava/lang/Object;)V", false );
+        final Method getDir = Method.getMethod( "Object reverseDirection( )" );
+        mg.invokeVirtual( Type.getType( Passive.class ), getDir );
+        final Method move = Method.getMethod( "void move(Object)" );
+        mg.invokeVirtual( Type.getType( Passive.class ), move );
     }
 
 }

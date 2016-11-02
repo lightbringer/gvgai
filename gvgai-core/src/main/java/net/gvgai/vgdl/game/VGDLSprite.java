@@ -1,24 +1,29 @@
 package net.gvgai.vgdl.game;
 
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
-public abstract class VGDLSprite {
+public abstract class VGDLSprite implements Copyable<VGDLSprite> {
 
-    protected Object direction;
-    protected Object frameStartDirection;
+    //Direction and position need to be immutable
+    private Object position;
+    private Object preFramePosition;
+    private Object direction;
+    private Object preFrameDirection;
 
-    protected Object position;
-    protected Object frameStartPosition;
-
-    protected Consumer<VGDLSprite> kill;
+    Consumer<VGDLSprite> kill;
+    Supplier<Void> resetAll;
 
     protected VGDLSprite() {
 
     }
 
     public <T extends VGDLSprite> void collide( T other ) {
-        System.out.println( "no interaction defined for " + getClass() + "+" + other.getClass() );
+        //NOP
     }
+
+    @Override
+    public abstract VGDLSprite copy();
 
     public Object getDirection() {
         return direction;
@@ -28,31 +33,48 @@ public abstract class VGDLSprite {
         return position;
     }
 
-    public void postFrame() {
+    public void kill() {
+        kill.accept( this );
+    }
 
+    public void postFrame() {
+        //NOP
     }
 
     public void preFrame() {
-        frameStartDirection = direction;
-        frameStartPosition = position;
+        preFrameDirection = direction;
+        preFramePosition = position;
     }
 
     public void reset() {
-        direction = frameStartDirection;
-        position = frameStartPosition;
+        direction = preFrameDirection;
+        position = preFramePosition;
 
+//        assert position != null;
     }
 
-    public void setDirection( Object direction ) {
-        this.direction = direction;
+    public void resetAll() {
+        resetAll.get();
     }
 
-    public void setPosition( Object pos ) {
-        position = pos;
+    public void setDirection( Object d ) {
+        assert d != null;
+        direction = d;
+    }
 
+    public void setPosition( Object p ) {
+        assert p != null;
+        position = p;
     }
 
     public void update( float seconds ) {
+        //NOP
+    }
 
+    protected void setup( VGDLSprite s ) {
+        s.direction = direction;
+        s.position = position;
+        s.kill = kill;
+        s.direction = direction;
     }
 }

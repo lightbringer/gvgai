@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -14,15 +13,11 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
-import org.apache.commons.lang3.tuple.Pair;
-
 import net.gvgai.vgdl.VGDLRuntime;
 import net.gvgai.vgdl.compiler.VGDL2Java;
-import net.gvgai.vgdl.game.DiscreteGameState;
-import net.gvgai.vgdl.game.GameState;
+import net.gvgai.vgdl.controllers.singleplayer.sampleMCTS.Agent;
+import net.gvgai.vgdl.game.GameState2D;
 import net.gvgai.vgdl.game.MovingAvatar;
-import net.gvgai.vgdl.game.RecordingMap;
-import net.gvgai.vgdl.game.VGDLException;
 import net.gvgai.vgdl.game.VGDLGame;
 import net.gvgai.vgdl.game.VGDLSprite;
 import net.gvgai.vgdl.input.Action;
@@ -39,16 +34,6 @@ public class Headless implements VGDLRuntime {
         runtime.run();
     }
 
-    private static List<Field> getAllFields( List<Field> fields, Class<?> type ) {
-        fields.addAll( Arrays.asList( type.getDeclaredFields() ) );
-
-        if (type.getSuperclass() != null) {
-            fields = getAllFields( fields, type.getSuperclass() );
-        }
-
-        return fields;
-    }
-
     private JFrame window;
 
     private VGDLGame game;
@@ -56,8 +41,6 @@ public class Headless implements VGDLRuntime {
     private Controller controller;
 
     private double updateFrequency;
-
-    private MovingAvatar avatar;
 
     private DebugRenderer renderer;
 
@@ -70,7 +53,6 @@ public class Headless implements VGDLRuntime {
 
         try {
             game = gameClass.newInstance();
-            game.setGameState( new DiscreteGameState() );
 
             //TODO remove swing stuff
             window = new JFrame( game.getClass().toGenericString() );
@@ -92,6 +74,10 @@ public class Headless implements VGDLRuntime {
                 default:
                     throw new IllegalStateException();
             }
+            //XXX
+            controller = new Agent( 1000L );
+//            controller = new EventKeyHandler();
+//            window.addKeyListener( (EventKeyHandler) controller );
 
             //FIXME Remove this
             renderer = new DebugRenderer( this );
@@ -117,7 +103,10 @@ public class Headless implements VGDLRuntime {
             while ((buffer = reader.readLine()) != null) {
                 lines.add( buffer );
             }
-            final RecordingMap level = new RecordingMap( lines.get( 0 ).length(), lines.size() );
+
+            final GameState2D level = new GameState2D( lines.get( 0 ).length(), lines.size() );
+            game.setGameState( level );
+
             int lineIndex = 0;
             for (final String line : lines) {
                 int offset = 0;
@@ -130,9 +119,6 @@ public class Headless implements VGDLRuntime {
                     // do something with curChar
 
                     switch (curChar) {
-//                        case 'w':
-//                            sprites = new VGDLSprite[] { new Wall() };
-//                            break;
                         case ' ':
                             //empty space
                             break;
@@ -147,10 +133,10 @@ public class Headless implements VGDLRuntime {
                                     }
                                     game.getGameState().setAvatar( (MovingAvatar) sprite );
                                 }
-//                                wireObject( sprite );
+//                                game.getGameState().makeCurrent( sprite );
                                 sprite.setDirection( Action.ACTION_UP );
-                                sprite.setPosition( Pair.of( colIndex, lineIndex ) );
-                                level.set( colIndex, lineIndex, sprite );
+                                final int[] p = new int[] { colIndex, lineIndex };
+                                level.set( p, sprite );
                             }
                             break;
                     }
@@ -163,7 +149,7 @@ public class Headless implements VGDLRuntime {
             //TODO remove swing stuff
 
             window.setSize( level.getWidth() * 50, level.getHeight() * 50 );
-            ((DiscreteGameState) game.getGameState()).setLevel( level );
+
         }
         catch (final IOException | InstantiationException | IllegalAccessException e) {
             throw new RuntimeException( e );
@@ -182,20 +168,20 @@ public class Headless implements VGDLRuntime {
         long controllerTime = System.currentTimeMillis();
         while (!game.isGameOver()) {
             game.preFrame();
-            try {
-                final double delta = (System.currentTimeMillis() - time) / 1000.0;
-                final double controllerDelta = (System.currentTimeMillis() - controllerTime) / 1000.0;
-                if (controllerDelta > updateFrequency) {
-                    final Action a = controller.act( controllerDelta );
-                    final GameState state = game.getGameState();
+
+            final double delta = (System.currentTimeMillis() - time) / 1000.0;
+            final double controllerDelta = (System.currentTimeMillis() - controllerTime) / 1000.0;
+            if (controllerDelta > updateFrequency) {
+                synchronized (game.getGameState()) {
+                    final Action a = controller.act( game.getGameState(), controllerDelta );
                     game.getGameState().getAvatar().act( a );
-                    controllerTime = System.currentTimeMillis();
                 }
-                game.update( delta );
+                controllerTime = System.currentTimeMillis();
+                //XXX
+//                    game.setGameState( game.getGameState().advanceFrame() );
             }
-            catch (final VGDLException e) {
-                game.resetFrame();
-            }
+            game.update( delta );
+
             time = System.currentTimeMillis();
 
             game.postFrame();
@@ -204,6 +190,7 @@ public class Headless implements VGDLRuntime {
             window.repaint();
 
         }
+        System.out.println( "Game over" );
     }
 
     private void lose( int id ) {

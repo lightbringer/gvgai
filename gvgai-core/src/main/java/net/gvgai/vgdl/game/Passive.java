@@ -4,26 +4,26 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 public abstract class Passive extends Immovable {
-    protected Function<Object, Object> reverse;
-    protected BiConsumer<VGDLSprite, Object> move;
-    protected BiConsumer<VGDLSprite, Object> moveFrameStart;
+    Function<Object, Object> reverse;
+    BiConsumer<VGDLSprite, Object> move;
 
     public void move( Object direction ) {
+        setDirection( direction );
         move.accept( this, direction );
 
     }
 
-    @Override
-    public void preFrame() {
-        super.preFrame();
-
-        moveFrameStart = move;
+    public Object reverseDirection() {
+        return reverse.apply( getDirection() );
     }
 
     @Override
-    public void reset() {
-        super.reset();
+    protected void setup( VGDLSprite s ) {
+        super.setup( s );
 
-        move = moveFrameStart;
+        final Passive p = (Passive) s;
+        p.reverse = reverse;
+        p.move = move;
     }
+
 }

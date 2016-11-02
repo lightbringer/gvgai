@@ -14,8 +14,8 @@ import javax.swing.JComponent;
 import javax.swing.plaf.PanelUI;
 
 import net.gvgai.vgdl.SpriteInfo;
-import net.gvgai.vgdl.game.DiscreteGameState;
-import net.gvgai.vgdl.game.RecordingMap;
+import net.gvgai.vgdl.game.GameMap;
+import net.gvgai.vgdl.game.GameState2D;
 import net.gvgai.vgdl.game.VGDLSprite;
 
 /**
@@ -41,42 +41,44 @@ public class DebugRenderer extends PanelUI {
     public void paint( Graphics g, JComponent c ) {
         super.paint( g, c );
 
-        final DiscreteGameState state = (DiscreteGameState) headless.getGame().getGameState();
-        final RecordingMap level = state.getLevel();
-        updateZLevel( level );
+        final GameState2D level = (GameState2D) headless.getGame().getGameState();
+        synchronized (level) {
 
-        final int cellWidth = c.getWidth() / level.getWidth();
-        final int cellHeight = c.getHeight() / level.getHeight();
+            updateZLevel( level );
 
-        g.clearRect( 0, 0, c.getWidth(), c.getHeight() );
+            final int cellWidth = c.getWidth() / level.getWidth();
+            final int cellHeight = c.getHeight() / level.getHeight();
 
-        for (int x = 0; x < level.getWidth(); x++) {
-            for (int y = 0; y < level.getHeight(); y++) {
-                if (level.isEmpty( x, y )) {
-                    continue;
-                }
-                final Object[] sprites = level.get( x, y ).toArray();
-                Arrays.sort( sprites, ( s1, s2 ) -> Integer.compare( getZLevel( (VGDLSprite) s2 ), getZLevel( (VGDLSprite) s1 ) ) );
+            g.clearRect( 0, 0, c.getWidth(), c.getHeight() );
 
-                final VGDLSprite s = (VGDLSprite) sprites[0]; //top most image
-                if (s != null) {
-                    final int px = x * cellWidth;
-                    final int py = y * cellHeight;
-
-                    g.setColor( Color.WHITE );
-                    Image img = images.get( s.getClass() );
-
-                    if (img == null) {
-                        img = getImageForClass( s.getClass() );
-                        images.put( s.getClass(), img );
+            for (int x = 0; x < level.getWidth(); x++) {
+                for (int y = 0; y < level.getHeight(); y++) {
+                    final int[] p = new int[] { x, y };
+                    if (level.isEmpty( p )) {
+                        continue;
                     }
-                    g.drawImage( img, px, py, px + cellWidth, py + cellHeight, 0, 0, img.getWidth( null ), img.getHeight( null ), null );
+                    final Object[] sprites = level.get( p ).toArray();
+                    Arrays.sort( sprites, ( s1, s2 ) -> Integer.compare( getZLevel( (VGDLSprite) s2 ), getZLevel( (VGDLSprite) s1 ) ) );
+
+                    final VGDLSprite s = (VGDLSprite) sprites[0]; //top most image
+                    if (s != null) {
+                        final int px = x * cellWidth;
+                        final int py = y * cellHeight;
+
+                        g.setColor( Color.WHITE );
+                        Image img = images.get( s.getClass() );
+
+                        if (img == null) {
+                            img = getImageForClass( s.getClass() );
+                            images.put( s.getClass(), img );
+                        }
+                        g.drawImage( img, px, py, px + cellWidth, py + cellHeight, 0, 0, img.getWidth( null ), img.getHeight( null ), null );
+
+                    }
 
                 }
-
             }
         }
-
     }
 
     private Image getImageForClass( Class<? extends VGDLSprite> clazz ) {
@@ -100,10 +102,11 @@ public class DebugRenderer extends PanelUI {
         return s != null ? zLevel.get( s.getClass() ) : Integer.MIN_VALUE;
     }
 
-    private void updateZLevel( RecordingMap level ) {
+    private void updateZLevel( GameMap level ) {
         for (int x = 0; x < level.getWidth(); x++) {
             for (int y = 0; y < level.getHeight(); y++) {
-                final Collection<VGDLSprite> sprites = level.get( x, y );
+                final int[] p = new int[] { x, y };
+                final Collection<VGDLSprite> sprites = level.get( p );
                 for (final VGDLSprite s : sprites) {
                     if (s != null && !zLevel.containsKey( s.getClass() )) {
                         final SpriteInfo ann = s.getClass().getAnnotation( SpriteInfo.class );
