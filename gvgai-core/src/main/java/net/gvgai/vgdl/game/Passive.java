@@ -3,8 +3,12 @@ package net.gvgai.vgdl.game;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+import net.gvgai.vgdl.tools.AutoWire;
+
 public abstract class Passive extends Immovable {
+    @AutoWire
     Function<Object, Object> reverse;
+    @AutoWire
     BiConsumer<VGDLSprite, Object> move;
 
     public void move( Object direction ) {

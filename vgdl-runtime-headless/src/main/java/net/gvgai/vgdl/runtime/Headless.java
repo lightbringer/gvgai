@@ -62,9 +62,9 @@ public class Headless implements VGDLRuntime {
             switch (mode) {
                 case DISCRETE_GAME:
                     if (controller == null) {
-                        final EventKeyHandler ek = new EventKeyHandler();
-                        controller = ek;
-                        window.addKeyListener( ek );
+//                        final EventKeyHandler ek = new EventKeyHandler();
+//                        controller = ek;
+//                        window.addKeyListener( ek );
                         updateFrequency = 0.05; //50ms
                     }
                     else {
@@ -133,7 +133,6 @@ public class Headless implements VGDLRuntime {
                                     }
                                     game.getGameState().setAvatar( (MovingAvatar) sprite );
                                 }
-//                                game.getGameState().makeCurrent( sprite );
                                 sprite.setDirection( Action.ACTION_UP );
                                 final int[] p = new int[] { colIndex, lineIndex };
                                 level.set( p, sprite );
@@ -172,13 +171,21 @@ public class Headless implements VGDLRuntime {
             final double delta = (System.currentTimeMillis() - time) / 1000.0;
             final double controllerDelta = (System.currentTimeMillis() - controllerTime) / 1000.0;
             if (controllerDelta > updateFrequency) {
-                synchronized (game.getGameState()) {
+                //XXX
+                if (controller instanceof EventKeyHandler) {
                     final Action a = controller.act( game.getGameState(), controllerDelta );
                     game.getGameState().getAvatar().act( a );
+//                    game.setGameState( (GameState) game.getGameState().copy() );
+
+                }
+                else {
+                    synchronized (game.getGameState()) {
+                        final Action a = controller.act( game.getGameState(), controllerDelta );
+                        System.out.println( a );
+                        game.getGameState().getAvatar().act( a );
+                    }
                 }
                 controllerTime = System.currentTimeMillis();
-                //XXX
-//                    game.setGameState( game.getGameState().advanceFrame() );
             }
             game.update( delta );
 
