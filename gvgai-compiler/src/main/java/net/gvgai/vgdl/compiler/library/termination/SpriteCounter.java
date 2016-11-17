@@ -10,7 +10,6 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
-import org.objectweb.asm.commons.Method;
 
 import net.gvgai.vgdl.VGDLRuntime.Feature;
 import net.gvgai.vgdl.compiler.VGDLCompiler;
@@ -50,10 +49,10 @@ public class SpriteCounter implements Termination, Opcodes {
         ga.push( false );
         ga.goTo( e );
         ga.mark( t );
-        //TODO this simply sets the score, not increment it
-        ga.loadThis();
-        ga.push( 1.0 );
-        ga.invokeVirtual( gameType, Method.getMethod( "void setScore(double)" ) );
+//        //TODO this simply sets the score, not increment it
+//        ga.loadThis();
+//        ga.push( 1.0 );
+//        ga.invokeVirtual( gameType, Method.getMethod( "void setScore(double)" ) );
         ga.push( true );
         ga.mark( e );
 

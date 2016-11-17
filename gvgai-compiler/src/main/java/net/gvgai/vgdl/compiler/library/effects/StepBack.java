@@ -1,24 +1,22 @@
 package net.gvgai.vgdl.compiler.library.effects;
 
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
 import net.gvgai.vgdl.compiler.VGDLCompiler;
-import net.gvgai.vgdl.compiler.library.Effect;
 import net.gvgai.vgdl.game.Passive;
 
-public class StepBack implements Effect, Opcodes {
-    private final Type myType;
+public class StepBack extends BaseEffect {
 
-    public StepBack( Type myType, Type otherType ) {
-        super();
-        this.myType = myType;
+    public StepBack( Type myType, Type otherType, String... s ) {
+        super( myType, otherType, s );
+
     }
 
     @Override
     public void generate( VGDLCompiler vgdlCompiler, GeneratorAdapter mg ) {
+        super.generate( vgdlCompiler, mg );
 //        VGDLCompiler.generateConsoleMessage( mg, "Step back!" );
         mg.loadThis();
         mg.loadThis();

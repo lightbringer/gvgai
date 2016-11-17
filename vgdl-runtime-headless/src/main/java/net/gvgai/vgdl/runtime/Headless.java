@@ -16,6 +16,7 @@ import javax.swing.JPanel;
 import net.gvgai.vgdl.VGDLRuntime;
 import net.gvgai.vgdl.compiler.VGDL2Java;
 import net.gvgai.vgdl.controllers.singleplayer.sampleMCTS.Agent;
+import net.gvgai.vgdl.game.GameState;
 import net.gvgai.vgdl.game.GameState2D;
 import net.gvgai.vgdl.game.MovingAvatar;
 import net.gvgai.vgdl.game.VGDLGame;
@@ -74,7 +75,7 @@ public class Headless implements VGDLRuntime {
                 default:
                     throw new IllegalStateException();
             }
-            //XXX
+//            XXX
             controller = new Agent( 1000L );
 //            controller = new EventKeyHandler();
 //            window.addKeyListener( (EventKeyHandler) controller );
@@ -165,35 +166,40 @@ public class Headless implements VGDLRuntime {
         window.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
         long time = System.currentTimeMillis();
         long controllerTime = System.currentTimeMillis();
+        int tick = 0;
         while (!game.isGameOver()) {
-            game.preFrame();
 
             final double delta = (System.currentTimeMillis() - time) / 1000.0;
             final double controllerDelta = (System.currentTimeMillis() - controllerTime) / 1000.0;
             if (controllerDelta > updateFrequency) {
+
+                Action a;
                 //XXX
                 if (controller instanceof EventKeyHandler) {
-                    final Action a = controller.act( game.getGameState(), controllerDelta );
-                    game.getGameState().getAvatar().act( a );
-//                    game.setGameState( (GameState) game.getGameState().copy() );
-
+                    a = controller.act( game.getGameState(), controllerDelta );
                 }
                 else {
                     synchronized (game.getGameState()) {
-                        final Action a = controller.act( game.getGameState(), controllerDelta );
+                        a = controller.act( game.getGameState(), controllerDelta );
                         System.out.println( a );
-                        game.getGameState().getAvatar().act( a );
                     }
                 }
+                game.preFrame();
+                game.getGameState().getAvatar().act( a );
+                game.postFrame();
+                tick++;
                 controllerTime = System.currentTimeMillis();
             }
             game.update( delta );
 
             time = System.currentTimeMillis();
 
-            game.postFrame();
+            if (controller instanceof EventKeyHandler) {
+                game.setGameState( (GameState) game.getGameState().copy() );
+            }
 
             //FIXME Remove me
+            window.setTitle( "Score: " + game.getScore() + " Tick: " + tick );
             window.repaint();
 
         }

@@ -16,7 +16,7 @@ public interface GameState<T> extends Copyable<T> {
 
     void preFrame();
 
-    Void resetFrame();
+    void resetFrame();
 
     void setAvatar( MovingAvatar a );
 

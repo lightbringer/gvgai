@@ -1,8 +1,5 @@
 package net.gvgai.vgdl.game;
 
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-
 import net.gvgai.vgdl.tools.AutoWire;
 
 public abstract class VGDLSprite implements Copyable<VGDLSprite> {
@@ -14,9 +11,10 @@ public abstract class VGDLSprite implements Copyable<VGDLSprite> {
     private Object preFrameDirection;
 
     @AutoWire
-    Consumer<VGDLSprite> kill;
+    protected GameState state;
     @AutoWire
-    Supplier<Void> resetAll;
+    protected GameMap map;
+
     int id;
 
     protected VGDLSprite() {
@@ -39,7 +37,7 @@ public abstract class VGDLSprite implements Copyable<VGDLSprite> {
     }
 
     public void kill() {
-        kill.accept( this );
+        map.remove( position, this );
     }
 
     public void postFrame() {
@@ -59,7 +57,7 @@ public abstract class VGDLSprite implements Copyable<VGDLSprite> {
     }
 
     public void resetAll() {
-        resetAll.get();
+        state.resetFrame();
     }
 
     public void setDirection( Object d ) {
@@ -80,7 +78,5 @@ public abstract class VGDLSprite implements Copyable<VGDLSprite> {
         s.id = id;
         s.direction = direction;
         s.position = position;
-        s.kill = kill;
-        s.direction = direction;
     }
 }

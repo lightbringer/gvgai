@@ -20,7 +20,11 @@ import net.gvgai.vgdl.input.Action;
  *
  */
 public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D, int[], Action> {
-    private static int FLATTEN_DEPTH = 20;
+    private static int FLATTEN_DEPTH = 1000;
+
+    private static MovingAvatar findAvatar( List[] a, int index ) {
+        return (MovingAvatar) a[index].stream().filter( i -> i instanceof MovingAvatar ).findFirst().get();
+    }
 
     private static Action reverse( Object s ) {
         final Action a = (Action) s;
@@ -45,13 +49,16 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
 
     private int preFrameAvatarIndex;
 
+    private MovingAvatar preFrameAvatar;
     private double score;
+
+    private double preFrameScore;
 
     private boolean resetFrame;
 
     private final int height;
-
     private final int width;
+
     private List<VGDLSprite>[] sprites;
 
     private List<VGDLSprite>[] preFrameSprites;
@@ -62,10 +69,14 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
 
     private int depth;
 
+    private boolean inFrame;
+    private boolean preFrameGameOver;
+
     public GameState2D( int width, int height ) {
         this.height = height;
         this.width = width;
         sprites = new List[height * width];
+        preFrameSprites = new List[height * width];
         Arrays.setAll( sprites, i -> new ArrayList<>() );
 
         parent = null;
@@ -73,6 +84,9 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
     }
 
     private GameState2D( GameState2D other ) {
+        if (other.inFrame) {
+            throw new IllegalStateException( "don't advance in-frame. Inconsistencies ahead!" );
+        }
         height = other.height;
         width = other.width;
         sprites = new List[height * width];
@@ -91,11 +105,13 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
             makeCurrent( avatarIndex );
         }
 
+        preFrameSprites = new List[height * width];
+
         score = other.score;
         gameOver = other.gameOver;
         resetFrame = other.resetFrame;
 
-        avatar = findavatar( avatarIndex );
+        avatar = findAvatar( sprites, avatarIndex );
     }
 
     @Override
@@ -216,23 +232,38 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
 
     @Override
     public void postFrame() {
+        assert inFrame;
+
         if (resetFrame) {
             resetFrame = false;
+            score = preFrameScore;
+            gameOver = preFrameGameOver;
+            final List[] tmp = sprites;
             sprites = preFrameSprites;
+            preFrameSprites = tmp;
             avatarIndex = preFrameAvatarIndex;
-            avatar = findavatar( avatarIndex );
+            avatar = preFrameAvatar;
             assert avatar != null;
-            Arrays.asList( sprites ).stream().flatMap( Collection::stream ).forEach( s -> s.reset() );
+            Arrays.asList( sprites ).stream().filter( l -> l != null ).flatMap( Collection::stream ).forEach( s -> s.reset() );
         }
         Stream.of( sprites ).filter( l -> l != null ).flatMap( Collection::stream ).forEach( s -> s.postFrame() );
+
+        inFrame = false;
     }
 
     @Override
     public void preFrame() {
+        assert !inFrame;
         preFrameAvatarIndex = avatarIndex;
-        preFrameSprites = Arrays.stream( sprites ).toArray( $ -> sprites.clone() );
-        Arrays.asList( sprites ).replaceAll( l -> l != null ? new ArrayList<>( l ) : null );
+        preFrameScore = score;
+        preFrameAvatar = avatar;
+        preFrameGameOver = gameOver;
+        Arrays.setAll( preFrameSprites, i -> sprites[i] != null ? new ArrayList<>( sprites[i] ) : null );
+
+        assert preFrameSprites != null;
         Stream.of( sprites ).filter( l -> l != null ).flatMap( Collection::stream ).forEach( s -> s.preFrame() );
+
+        inFrame = true;
     }
 
     @Override
@@ -244,9 +275,8 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
     }
 
     @Override
-    public Void resetFrame() {
+    public void resetFrame() {
         resetFrame = true;
-        return null;
     }
 
     @Override
@@ -272,22 +302,19 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
     @Override
     public void setGameOver( boolean b ) {
         gameOver = b;
-
+        if (b) {
+            System.out.println( b );
+        }
     }
 
     @Override
     public void setScore( double d ) {
         score = d;
-
     }
 
     @Override
     public Stream<VGDLSprite> values() {
         return IntStream.range( 0, sprites.length ).mapToObj( i -> (sprites[i] != null ? sprites[i] : get( i )) ).flatMap( Collection::stream );
-    }
-
-    private MovingAvatar findavatar( int index ) {
-        return (MovingAvatar) sprites[avatarIndex].stream().filter( i -> i instanceof MovingAvatar ).findFirst().get();
     }
 
     private Collection<VGDLSprite> get( int index ) {
@@ -313,10 +340,6 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
 
     }
 
-    private boolean moveDelegate( VGDLSprite s, Object direction ) {
-        return move( s, (Action) direction );
-    }
-
     private void movePosition( Action a, int[] p ) {
         switch (a) {
             case ACTION_LEFT:
@@ -340,18 +363,13 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
         p[1] = Math.min( p[1], height - 1 );
     }
 
-    private void removeDelegate( VGDLSprite s ) {
-        remove( (int[]) s.getPosition(), s );
-    }
-
     private void setupDelegates( VGDLSprite s ) {
         if (s instanceof Passive) {
             final Passive passive = (Passive) s;
-            passive.move = this::moveDelegate;
             passive.reverse = GameState2D::reverse;
         }
-        s.resetAll = this::resetFrame;
-        s.kill = this::removeDelegate;
+        s.map = this;
+        s.state = this;
     }
 
 }

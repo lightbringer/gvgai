@@ -5,16 +5,16 @@ import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
 import net.gvgai.vgdl.compiler.VGDLCompiler;
-import net.gvgai.vgdl.compiler.library.Effect;
 import net.gvgai.vgdl.game.VGDLSprite;
 
-public class UndoAll implements Effect {
-    public UndoAll( Type myType, Type otherType ) {
-        // TODO Auto-generated constructor stub
+public class UndoAll extends BaseEffect {
+    public UndoAll( Type myType, Type otherType, String... s ) {
+        super( myType, otherType, s );
     }
 
     @Override
     public void generate( VGDLCompiler vgdlCompiler, GeneratorAdapter mg ) {
+        super.generate( vgdlCompiler, mg );
 //        VGDLCompiler.generateConsoleMessage( mg, "UndoAll" );
         final Method reset = Method.getMethod( "void resetAll()" );
         mg.loadThis();

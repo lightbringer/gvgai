@@ -57,8 +57,8 @@ public class SingleMCTSPlayer {
         num++;
 
         //Determine the best action to take and return it.
-        final int action = m_root.mostVisitedAction();
-        //int action = m_root.bestAction();
+//        final int action = m_root.mostVisitedAction();
+        final int action = m_root.bestAction();
         return action;
     }
 

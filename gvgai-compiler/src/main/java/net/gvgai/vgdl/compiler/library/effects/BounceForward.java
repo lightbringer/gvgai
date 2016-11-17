@@ -1,25 +1,22 @@
 package net.gvgai.vgdl.compiler.library.effects;
 
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
 import net.gvgai.vgdl.compiler.VGDLCompiler;
-import net.gvgai.vgdl.compiler.library.Effect;
 
-public class BounceForward implements Effect, Opcodes {
-    private final Type myType;
-    private final Type otherType;
+public class BounceForward extends BaseEffect {
 
-    public BounceForward( Type myType, Type otherType ) {
+    public BounceForward( Type myType, Type otherType, String... s ) {
+        super( myType, otherType, s );
         System.out.println( "Bounce " + myType );
-        this.myType = myType;
-        this.otherType = otherType;
+
     }
 
     @Override
     public void generate( VGDLCompiler vgdlCompiler, GeneratorAdapter mg ) {
+        super.generate( vgdlCompiler, mg );
 //        VGDLCompiler.generateConsoleMessage( mg, "Bounce forward" );
 
         //Move object 0 (this) into the direction that 1 (0) is facing

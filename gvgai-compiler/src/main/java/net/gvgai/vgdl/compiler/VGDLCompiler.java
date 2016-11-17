@@ -43,6 +43,7 @@ import net.gvgai.vgdl.compiler.generated.vgdlParser.Termination_setContext;
 import net.gvgai.vgdl.compiler.library.Effect;
 import net.gvgai.vgdl.compiler.library.GameClass;
 import net.gvgai.vgdl.compiler.library.Termination;
+import net.gvgai.vgdl.game.GameMap;
 import net.gvgai.vgdl.game.GameState;
 import net.gvgai.vgdl.game.VGDLGame;
 import net.gvgai.vgdl.game.VGDLSprite;
@@ -63,6 +64,16 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         mg.getStatic( Type.getType( System.class ), "out", Type.getType( PrintStream.class ) );
         mg.push( string );
         mg.invokeVirtual( Type.getType( PrintStream.class ), Method.getMethod( "void println (String)" ) );
+    }
+
+    public static void getGameMap( GeneratorAdapter mg ) {
+        mg.loadThis();
+        mg.getField( Type.getType( VGDLSprite.class ), "map", Type.getType( GameMap.class ) );
+    }
+
+    public static void getGameState( GeneratorAdapter mg ) {
+        mg.loadThis();
+        mg.getField( Type.getType( VGDLSprite.class ), "state", Type.getType( GameState.class ) );
     }
 
     /**
@@ -595,9 +606,21 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
             final Type t = getTypeForSimpleName( text );
             final Class<? extends Effect> effectClass = (Class<? extends Effect>) Class.forName( t.getClassName() );
 
-            final Constructor<? extends Effect> c = effectClass.getConstructor( Type.class, Type.class );
-            //TODO options
-            return c.newInstance( actorType, otherType );
+            final Constructor<? extends Effect> c = effectClass.getConstructor( Type.class, Type.class, String[].class );
+            String[] options;
+            if (list != null && !list.isEmpty()) {
+                options = new String[list.size() * 2];
+                int i = 0;
+                for (final OptionContext o : list) {
+                    options[i] = o.option_key().getText();
+                    options[i + 1] = o.option_value().getText();
+                    i += 2;
+                }
+            }
+            else {
+                options = null;
+            }
+            return c.newInstance( actorType, otherType, options );
         }
         catch (InstantiationException | IllegalAccessException | ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalArgumentException |
 

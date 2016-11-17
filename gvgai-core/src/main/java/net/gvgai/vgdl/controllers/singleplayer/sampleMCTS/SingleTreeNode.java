@@ -118,8 +118,9 @@ public class SingleTreeNode {
         }
 
         final GameState nextState = state.copy();
-
+        nextState.preFrame();
         nextState.getAvatar().act( Action.values()[bestAction] );
+        nextState.postFrame();
 
         final SingleTreeNode tn = new SingleTreeNode( nextState, this, m_rnd );
         children[bestAction] = tn;
@@ -220,9 +221,9 @@ public class SingleTreeNode {
         while (!finishRollout( rollerState, thisDepth )) {
 
             final int action = m_rnd.nextInt( Action.values().length );
-
+            rollerState.preFrame();
             rollerState.getAvatar().act( Action.values()[action] );
-
+            rollerState.postFrame();
             thisDepth++;
         }
 
@@ -293,7 +294,7 @@ public class SingleTreeNode {
         double rawScore = a_gameState.getScore();
 
         //FIXME
-        final boolean win = rawScore > 0;
+        final boolean win = rawScore == 3.0;
         if (gameOver && !win) {
             rawScore += HUGE_NEGATIVE;
         }
