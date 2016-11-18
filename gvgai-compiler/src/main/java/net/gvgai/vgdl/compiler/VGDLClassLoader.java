@@ -33,18 +33,7 @@ class VGDLClassLoader extends ClassLoader {
 
     private Class<?> defineClass( String name, ClassWriter cw ) {
         final byte[] code = cw.toByteArray();
-//            if (writeClassesToDisk) {
-//                try {
-//                    final FileOutputStream out = new FileOutputStream( name + ".class" );
-//                    out.write( code );
-//                    out.close();
-//                }
-//                catch (final Exception e) {
-//
-//                }
-//            }
         return defineClass( name, code, 0, code.length );
-
     }
 
     @Override

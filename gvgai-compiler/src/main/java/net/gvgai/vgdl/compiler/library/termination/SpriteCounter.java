@@ -60,7 +60,7 @@ public class SpriteCounter implements Termination, Opcodes {
                         "(Lnet/gvgai/vgdl/game/VGDLSprite;)Z", null, null );
         lambdaWriter.visitCode();
         lambdaWriter.visitVarInsn( ALOAD, 0 );
-        lambdaWriter.visitTypeInsn( INSTANCEOF, VGDLCompiler.PACKAGE + "/" + VGDLCompiler.formatClassName( stype ) );
+        lambdaWriter.visitTypeInsn( INSTANCEOF, context.getGamePackageName() + "/" + VGDLCompiler.formatClassName( stype ) );
         lambdaWriter.visitInsn( IRETURN );
         lambdaWriter.visitEnd();
         lambdaWriter.visitMaxs( 1, 0 );

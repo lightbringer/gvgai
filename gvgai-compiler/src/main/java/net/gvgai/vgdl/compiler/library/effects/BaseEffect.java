@@ -36,7 +36,7 @@ public abstract class BaseEffect implements Effect, Opcodes {
     @Override
     public void generate( VGDLCompiler vgdlCompiler, GeneratorAdapter mg ) {
         if (scoreChange != 0) {
-            VGDLCompiler.getGameState( mg );
+            VGDLCompiler.generateGgetGameStat( mg );
             mg.dup();
             final Method m = Method.getMethod( "double getScore()" );
             mg.invokeInterface( Type.getType( GameState.class ), m );

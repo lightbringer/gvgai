@@ -1,5 +1,7 @@
 package net.gvgai.vgdl.compiler;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.Array;
@@ -49,7 +51,7 @@ import net.gvgai.vgdl.game.VGDLGame;
 import net.gvgai.vgdl.game.VGDLSprite;
 
 public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
-    public final static String PACKAGE = "net/gvgai/game";
+    public final static String BASE_PACKAGE = "net/gvgai/game";
 
     public static String formatClassName( String name ) {
         if (Character.isUpperCase( name.codePointAt( 0 ) )) {
@@ -66,12 +68,12 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         mg.invokeVirtual( Type.getType( PrintStream.class ), Method.getMethod( "void println (String)" ) );
     }
 
-    public static void getGameMap( GeneratorAdapter mg ) {
+    public static void generateGetGameMap( GeneratorAdapter mg ) {
         mg.loadThis();
         mg.getField( Type.getType( VGDLSprite.class ), "map", Type.getType( GameMap.class ) );
     }
 
-    public static void getGameState( GeneratorAdapter mg ) {
+    public static void generateGgetGameStat( GeneratorAdapter mg ) {
         mg.loadThis();
         mg.getField( Type.getType( VGDLSprite.class ), "state", Type.getType( GameState.class ) );
     }
@@ -98,6 +100,8 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
     private int nextLambda;
 
+    private final String packageName;
+
     VGDLCompiler( String gameName ) {
         this( gameName, false );
     }
@@ -106,7 +110,8 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
      * @param gameName name of the game class
      */
     VGDLCompiler( String gameName, boolean writeClassesToDisk ) {
-        gameType = Type.getType( "L" + PACKAGE + "/" + formatClassName( gameName ) + ";" );
+        packageName = BASE_PACKAGE + '/' + gameName.toLowerCase();
+        gameType = Type.getType( "L" + packageName + "/" + formatClassName( gameName ) + ";" );
         this.writeClassesToDisk = writeClassesToDisk;
 
         levelMapping = new TreeMap<>();
@@ -230,7 +235,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         final ClassWriter spcw = new ClassWriter( ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES );
 
         final String spriteTypeName = formatClassName( ctx.name.getText() );
-        final Type spriteType = Type.getType( "L" + PACKAGE + "/" + spriteTypeName + ";" );
+        final Type spriteType = Type.getType( "L" + packageName + "/" + spriteTypeName + ";" );
         final Type parentType = getTypeForSimpleName( formatClassName( ctx.parentClass ) );
         System.out.println( "Parent of " + spriteType + " is " + parentType );
 
@@ -550,11 +555,11 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         return classLoader;
     }
 
-    public Type getTypeForSimpleName( String name ) {
-//        if (name.toLowerCase().equals( "wall" )) {
-//            return Type.getType( Wall.class );
-//        }
+    public String getGamePackageName() {
+        return packageName;
+    }
 
+    public Type getTypeForSimpleName( String name ) {
         final Type ret = classLoader.getGeneratedTypes().keySet().stream().filter( t -> t.getClassName().endsWith( name ) ).findAny().orElse( null );
         if (ret != null) {
             return ret;
@@ -579,6 +584,27 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         return nextLambda++;
     }
 
+    public void writeClassesToDisk( File rootDir ) {
+        classLoader.getGeneratedTypes().forEach( ( t, gt ) -> {
+            try {
+                final String fileName = rootDir + "/" + t.getClassName().replace( '.', '/' ) + ".class";
+                final File f = new File( fileName );
+                f.mkdirs();
+                if (f.exists()) {
+                    f.delete();
+                }
+                f.createNewFile();
+                final FileOutputStream fOut = new FileOutputStream( f );
+                final byte[] code = gt.cw.toByteArray();
+                fOut.write( code );
+                fOut.close();
+            }
+            catch (final IOException e) {
+                throw new RuntimeException( e );
+            }
+        } );
+    };
+
     private void generateCopyMethod( ClassWriter spcw, Type spriteType, Type parentType ) {
         final Method m = Method.getMethod( "net.gvgai.vgdl.game.VGDLSprite copy ()" );
         final GeneratorAdapter mg = new GeneratorAdapter( ACC_PUBLIC, m, null, null, spcw );
@@ -599,7 +625,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         mg.loadLocal( ret );
         mg.returnValue();
         mg.endMethod();
-    };
+    }
 
     private Effect getEffectForName( String text, Type actorType, Type otherType, List<OptionContext> list ) {
         try {

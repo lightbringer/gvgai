@@ -27,7 +27,7 @@ import net.gvgai.vgdl.runtime.input.EventKeyHandler;
 
 public class Headless implements VGDLRuntime {
     public static void main( String[] args ) throws IOException {
-        final Class<? extends VGDLGame> gameClass = VGDL2Java.load( "Sokoban", VGDL2Java.class.getResource( "sokoban.txt" ).openStream() );
+        final Class<? extends VGDLGame> gameClass = VGDL2Java.loadIntoMemory( "Sokoban", VGDL2Java.class.getResource( "sokoban.txt" ).openStream() );
         final ServiceLoader<VGDLRuntime> loader = ServiceLoader.load( VGDLRuntime.class );
         final VGDLRuntime runtime = loader.iterator().next();
         runtime.loadGame( gameClass );
