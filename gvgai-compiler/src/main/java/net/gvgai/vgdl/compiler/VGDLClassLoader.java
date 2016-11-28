@@ -22,7 +22,8 @@ class VGDLClassLoader extends ClassLoader {
     /**
     * @param vgdlCompiler
     */
-    VGDLClassLoader() {
+    VGDLClassLoader( ClassLoader parent ) {
+        super( parent );
         generatedTypes = new HashMap<>();
 
     }
@@ -50,7 +51,7 @@ class VGDLClassLoader extends ClassLoader {
             return gt.clazz;
         }
         else {
-            return super.findClass( name );
+            return getParent().loadClass( name );
         }
     }
 

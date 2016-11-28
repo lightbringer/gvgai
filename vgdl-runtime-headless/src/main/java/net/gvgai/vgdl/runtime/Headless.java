@@ -14,7 +14,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import net.gvgai.vgdl.VGDLRuntime;
-import net.gvgai.vgdl.compiler.VGDL2Java;
 import net.gvgai.vgdl.controllers.singleplayer.sampleMCTS.Agent;
 import net.gvgai.vgdl.game.GameState;
 import net.gvgai.vgdl.game.GameState2D;
@@ -26,12 +25,14 @@ import net.gvgai.vgdl.input.Controller;
 import net.gvgai.vgdl.runtime.input.EventKeyHandler;
 
 public class Headless implements VGDLRuntime {
-    public static void main( String[] args ) throws IOException {
-        final Class<? extends VGDLGame> gameClass = VGDL2Java.loadIntoMemory( "Sokoban", VGDL2Java.class.getResource( "sokoban.txt" ).openStream() );
+    public static void main( String[] args ) throws IOException, ClassNotFoundException {
+//        final Class<? extends VGDLGame> gameClass = VGDL2Java.loadIntoMemory( "Sokoban", VGDL2Java.class.getResource( "sokoban.txt" ).openStream() );
+
+        final Class<? extends VGDLGame> gameClass = (Class<? extends VGDLGame>) Class.forName( "net.gvgai.game.sokoban.Sokoban" );
         final ServiceLoader<VGDLRuntime> loader = ServiceLoader.load( VGDLRuntime.class );
         final VGDLRuntime runtime = loader.iterator().next();
         runtime.loadGame( gameClass );
-        runtime.loadLevel( VGDL2Java.class.getResourceAsStream( "sokoban_lvl0.txt" ) );
+        runtime.loadLevel( gameClass.getResourceAsStream( "/sokoban_lvl0.txt" ) );
         runtime.run();
     }
 

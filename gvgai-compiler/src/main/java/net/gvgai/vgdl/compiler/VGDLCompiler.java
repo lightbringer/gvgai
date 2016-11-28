@@ -123,7 +123,8 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
     @Override
     public void enterGame( GameContext ctx ) {
         zLevel = 0;
-        classLoader = new VGDLClassLoader();
+        classLoader = new VGDLClassLoader( Thread.currentThread().getContextClassLoader() );
+        Thread.currentThread().setContextClassLoader( classLoader );
         levelMapping.clear();
         requiredFeatures.clear();
         methods.clear();
