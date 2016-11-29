@@ -51,13 +51,6 @@ public interface GameMap<T, P, D> extends Copyable<T> {
     int getHeight();
 
     /**
-     * The total number of sprites on the map that are of a certain class
-     * @param clazz the class
-     * @return the number of sprites active
-     */
-    int getSpriteCount( Class<? extends VGDLSprite> clazz );
-
-    /**
      * @deprecated This currently only used for the DebugRendering and probably will be removed in the future
      * @return the width of the map
      */
