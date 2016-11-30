@@ -168,11 +168,6 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
     }
 
     @Override
-    public int getSpriteCount( Class<? extends VGDLSprite> clazz ) {
-        return (int) values().filter( s -> clazz.isAssignableFrom( s.getClass() ) ).count();
-    }
-
-    @Override
     public int getWidth() {
         return width;
     }
