@@ -7,12 +7,7 @@
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>vgdl-runtime-headless</artifactId>
-	<dependencies>
-		<dependency>
-			<groupId>net.gvgai</groupId>
-			<artifactId>gvgai-core</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
+	<dependencies>		
 		<dependency>
 			<groupId>net.gvgai</groupId>
 			<artifactId>vgdl-example-games</artifactId>
