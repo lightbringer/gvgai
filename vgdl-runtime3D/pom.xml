@@ -3,7 +3,7 @@
   <parent>
     <groupId>net.gvgai</groupId>
     <artifactId>gvgai-all</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.1</version>
   </parent>
   <artifactId>vgdl-runtime3D</artifactId>
   
@@ -49,7 +49,7 @@
     <dependency>
     	<groupId>net.gvgai</groupId>
     	<artifactId>vgdl-example-games</artifactId>
-    	<version>0.0.1-SNAPSHOT</version>
+    	<version>${project.version}</version>
     </dependency>
   </dependencies>
 </project>

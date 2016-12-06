@@ -4,14 +4,14 @@
 	<parent>
 		<groupId>net.gvgai</groupId>
 		<artifactId>gvgai-all</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<version>0.0.1</version>
 	</parent>
 	<artifactId>vgdl-runtime-headless</artifactId>
 	<dependencies>		
 		<dependency>
 			<groupId>net.gvgai</groupId>
 			<artifactId>vgdl-example-games</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 		<!-- <dependency> <groupId>com.google.guava</groupId> <artifactId>guava</artifactId> 
 			<version>19.0</version> </dependency> -->
