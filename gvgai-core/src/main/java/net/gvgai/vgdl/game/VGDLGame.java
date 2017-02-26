@@ -1,6 +1,7 @@
 package net.gvgai.vgdl.game;
 
 import net.gvgai.vgdl.VGDLRuntime.Feature;
+import net.gvgai.vgdl.sprites.VGDLSprite;
 
 public interface VGDLGame {
     GameState getGameState();

@@ -21,10 +21,10 @@ import com.jme3.system.AppSettings;
 import net.gvgai.vgdl.VGDLRuntime;
 import net.gvgai.vgdl.game.GameMap3D;
 import net.gvgai.vgdl.game.GameState3D;
-import net.gvgai.vgdl.game.MovingAvatar;
 import net.gvgai.vgdl.game.VGDLGame;
-import net.gvgai.vgdl.game.VGDLSprite;
 import net.gvgai.vgdl.runtime.input.InputListener;
+import net.gvgai.vgdl.sprites.MovingAvatar;
+import net.gvgai.vgdl.sprites.VGDLSprite;
 
 public class Runtime3D extends SimpleApplication implements VGDLRuntime {
 

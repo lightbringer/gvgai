@@ -16,7 +16,7 @@ import javax.swing.plaf.PanelUI;
 import net.gvgai.vgdl.SpriteInfo;
 import net.gvgai.vgdl.game.GameMap;
 import net.gvgai.vgdl.game.GameState2D;
-import net.gvgai.vgdl.game.VGDLSprite;
+import net.gvgai.vgdl.sprites.VGDLSprite;
 
 /**
  *
@@ -33,7 +33,7 @@ public class DebugRenderer extends PanelUI {
     private final Map<Class, Image> images = new HashMap();
 
     public DebugRenderer( RuntimeSwing headless ) {
-        this.runtime = headless;
+        runtime = headless;
         zLevel = new HashMap();
     }
 
@@ -82,19 +82,26 @@ public class DebugRenderer extends PanelUI {
     }
 
     private Image getImageForClass( Class<? extends VGDLSprite> clazz ) {
-        final SpriteInfo ann = clazz.getAnnotation( SpriteInfo.class );
-        final String[] options = ann.resourceInfo().split( " " );
-
-        for (final String o : options) {
-            final String[] e = o.split( "=" );
-            if (e[0].equals( "img" )) {
-                final URL path = DebugRenderer.class.getResource( "/net/gvgai/vgdl/images/" + e[1] + ".png" );
-                assert path != null : "image " + e[1] + " not found";
-                return Toolkit.getDefaultToolkit().createImage( path );
+        while (clazz != VGDLSprite.class) {
+            System.out.println( "Querying SpriteInfo on " + clazz );
+            final SpriteInfo ann = clazz.getAnnotation( SpriteInfo.class );
+            if (ann == null) {
+                break;
             }
+            final String[] options = ann.resourceInfo().split( " " );
 
+            for (final String o : options) {
+                final String[] e = o.split( "=" );
+                if (e[0].equals( "img" )) {
+                    final URL path = DebugRenderer.class.getResource( "/net/gvgai/vgdl/images/" + e[1] + ".png" );
+                    assert path != null : "image " + e[1] + " not found";
+                    return Toolkit.getDefaultToolkit().createImage( path );
+                }
+
+            }
+            clazz = (Class<? extends VGDLSprite>) clazz.getSuperclass();
         }
-        throw new IllegalStateException( "Debug rendering requires SpriteInfo with img set on each SpriteClass" );
+        throw new IllegalStateException( "Debug rendering requires SpriteInfo with img set on each SpriteClass. No image for " + clazz );
 
     }
 

@@ -70,12 +70,12 @@
 		<dependency>
 			<groupId>net.gvgai</groupId>
 			<artifactId>gvgai-core</artifactId>
-			<version>0.0.1</version>
+			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
 	<parent>
 		<groupId>net.gvgai</groupId>
 		<artifactId>gvgai-all</artifactId>
-		<version>0.0.1</version>
+		<version>0.0.2</version>
 	</parent>
 </project>

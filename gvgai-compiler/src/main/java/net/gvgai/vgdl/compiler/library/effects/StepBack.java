@@ -1,22 +1,25 @@
 package net.gvgai.vgdl.compiler.library.effects;
 
+import java.util.Set;
+
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
+import net.gvgai.vgdl.VGDLRuntime.Feature;
 import net.gvgai.vgdl.compiler.VGDLCompiler;
-import net.gvgai.vgdl.game.Passive;
+import net.gvgai.vgdl.sprites.Passive;
 
 public class StepBack extends BaseEffect {
 
-    public StepBack( Type myType, Type otherType, String... s ) {
+    public StepBack( Type myType, Type[] otherType, String... s ) {
         super( myType, otherType, s );
 
     }
 
     @Override
-    public void generate( VGDLCompiler vgdlCompiler, GeneratorAdapter mg ) {
-        super.generate( vgdlCompiler, mg );
+    public void generate( VGDLCompiler vgdlCompiler, Set<Feature> requiredFeatures, GeneratorAdapter mg ) {
+        super.generate( vgdlCompiler, requiredFeatures, mg );
 //        VGDLCompiler.generateConsoleMessage( mg, "Step back!" );
         mg.loadThis();
         mg.loadThis();

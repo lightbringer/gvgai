@@ -3,6 +3,8 @@ package net.gvgai.vgdl.game;
 import java.util.Collection;
 import java.util.stream.Stream;
 
+import net.gvgai.vgdl.sprites.VGDLSprite;
+
 /**
  * A spatial data-structure that holds VGDLSprites. The interface is agnostic in which relation
  * the sprites are stored, e.g. cartesian 2D/3D space, graphs etc.
@@ -19,6 +21,8 @@ import java.util.stream.Stream;
  *            a vector. As with positions, no assumptions about directions is made in the runtime.
  */
 public interface GameMap<T, P, D> extends Copyable<T> {
+
+    P add( P position, D direction );
 
     /**
      * Convenience method for get
@@ -63,6 +67,8 @@ public interface GameMap<T, P, D> extends Copyable<T> {
      * @return true if no sprite is at that location
      */
     boolean isEmpty( P p );
+
+    boolean isInBounds( P p );
 
     /**
      * Moves a sprite along a direction. The return value only denotes

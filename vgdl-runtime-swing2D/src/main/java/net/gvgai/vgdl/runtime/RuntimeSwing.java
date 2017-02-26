@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.ServiceLoader;
 
@@ -14,26 +13,26 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import net.gvgai.vgdl.VGDLRuntime;
-import net.gvgai.vgdl.VGDLRuntime.Feature;
-import net.gvgai.vgdl.controllers.singleplayer.sampleMCTS.Agent;
 import net.gvgai.vgdl.game.GameState;
 import net.gvgai.vgdl.game.GameState2D;
-import net.gvgai.vgdl.game.MovingAvatar;
 import net.gvgai.vgdl.game.VGDLGame;
-import net.gvgai.vgdl.game.VGDLSprite;
 import net.gvgai.vgdl.input.Action;
 import net.gvgai.vgdl.input.Controller;
 import net.gvgai.vgdl.runtime.input.EventKeyHandler;
+import net.gvgai.vgdl.sprites.MovingAvatar;
+import net.gvgai.vgdl.sprites.VGDLSprite;
 
 public class RuntimeSwing implements VGDLRuntime {
     public static void main( String[] args ) throws IOException, ClassNotFoundException {
 //      final Class<? extends VGDLGame> gameClass = VGDL2Java.loadIntoMemory( "Sokoban", VGDL2Java.class.getResource( "sokoban.txt" ).openStream() );
 
-        final Class<? extends VGDLGame> gameClass = (Class<? extends VGDLGame>) Class.forName( "net.gvgai.game.sokoban.Sokoban" );
+        final Class<? extends VGDLGame> gameClass = (Class<? extends VGDLGame>) Class.forName( "net.gvgai.game.frogs.Frogs" );
+//        final Class<? extends VGDLGame> gameClass = (Class<? extends VGDLGame>) Class.forName( "net.gvgai.game.sokoban.Sokoban" );
         final ServiceLoader<VGDLRuntime> loader = ServiceLoader.load( VGDLRuntime.class );
         final VGDLRuntime runtime = loader.iterator().next();
         runtime.loadGame( gameClass );
-        runtime.loadLevel( gameClass.getResourceAsStream( "/sokoban_lvl0.txt" ) );
+        runtime.loadLevel( gameClass.getResourceAsStream( "/frogs_lvl0.txt" ) );
+//        runtime.loadLevel( gameClass.getResourceAsStream( "/sokoban_lvl0.txt" ) );
         runtime.run();
     }
 
@@ -61,26 +60,27 @@ public class RuntimeSwing implements VGDLRuntime {
             window = new JFrame( game.getClass().toGenericString() );
 
             final Feature[] modes = game.getRequiredFeatures();
-            final Feature mode = Arrays.asList( modes ).stream().filter( f -> f == Feature.DISCRETE_GAME ).findAny().orElseThrow( IllegalStateException::new );
-            switch (mode) {
-                case DISCRETE_GAME:
-                    if (controller == null) {
-//                      final EventKeyHandler ek = new EventKeyHandler();
-//                      controller = ek;
-//                      window.addKeyListener( ek );
-                        updateFrequency = 0.05; //50ms
-                    }
-                    else {
-                        System.out.println( "FIXME: set agent" );
-                    }
-                    break;
-                default:
-                    throw new IllegalStateException();
+            for (final Feature mode : modes) {
+                switch (mode) {
+                    case DISCRETE_GAME:
+                        //XXX
+                        if (controller == null) {
+                            updateFrequency = 0.05; //50ms
+                        }
+                        else {
+                            System.out.println( "FIXME: set agent" );
+                        }
+                    case PRE_BUFFER_FRAME:
+                    case OBEY_END_OF_BOUNDARIES:
+                        break;
+                    default:
+                        throw new IllegalStateException( mode + " is not supported" );
+                }
             }
 //          XXX
-            controller = new Agent( 1000L );
-//          controller = new EventKeyHandler();
-//          window.addKeyListener( (EventKeyHandler) controller );
+//            controller = new Agent( 1000L );
+            controller = new EventKeyHandler();
+            window.addKeyListener( (EventKeyHandler) controller );
 
             //FIXME Remove this
             renderer = new DebugRenderer( this );
@@ -108,6 +108,21 @@ public class RuntimeSwing implements VGDLRuntime {
             }
 
             final GameState2D level = new GameState2D( lines.get( 0 ).length(), lines.size() );
+            final Feature[] modes = game.getRequiredFeatures();
+            for (final Feature mode : modes) {
+                switch (mode) {
+
+                    case PRE_BUFFER_FRAME:
+                        level.setBufferFrame( true );
+                        break;
+                    case OBEY_END_OF_BOUNDARIES:
+                        level.setObeyBoundaries( true );
+                        break;
+                    default:
+                        //We already checked for requirements. At this point, we only go over things that concern the level
+                        break;
+                }
+            }
             game.setGameState( level );
 
             int lineIndex = 0;

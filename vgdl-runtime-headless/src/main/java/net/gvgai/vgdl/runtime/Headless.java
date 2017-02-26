@@ -12,11 +12,11 @@ import java.util.ServiceLoader;
 import net.gvgai.vgdl.VGDLRuntime;
 import net.gvgai.vgdl.controllers.singleplayer.sampleMCTS.Agent;
 import net.gvgai.vgdl.game.GameState2D;
-import net.gvgai.vgdl.game.MovingAvatar;
 import net.gvgai.vgdl.game.VGDLGame;
-import net.gvgai.vgdl.game.VGDLSprite;
 import net.gvgai.vgdl.input.Action;
 import net.gvgai.vgdl.input.Controller;
+import net.gvgai.vgdl.sprites.MovingAvatar;
+import net.gvgai.vgdl.sprites.VGDLSprite;
 
 public class Headless implements VGDLRuntime {
     public static void main( String[] args ) throws IOException, ClassNotFoundException {

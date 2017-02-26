@@ -2,6 +2,9 @@ package net.gvgai.vgdl.game;
 
 import java.util.stream.Stream;
 
+import net.gvgai.vgdl.sprites.MovingAvatar;
+import net.gvgai.vgdl.sprites.VGDLSprite;
+
 public interface GameState<T> extends Copyable<T> {
 
     MovingAvatar getAvatar();
@@ -23,6 +26,8 @@ public interface GameState<T> extends Copyable<T> {
     void setGameOver( boolean b );
 
     void setScore( double d );
+
+    void update( double seconds );
 
     Stream<VGDLSprite> values();
 }

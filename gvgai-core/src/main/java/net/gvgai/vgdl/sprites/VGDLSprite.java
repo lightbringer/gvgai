@@ -1,5 +1,8 @@
-package net.gvgai.vgdl.game;
+package net.gvgai.vgdl.sprites;
 
+import net.gvgai.vgdl.game.Copyable;
+import net.gvgai.vgdl.game.GameMap;
+import net.gvgai.vgdl.game.GameState;
 import net.gvgai.vgdl.tools.AutoWire;
 
 public abstract class VGDLSprite implements Copyable<VGDLSprite> {
@@ -15,21 +18,35 @@ public abstract class VGDLSprite implements Copyable<VGDLSprite> {
     @AutoWire
     protected GameMap map;
 
-    int id;
+    private int id;
 
     protected VGDLSprite() {
         id = hashCode();
     }
 
-    public <T extends VGDLSprite> void collide( T other ) {
+    /**
+     * Collides this sprite with others. Others are expected to be ordered ascending by their class id
+     * @param others
+     */
+    public void collide( VGDLSprite... others ) {
         //NOP
     }
 
     @Override
     public abstract VGDLSprite copy();
 
+    /**
+     * Class ids are only unique locally, i.e. not across games
+     * @return
+     */
+    public abstract int getClassId();
+
     public Object getDirection() {
         return direction;
+    }
+
+    public int getId() {
+        return id;
     }
 
     public Object getPosition() {
@@ -38,6 +55,10 @@ public abstract class VGDLSprite implements Copyable<VGDLSprite> {
 
     public void kill() {
         map.remove( position, this );
+    }
+
+    public boolean OnOutOfBounds() {
+        return false;
     }
 
     public void postFrame() {
@@ -65,12 +86,20 @@ public abstract class VGDLSprite implements Copyable<VGDLSprite> {
         direction = d;
     }
 
+    public void setMap( GameMap map ) {
+        this.map = map;
+    }
+
     public void setPosition( Object p ) {
         assert p != null;
         position = p;
     }
 
-    public void update( float seconds ) {
+    public void setState( GameState state ) {
+        this.state = state;
+    }
+
+    public void update( double seconds ) {
         //NOP
     }
 

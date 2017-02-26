@@ -1,5 +1,7 @@
 package net.gvgai.vgdl.game;
 
+import net.gvgai.vgdl.sprites.VGDLSprite;
+
 public abstract class BasicGame implements VGDLGame {
     protected String key_handler;
     protected int square_size;
@@ -60,7 +62,7 @@ public abstract class BasicGame implements VGDLGame {
 
     @Override
     public void update( double seconds ) {
-//        System.out.println( seconds );
+        gameState.update( seconds );
 
     }
 

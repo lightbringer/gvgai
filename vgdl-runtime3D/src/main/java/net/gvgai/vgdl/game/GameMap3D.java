@@ -22,6 +22,9 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
 
 import net.gvgai.vgdl.SpriteInfo;
+import net.gvgai.vgdl.sprites.MovingAvatar;
+import net.gvgai.vgdl.sprites.Passive;
+import net.gvgai.vgdl.sprites.VGDLSprite;
 
 public class GameMap3D implements GameMap<GameMap3D, Vector3f, Vector3f> {
     private class VGDLSpriteContainer implements Savable {
@@ -205,11 +208,11 @@ public class GameMap3D implements GameMap<GameMap3D, Vector3f, Vector3f> {
 
         if (s instanceof Passive) {
             final Passive pa = (Passive) s;
-            pa.reverse = GameMap3D::reverse;
+            pa.setReverse( GameMap3D::reverse );
 
         }
-        s.map = this;
-        s.state = state;
+        s.setMap( this );
+        s.setState( state );
 
         //NOT SUPPORTED
         return false;

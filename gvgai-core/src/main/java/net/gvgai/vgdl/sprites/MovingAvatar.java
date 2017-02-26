@@ -1,4 +1,4 @@
-package net.gvgai.vgdl.game;
+package net.gvgai.vgdl.sprites;
 
 import net.gvgai.vgdl.input.Action;
 

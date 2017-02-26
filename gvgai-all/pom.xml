@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.gvgai</groupId>
 	<artifactId>gvgai-all</artifactId>
-	<version>0.0.1</version>
+	<version>0.0.2</version>
 	<packaging>pom</packaging>
 	<build>
 		<plugins>
@@ -17,7 +17,13 @@
 		</plugins>
 	</build>
 	<modules>
-		<module>gvgai-core</module>
-		<module>vgdl-headless</module>
+		
+		
+		<module>../gvgai-compiler</module>
+		<module>../vgdl-example-games</module>
+		<module>../vgdl-runtime-headless</module>
+		<module>../vgdl-runtime-swing2D</module>
+		<module>../vgdl-runtime3D</module>
+		<module>../gvgai-core</module>
 	</modules>
 </project>

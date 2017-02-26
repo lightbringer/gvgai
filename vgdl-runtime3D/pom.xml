@@ -49,7 +49,7 @@
     <dependency>
     	<groupId>net.gvgai</groupId>
     	<artifactId>vgdl-example-games</artifactId>
-    	<version>${project.version}</version>
+    	<version>(,0.0.1]</version>
     </dependency>
   </dependencies>
 </project>

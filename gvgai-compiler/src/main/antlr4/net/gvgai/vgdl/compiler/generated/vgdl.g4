@@ -126,15 +126,16 @@ sprite returns [String parentClass]
   :
   name=Identifier '>'  
   ( 
-  	sprite_class=Identifier options=option*  {$parentClass=$sprite_class.getText();}
+  	{$sprite_set::lastSpriteClass.isEmpty()}? sprite_class=Identifier options=option*  {$parentClass=$sprite_class.getText();}
   | 
-  	{!$sprite_set::lastSpriteClass.isEmpty()}? options=option* {$parentClass=$sprite_set::lastSpriteClass.peek();}
+  	{!$sprite_set::lastSpriteClass.isEmpty()}? options=option* {$parentClass=$sprite_set::lastSpriteClass.peek();}  	
   ) 
-  {sprites.add($name.text); $sprite_set::lastSpriteClass.push($name.text);}
+  {sprites.add($name.text);}
   NEWLINE 
-  (	INDENT? INDENT 
-  	|DEDENT? DEDENT {$sprite_set::lastSpriteClass.pop(); }
-  )* 
+  ((INDENT {$sprite_set::lastSpriteClass.push($name.text);})*
+  |
+  (DEDENT {$sprite_set::lastSpriteClass.pop();})*
+  )
  ;
 
 level_mappings
@@ -151,7 +152,7 @@ level_mapping
  
  level_symbol
  	:
- 	(Character | SpecialCharacter) 
+ 	(Character | SpecialCharacter | ASSIGN) 
  ;
  
 known_sprite_name
@@ -274,7 +275,7 @@ NEWLINE
 
 
 WS 
-	: SPACES -> skip
+	: ( SPACES | COMMENT ) -> skip
 ;
 
 
@@ -302,3 +303,7 @@ LetterOrDigitOrSpecialChar
 fragment LetterOrDigitOrCommaOrSpecialChar
 	: ',' | LetterOrDigitOrSpecialChar
 	; 
+	
+fragment COMMENT
+ : '#' ~[\r\n]*
+;	

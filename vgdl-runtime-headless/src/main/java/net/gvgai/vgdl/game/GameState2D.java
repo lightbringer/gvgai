@@ -10,6 +10,9 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import net.gvgai.vgdl.input.Action;
+import net.gvgai.vgdl.sprites.MovingAvatar;
+import net.gvgai.vgdl.sprites.Passive;
+import net.gvgai.vgdl.sprites.VGDLSprite;
 
 /**
  * This class implements a discrete cartesian space as a game map. It also supports write-back mechanisms
@@ -264,7 +267,7 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
     @Override
     public void remove( int[] p, VGDLSprite s ) {
         assert p != null;
-        final boolean ret = get( p, true ).removeIf( sp -> sp.id == s.id );
+        final boolean ret = get( p, true ).removeIf( sp -> sp.getId() == s.getId() );
         assert ret;
 
     }
@@ -361,10 +364,10 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
     private void setupDelegates( VGDLSprite s ) {
         if (s instanceof Passive) {
             final Passive passive = (Passive) s;
-            passive.reverse = GameState2D::reverse;
+            passive.setReverse( GameState2D::reverse );
         }
-        s.map = this;
-        s.state = this;
+        s.setMap( this );
+        s.setState( this );
     }
 
 }

@@ -1,23 +1,26 @@
 package net.gvgai.vgdl.compiler.library.effects;
 
+import java.util.Set;
+
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
+import net.gvgai.vgdl.VGDLRuntime.Feature;
 import net.gvgai.vgdl.compiler.VGDLCompiler;
 import net.gvgai.vgdl.compiler.library.Effect;
 import net.gvgai.vgdl.game.GameState;
 
 public abstract class BaseEffect implements Effect, Opcodes {
     protected final Type myType;
-    protected final Type otherType;
+    protected final Type[] otherTypes;
 
     private double scoreChange;
 
-    public BaseEffect( Type my, Type other, String... parameters ) {
+    protected BaseEffect( Type my, Type[] others, String... parameters ) {
         myType = my;
-        otherType = other;
+        otherTypes = others;
 
         if (parameters != null) {
             for (int i = 0; i < parameters.length; i += 2) {
@@ -34,9 +37,9 @@ public abstract class BaseEffect implements Effect, Opcodes {
     }
 
     @Override
-    public void generate( VGDLCompiler vgdlCompiler, GeneratorAdapter mg ) {
+    public void generate( VGDLCompiler vgdlCompiler, Set<Feature> requiredFeatures, GeneratorAdapter mg ) {
         if (scoreChange != 0) {
-            VGDLCompiler.generateGgetGameStat( mg );
+            VGDLCompiler.generateGetGameStat( mg );
             mg.dup();
             final Method m = Method.getMethod( "double getScore()" );
             mg.invokeInterface( Type.getType( GameState.class ), m );

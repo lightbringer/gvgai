@@ -1,5 +1,7 @@
 package net.gvgai.vgdl.compiler;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,6 +36,13 @@ class VGDLClassLoader extends ClassLoader {
 
     private Class<?> defineClass( String name, ClassWriter cw ) {
         final byte[] code = cw.toByteArray();
+        try {
+            new FileOutputStream( new File( name + ".class" ) ).write( code );
+        }
+        catch (final IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         return defineClass( name, code, 0, code.length );
     }
 

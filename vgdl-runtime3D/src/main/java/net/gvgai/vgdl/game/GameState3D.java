@@ -4,6 +4,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import net.gvgai.vgdl.sprites.MovingAvatar;
+import net.gvgai.vgdl.sprites.VGDLSprite;
+
 public class GameState3D implements GameState<GameState3D> {
     private GameMap3D map;
     private MovingAvatar avatar;

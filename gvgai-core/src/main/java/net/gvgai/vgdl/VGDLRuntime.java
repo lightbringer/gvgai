@@ -6,7 +6,7 @@ import net.gvgai.vgdl.game.VGDLGame;
 
 public interface VGDLRuntime {
     public enum Feature {
-        GET_SPRITE_COUNT, DISCRETE_GAME
+        PRE_BUFFER_FRAME, DISCRETE_GAME, OBEY_END_OF_BOUNDARIES
     }
 
     void loadGame( Class<? extends VGDLGame> gameClass );
