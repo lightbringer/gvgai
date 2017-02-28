@@ -39,7 +39,7 @@ public abstract class Missile extends Passive {
         super.update( seconds );
 
         if (frameAction) {
-            map.move( this, getDirection() );
+            move( getDirection() );
 
         }
     }

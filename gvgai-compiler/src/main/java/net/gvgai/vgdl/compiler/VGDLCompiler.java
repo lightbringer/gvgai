@@ -490,12 +490,11 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
             final Method setDirectionMethod = Method.getMethod( "void setDirection(Object )" );
             mg.invokeVirtual( spriteType, setDirectionMethod );
         }
-        mg.returnValue();
-        mg.endMethod();
+        g.constructor = mg;
+        //Don't end the constructor here. Effects might want to alter it
 
         generateCopyMethod( spcw, spriteType, parentType );
         final int classId = generateClassIdMethod( spcw );
-        spcw.visitEnd();
 
         g.classId = classId;
 
@@ -577,6 +576,18 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
         cw.visitEnd();
 
+        //Also close the constructors for the sprite classes
+        for (final GeneratedType g : classLoader.getGeneratedTypes().values()) {
+            if (g.type == gameType) {
+                continue;
+            }
+            final GeneratorAdapter constructor = g.constructor;
+            constructor.returnValue();
+            constructor.endMethod();
+
+            //That's all folks
+            g.cw.visitEnd();
+        }
     }
 
     @Override
@@ -774,12 +785,22 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         return clazzes;
     }
 
-    public ClassLoader getClassLoader() {
+    public VGDLClassLoader getClassLoader() {
         return classLoader;
     }
 
     public String getGamePackageName() {
         return packageName;
+    }
+
+    public Type getNonGeneratedParentType( Object spriteType ) {
+        GeneratedType g = classLoader.getGeneratedTypes().get( spriteType );
+        Type parentType = null;
+        while (g != null) {
+            parentType = g.parentType;
+            g = classLoader.getGeneratedTypes().get( g.parentType );
+        }
+        return parentType;
     }
 
     public Type getTypeForSimpleName( String name ) {
@@ -932,7 +953,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
         System.out.println( "non-generated parent: " + parentType );
 
-    }
+    };
 
     private Effect getEffectForName( String text, Type actorType, Type[] otherTypes, List<OptionContext> list ) {
         try {
@@ -963,16 +984,6 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
             throw new RuntimeException( e );
         }
 
-    };
-
-    private Type getNonGeneratedParentType( Object spriteType ) {
-        GeneratedType g = classLoader.getGeneratedTypes().get( spriteType );
-        Type parentType = null;
-        while (g != null) {
-            parentType = g.parentType;
-            g = classLoader.getGeneratedTypes().get( g.parentType );
-        }
-        return parentType;
     }
 
     private void handleSpriteTypeOption( GeneratedType g, String option_value ) {

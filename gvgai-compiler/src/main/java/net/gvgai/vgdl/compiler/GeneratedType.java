@@ -7,16 +7,17 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 
-class GeneratedType {
-    final Type type;
-    Type parentType;
-    final ClassWriter cw;
-    final Map<String, Map.Entry<Type[], GeneratorAdapter>> definedInteractions;
+public class GeneratedType {
+    public final Type type;
+    public Type parentType;
+    public final ClassWriter cw;
+    public final Map<String, Map.Entry<Type[], GeneratorAdapter>> definedInteractions;
 
-    GeneratorAdapter onBoundary;
-    Class<?> clazz;
-    int classId;
-    final Map<String, String> options;
+    public GeneratorAdapter constructor;
+    public GeneratorAdapter onBoundary;
+    public Class<?> clazz;
+    public int classId;
+    public final Map<String, String> options;
 
     GeneratedType( Type t, ClassWriter cw ) {
         type = t;

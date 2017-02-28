@@ -16,7 +16,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.ClassPath;
 import com.google.common.reflect.ClassPath.ClassInfo;
 
-class VGDLClassLoader extends ClassLoader {
+public class VGDLClassLoader extends ClassLoader {
     private final static String ID_PATTERN = "\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*";
     private final static Pattern JAVA_CLASS_NAME = Pattern.compile( ID_PATTERN + "(\\." + ID_PATTERN + ")*" );
     private final Map<Type, GeneratedType> generatedTypes;
