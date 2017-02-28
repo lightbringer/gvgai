@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.ServiceLoader;
 
@@ -145,7 +147,7 @@ public class RuntimeSwing implements VGDLRuntime {
                     final int curChar = line.codePointAt( offset );
                     offset += Character.charCount( curChar );
                     // do something with curChar
-
+                    final int[] p = new int[] { colIndex, lineIndex };
                     switch (curChar) {
                         case ' ':
                             //empty space
@@ -162,12 +164,22 @@ public class RuntimeSwing implements VGDLRuntime {
                                     game.getGameState().setAvatar( (MovingAvatar) sprite );
                                 }
 //                                sprite.setDirection( Action.ACTION_UP );
-                                final int[] p = new int[] { colIndex, lineIndex };
-                                level.set( p, sprite );
+
+                                level.set( Arrays.copyOf( p, 2 ), sprite );
                             }
                             break;
                     }
 
+                    // Trigger a collision for each sprite on the field, e.g. to enabled effects
+                    final Collection<VGDLSprite> src = level.get( p, false );
+
+                    final VGDLSprite[] copy = new VGDLSprite[src.size()];
+                    src.toArray( copy );
+
+                    for (final VGDLSprite o : copy) {
+                        o.collide( copy );
+                    }
+                    //End Trigger
                     colIndex++;
                 }
                 lineIndex++;
