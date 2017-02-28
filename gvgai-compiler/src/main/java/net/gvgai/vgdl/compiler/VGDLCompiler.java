@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.Stack;
 import java.util.TreeMap;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.keyvalue.DefaultMapEntry;
@@ -44,6 +45,7 @@ import net.gvgai.vgdl.compiler.generated.vgdlParser.Level_mappingContext;
 import net.gvgai.vgdl.compiler.generated.vgdlParser.Level_mappingsContext;
 import net.gvgai.vgdl.compiler.generated.vgdlParser.OptionContext;
 import net.gvgai.vgdl.compiler.generated.vgdlParser.SpriteContext;
+import net.gvgai.vgdl.compiler.generated.vgdlParser.Sprite_setContext;
 import net.gvgai.vgdl.compiler.generated.vgdlParser.TerminationContext;
 import net.gvgai.vgdl.compiler.generated.vgdlParser.Termination_setContext;
 import net.gvgai.vgdl.compiler.library.Effect;
@@ -53,6 +55,7 @@ import net.gvgai.vgdl.game.GameMap;
 import net.gvgai.vgdl.game.GameState;
 import net.gvgai.vgdl.game.VGDLGame;
 import net.gvgai.vgdl.sprites.VGDLSprite;
+import net.gvgai.vgdl.sprites.producer.SpawnPoint;
 
 public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
     public final static String BASE_PACKAGE = "net/gvgai/game";
@@ -182,6 +185,20 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
         /* At this point none of the if-instanceof blocks triggered a return, so the call will be delegated to the parent's collide method */
 
+    }
+
+    private static Field getField( Class<?> clazz, String name ) {
+        try {
+            return clazz.getDeclaredField( name );
+        }
+        catch (final NoSuchFieldException e) {
+            if (clazz.getSuperclass() != Object.class) {
+                return getField( clazz.getSuperclass(), name );
+            }
+            else {
+                return null;
+            }
+        }
     }
 
     /**
@@ -314,6 +331,9 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
                 System.out.println( "Creating new method" );
                 final Method m = Method.getMethod( "void OnOutOfBounds ()" );
                 mg = new GeneratorAdapter( ACC_PUBLIC, m, null, null, actorType.cw );
+                //Call super
+                mg.loadThis();
+                mg.visitMethodInsn( INVOKESPECIAL, actorType.parentType.getInternalName(), m.getName(), m.getDescriptor(), false );
                 actorType.onBoundary = mg;
             }
             else {
@@ -424,6 +444,12 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
                     img += o.option_key().getText() + "=" + o.option_value().getText() + " ";
 
                     break;
+                case "stype":
+                    g.options.put( "spriteType", o.option_value().getText() );
+                    break;
+                case "orientation":
+                    g.options.put( "orientation", o.option_value().getText() );
+                    break;
                 default:
                     generateSetField( mg, spriteType, o.option_key().getText(), o.option_value().getText() );
                     break;
@@ -437,6 +463,33 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         //the sprite class logic should be oblivious to this
         an.visit( "resourceInfo", img );
 
+        String orientation = g.options.get( "orientation" );
+        if (orientation != null) {
+            orientation = orientation.toUpperCase();
+
+            mg.loadThis();
+            switch (orientation) {
+                default:
+                    System.err.println( "Orientation " + orientation + " on class " + g.type + " unknown. Defaulting to UP" );
+                case "UP":
+                    mg.getStatic( Type.getType( VGDLSprite.class ), "UpDirection", Type.getType( Supplier.class ) );
+                    break;
+                case "DOWN":
+                    mg.getStatic( Type.getType( VGDLSprite.class ), "DownDirection", Type.getType( Supplier.class ) );
+                    break;
+                case "LEFT":
+                    mg.getStatic( Type.getType( VGDLSprite.class ), "LeftDirection", Type.getType( Supplier.class ) );
+                    break;
+                case "RIGHT":
+                    mg.getStatic( Type.getType( VGDLSprite.class ), "RightDirection", Type.getType( Supplier.class ) );
+                    break;
+            }
+            System.out.println( g.type + " has orientation " + orientation );
+            final Method getMethod = Method.getMethod( "Object get( )" );
+            mg.invokeInterface( Type.getType( Supplier.class ), getMethod );
+            final Method setDirectionMethod = Method.getMethod( "void setDirection(Object )" );
+            mg.invokeVirtual( spriteType, setDirectionMethod );
+        }
         mg.returnValue();
         mg.endMethod();
 
@@ -551,6 +604,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
             //Special case for onBoundary
             if (g.onBoundary != null) {
+                requiredFeatures.add( Feature.OBEY_END_OF_BOUNDARIES );
                 System.out.println( actorType + " has OnBoundaryMethod" );
                 g.onBoundary.returnValue();
                 g.onBoundary.endMethod();
@@ -679,6 +733,15 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
     }
 
     @Override
+    public void exitSprite_set( Sprite_setContext ctx ) {
+        for (final GeneratedType g : classLoader.getGeneratedTypes().values()) {
+            if (g.options.get( "spriteType" ) != null) {
+                handleSpriteTypeOption( g, g.options.get( "spriteType" ) );
+            }
+        }
+    }
+
+    @Override
     public void exitTermination_set( Termination_setContext ctx ) {
         final GeneratorAdapter currentMethod = methods.pop();
         final int ret = currentMethod.newLocal( Type.BOOLEAN_TYPE );
@@ -798,19 +861,19 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         mg.loadLocal( ret );
         mg.returnValue();
         mg.endMethod();
-    };
+    }
 
     private void generateSetField( GeneratorAdapter mg, Type spriteType, String key, String value ) {
-        GeneratedType g = classLoader.getGeneratedTypes().get( spriteType );
-        Type parentType = null;
-        while (g != null) {
-            parentType = g.parentType;
-            g = classLoader.getGeneratedTypes().get( g.parentType );
-        }
+        final Type parentType = getNonGeneratedParentType( spriteType );
 
         try {
             final Class<? extends VGDLSprite> clazz = (Class<? extends VGDLSprite>) Class.forName( parentType.getClassName(), false, classLoader );
-            final Field f = clazz.getDeclaredField( key );
+
+            final Field f = getField( clazz, key );
+            if (f == null) {
+                System.err.println( "Warning: ignoring unknown option \"" + key + "=" + value + "\" on sprite class " + spriteType );
+                return;
+            }
             final Class fieldClazz = f.getType();
             final Type fieldType = Type.getType( fieldClazz );
 
@@ -863,9 +926,6 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
                 System.err.println( "Warning: option \"" + key + " is of unsupported type " + f.getType() );
             }
         }
-        catch (final NoSuchFieldException e) {
-            System.err.println( "Warning: ignoring unknown option \"" + key + "=" + value + "\" on sprite class " + spriteType );
-        }
         catch (final ClassNotFoundException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
             throw new RuntimeException( e );
         }
@@ -903,6 +963,50 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
             throw new RuntimeException( e );
         }
 
+    };
+
+    private Type getNonGeneratedParentType( Object spriteType ) {
+        GeneratedType g = classLoader.getGeneratedTypes().get( spriteType );
+        Type parentType = null;
+        while (g != null) {
+            parentType = g.parentType;
+            g = classLoader.getGeneratedTypes().get( g.parentType );
+        }
+        return parentType;
+    }
+
+    private void handleSpriteTypeOption( GeneratedType g, String option_value ) {
+        final Type parent = getNonGeneratedParentType( g.type );
+
+        try {
+            final Class parentClazz = Class.forName( parent.getClassName() );
+            if (SpawnPoint.class.isAssignableFrom( parentClazz )) {
+                final Type spriteType = getTypeForSimpleName( formatClassName( option_value ) );
+                if (spriteType == null) {
+                    System.err.println( "Unrecognized sprite type option on class " + parent + " for type " + g.type + ". Class " + option_value + " unknown" );
+                    return;
+                }
+                final ClassWriter cw = g.cw;
+                final Method m = Method.getMethod( VGDLSprite.class.getName() + " createNewSprite ()" );
+                final GeneratorAdapter mg = new GeneratorAdapter( ACC_PUBLIC, m, null, null, cw );
+                final Method spriteTypeConstructor = Method.getMethod( "void <init> ( )" );
+                mg.newInstance( spriteType );
+                final int ret = mg.newLocal( spriteType );
+                mg.storeLocal( ret );
+                mg.loadLocal( ret );
+                mg.invokeConstructor( spriteType, spriteTypeConstructor );
+                mg.loadLocal( ret );
+                mg.returnValue();
+                mg.endMethod();
+
+            }
+            else {
+                System.err.println( "Unrecognized option stype on class " + parent + " for type " + g.type );
+            }
+        }
+        catch (final ClassNotFoundException e) {
+            throw new RuntimeException( e );
+        }
     }
 
 }

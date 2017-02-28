@@ -36,7 +36,8 @@ BasicGame
         avatar log   > shieldFrom ftype=killSprite stype=water
         avatar log   > pullWithIt
         avatar wall  > stepBack
-        avatar truck water > killSprite
+        avatar truck > killSprite 
+        avatar water > killSprite
         log    EOS   > killSprite
         truck  EOS   > wrapAround
     

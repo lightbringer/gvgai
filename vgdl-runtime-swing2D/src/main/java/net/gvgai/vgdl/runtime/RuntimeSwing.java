@@ -13,7 +13,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import net.gvgai.vgdl.VGDLRuntime;
-import net.gvgai.vgdl.game.GameState;
 import net.gvgai.vgdl.game.GameState2D;
 import net.gvgai.vgdl.game.VGDLGame;
 import net.gvgai.vgdl.input.Action;
@@ -46,8 +45,14 @@ public class RuntimeSwing implements VGDLRuntime {
 
     private DebugRenderer renderer;
 
+    private final Object paintMutex = new Object();
+
     public VGDLGame getGame() {
         return game;
+    }
+
+    public Object getPaintMutex() {
+        return paintMutex;
     }
 
     @Override
@@ -125,6 +130,11 @@ public class RuntimeSwing implements VGDLRuntime {
             }
             game.setGameState( level );
 
+            VGDLSprite.UpDirection = level::up;
+            VGDLSprite.DownDirection = level::down;
+            VGDLSprite.LeftDirection = level::left;
+            VGDLSprite.RightDirection = level::right;
+
             int lineIndex = 0;
             for (final String line : lines) {
                 int offset = 0;
@@ -151,7 +161,7 @@ public class RuntimeSwing implements VGDLRuntime {
                                     }
                                     game.getGameState().setAvatar( (MovingAvatar) sprite );
                                 }
-                                sprite.setDirection( Action.ACTION_UP );
+//                                sprite.setDirection( Action.ACTION_UP );
                                 final int[] p = new int[] { colIndex, lineIndex };
                                 level.set( p, sprite );
                             }
@@ -162,8 +172,6 @@ public class RuntimeSwing implements VGDLRuntime {
                 }
                 lineIndex++;
             }
-
-            //TODO remove swing stuff
 
             window.setSize( level.getWidth() * 50, level.getHeight() * 50 );
 
@@ -178,6 +186,7 @@ public class RuntimeSwing implements VGDLRuntime {
         if (game == null || game.getGameState() == null || !game.getGameState().isReady()) {
             throw new IllegalStateException( "load game and level first" );
         }
+
         //TODO remove swing stuff
         window.setVisible( true );
         window.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
@@ -188,6 +197,7 @@ public class RuntimeSwing implements VGDLRuntime {
 
             final double delta = (System.currentTimeMillis() - time) / 1000.0;
             final double controllerDelta = (System.currentTimeMillis() - controllerTime) / 1000.0;
+            game.preFrame();
             if (controllerDelta > updateFrequency) {
 
                 Action a;
@@ -201,23 +211,44 @@ public class RuntimeSwing implements VGDLRuntime {
                         System.out.println( a );
                     }
                 }
-                game.preFrame();
-                game.getGameState().getAvatar().act( a );
-                game.postFrame();
+
+                final MovingAvatar av = game.getGameState().getAvatar();
+                if (av == null) {
+                    break;
+                }
+
+                av.act( a );
+
                 tick++;
                 controllerTime = System.currentTimeMillis();
             }
-            game.update( delta );
+            game.update( 1 );
+            game.postFrame();
 
             time = System.currentTimeMillis();
 
-            if (controller instanceof EventKeyHandler) {
-                game.setGameState( (GameState) game.getGameState().copy() );
+//            if (controller instanceof EventKeyHandler) {
+//                game.setGameState( (GameState) game.getGameState().copy() );
+//            }
+
+            try {
+                Thread.sleep( 200 );
+            }
+            catch (final InterruptedException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
             }
 
-            //FIXME Remove me
-            window.setTitle( "Score: " + game.getScore() + " Tick: " + tick );
-            window.repaint();
+            synchronized (paintMutex) {
+                window.setTitle( "Score: " + game.getScore() + " Tick: " + tick );
+                window.repaint();
+                try {
+                    paintMutex.wait();
+                }
+                catch (final InterruptedException e) {
+                    throw new RuntimeException( e );
+                }
+            }
 
         }
         System.out.println( "Game over" );

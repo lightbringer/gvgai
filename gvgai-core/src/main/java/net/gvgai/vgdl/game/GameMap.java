@@ -24,6 +24,8 @@ public interface GameMap<T, P, D> extends Copyable<T> {
 
     P add( P position, D direction );
 
+    D down();
+
     /**
      * Convenience method for get
      * @param p
@@ -70,6 +72,8 @@ public interface GameMap<T, P, D> extends Copyable<T> {
 
     boolean isInBounds( P p );
 
+    D left();
+
     /**
      * Moves a sprite along a direction. The return value only denotes
      * if the sprite collided with another along its path. Based on the collision effect,
@@ -88,6 +92,8 @@ public interface GameMap<T, P, D> extends Copyable<T> {
      */
     void remove( P p, VGDLSprite s );
 
+    D right();
+
     /**
      * Places the sprite <i>s</i> at position <i>p</i>. Returns true if other sprites
      * were already at this location. This triggers collision effects as well.
@@ -97,6 +103,8 @@ public interface GameMap<T, P, D> extends Copyable<T> {
      */
     boolean set( P p, VGDLSprite s );
 
+    D up();
+
     /**
      * A stream of all the sprites on the map. The stream is not backed by the map, i.e.
      * filtering, removing or adding sprites will have no effect on the map itself. Modifying
@@ -105,4 +113,6 @@ public interface GameMap<T, P, D> extends Copyable<T> {
      * @return a stream of all sprites on the map
      */
     Stream<VGDLSprite> values();
+
+    P wrap( P p );
 }

@@ -26,7 +26,7 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
     private static int FLATTEN_DEPTH = 1000;
 
     private static MovingAvatar findAvatar( List[] a, int index ) {
-        return (MovingAvatar) a[index].stream().filter( i -> i instanceof MovingAvatar ).findFirst().get();
+        return (MovingAvatar) a[index].stream().filter( i -> i instanceof MovingAvatar ).findFirst().orElse( null );
     }
 
     private static Action reverse( Object s ) {
@@ -148,6 +148,11 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
     }
 
     @Override
+    public Action down() {
+        return Action.ACTION_DOWN;
+    }
+
+    @Override
     public List<VGDLSprite> get( int[] p, boolean forWriting ) {
         final int index = p[1] * width + p[0];
         final List<VGDLSprite> s = sprites[index];
@@ -191,6 +196,11 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
     }
 
     @Override
+    public GameMap getLevel() {
+        return this;
+    }
+
+    @Override
     public double getScore() {
         return score;
     }
@@ -215,7 +225,7 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
         final int x = p[0];
         final int y = p[1];
 
-        return x < 0 || y < 0 || x >= width || y >= height;
+        return x >= 0 && y >= 0 && x < width && y < height;
     }
 
     @Override
@@ -224,10 +234,14 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
     }
 
     @Override
+    public Action left() {
+        return Action.ACTION_LEFT;
+    }
+
+    @Override
     public boolean move( VGDLSprite s, Action direction ) {
         final int[] p = (int[]) s.getPosition();
         assert p != null;
-        remove( p, s );
 
         final int[] pCopy = Arrays.copyOf( p, 2 );
         movePosition( direction, pCopy );
@@ -244,10 +258,9 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
             }
         }
 
-        if (obeyBoundaries && !isInBounds( pCopy )) {
-            return sCopy.OnOutOfBounds();
-        }
-        else if (set( pCopy, sCopy )) {
+        remove( p, s );
+
+        if (set( pCopy, sCopy )) {
             final Collection<VGDLSprite> src = get( pCopy, false );
 
             final VGDLSprite[] copy = new VGDLSprite[src.size()];
@@ -316,6 +329,11 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
     }
 
     @Override
+    public Action right() {
+        return Action.ACTION_RIGHT;
+    }
+
+    @Override
     public boolean set( int[] p, VGDLSprite s ) {
         assert p != null;
         if (s instanceof MovingAvatar) {
@@ -324,23 +342,29 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
         setupDelegates( s );
 
         s.setPosition( p );
-        final List<VGDLSprite> l = get( p, true );
-        if (l.isEmpty()) {
-            l.add( s );
+        if (obeyBoundaries && !isInBounds( p )) {
+            s.OnOutOfBounds();
             return false;
         }
         else {
-            //Make sure the list is ordered by classIds
-            final int size = l.size();
-            final int myId = s.getClassId();
-            for (int i = 0; i < size - 1; i++) {
-                if (l.get( i + 1 ).getClassId() > myId) {
-                    l.add( i, s );
-                    return true;
-                }
+            final List<VGDLSprite> l = get( p, true );
+            if (l.isEmpty()) {
+                l.add( s );
+                return false;
             }
-            l.add( s );
-            return true;
+            else {
+                //Make sure the list is ordered by classIds
+                final int size = l.size();
+                final int myId = s.getClassId();
+                for (int i = 0; i < size - 1; i++) {
+                    if (l.get( i + 1 ).getClassId() > myId) {
+                        l.add( i, s );
+                        return true;
+                    }
+                }
+                l.add( s );
+                return true;
+            }
         }
     }
 
@@ -373,6 +397,11 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
     }
 
     @Override
+    public Action up() {
+        return Action.ACTION_UP;
+    }
+
+    @Override
     public void update( double seconds ) {
         Arrays.asList( sprites ).stream().filter( l -> l != null ).flatMap( Collection::stream ).collect( Collectors.toList() )
                         .forEach( s -> s.update( seconds ) );
@@ -385,6 +414,24 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
     @Override
     public Stream<VGDLSprite> values() {
         return IntStream.range( 0, sprites.length ).mapToObj( i -> (sprites[i] != null ? sprites[i] : get( i )) ).flatMap( Collection::stream );
+    }
+
+    @Override
+    public int[] wrap( int[] p ) {
+        if (p[0] < 0) {
+            p[0] = width - 1;
+        }
+        else if (p[0] >= width - 1) {
+            p[0] = 0;
+        }
+        if (p[1] < 0) {
+            p[1] = height - 1;
+        }
+        else if (p[1] >= height - 1) {
+            p[1] = 0;
+        }
+
+        return p;
     }
 
     private Collection<VGDLSprite> get( int index ) {
@@ -427,10 +474,10 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
             default:
                 throw new RuntimeException();
         }
-        p[0] = Math.max( p[0], 0 );
-        p[1] = Math.max( p[1], 0 );
-        p[0] = Math.min( p[0], width - 1 );
-        p[1] = Math.min( p[1], height - 1 );
+//        p[0] = Math.max( p[0], 0 );
+//        p[1] = Math.max( p[1], 0 );
+//        p[0] = Math.min( p[0], width - 1 );
+//        p[1] = Math.min( p[1], height - 1 );
     }
 
     private void setupDelegates( VGDLSprite s ) {

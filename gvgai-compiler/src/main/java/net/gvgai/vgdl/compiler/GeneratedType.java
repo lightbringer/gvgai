@@ -16,10 +16,12 @@ class GeneratedType {
     GeneratorAdapter onBoundary;
     Class<?> clazz;
     int classId;
+    final Map<String, String> options;
 
     GeneratedType( Type t, ClassWriter cw ) {
         type = t;
         this.cw = cw;
         definedInteractions = new HashMap<>();
+        options = new HashMap<>();
     }
 }

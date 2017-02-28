@@ -37,12 +37,40 @@ public class DebugRenderer extends PanelUI {
         zLevel = new HashMap();
     }
 
+    private Image getImageForClass( Class<? extends VGDLSprite> clazz ) {
+        while (clazz != VGDLSprite.class) {
+            System.out.println( "Querying SpriteInfo on " + clazz );
+            final SpriteInfo ann = clazz.getAnnotation( SpriteInfo.class );
+            if (ann == null) {
+                break;
+            }
+            final String[] options = ann.resourceInfo().split( " " );
+
+            for (final String o : options) {
+                final String[] e = o.split( "=" );
+                if (e[0].equals( "img" )) {
+                    final URL path = DebugRenderer.class.getResource( "/net/gvgai/vgdl/images/" + e[1] + ".png" );
+                    assert path != null : "image " + e[1] + " not found";
+                    return Toolkit.getDefaultToolkit().createImage( path );
+                }
+
+            }
+            clazz = (Class<? extends VGDLSprite>) clazz.getSuperclass();
+        }
+        throw new IllegalStateException( "Debug rendering requires SpriteInfo with img set on each SpriteClass. No image for " + clazz );
+
+    }
+
+    private int getZLevel( VGDLSprite s ) {
+        return s != null ? zLevel.get( s.getClass() ) : Integer.MIN_VALUE;
+    }
+
     @Override
     public void paint( Graphics g, JComponent c ) {
         super.paint( g, c );
 
         final GameState2D level = (GameState2D) runtime.getGame().getGameState();
-        synchronized (level) {
+        synchronized (runtime.getPaintMutex()) {
 
             updateZLevel( level );
 
@@ -78,35 +106,8 @@ public class DebugRenderer extends PanelUI {
 
                 }
             }
+            runtime.getPaintMutex().notify();
         }
-    }
-
-    private Image getImageForClass( Class<? extends VGDLSprite> clazz ) {
-        while (clazz != VGDLSprite.class) {
-            System.out.println( "Querying SpriteInfo on " + clazz );
-            final SpriteInfo ann = clazz.getAnnotation( SpriteInfo.class );
-            if (ann == null) {
-                break;
-            }
-            final String[] options = ann.resourceInfo().split( " " );
-
-            for (final String o : options) {
-                final String[] e = o.split( "=" );
-                if (e[0].equals( "img" )) {
-                    final URL path = DebugRenderer.class.getResource( "/net/gvgai/vgdl/images/" + e[1] + ".png" );
-                    assert path != null : "image " + e[1] + " not found";
-                    return Toolkit.getDefaultToolkit().createImage( path );
-                }
-
-            }
-            clazz = (Class<? extends VGDLSprite>) clazz.getSuperclass();
-        }
-        throw new IllegalStateException( "Debug rendering requires SpriteInfo with img set on each SpriteClass. No image for " + clazz );
-
-    }
-
-    private int getZLevel( VGDLSprite s ) {
-        return s != null ? zLevel.get( s.getClass() ) : Integer.MIN_VALUE;
     }
 
     private void updateZLevel( GameMap level ) {
@@ -114,6 +115,7 @@ public class DebugRenderer extends PanelUI {
             for (int y = 0; y < level.getHeight(); y++) {
                 final int[] p = new int[] { x, y };
                 final Collection<VGDLSprite> sprites = level.get( p );
+
                 for (final VGDLSprite s : sprites) {
                     if (s != null && !zLevel.containsKey( s.getClass() )) {
                         final SpriteInfo ann = s.getClass().getAnnotation( SpriteInfo.class );

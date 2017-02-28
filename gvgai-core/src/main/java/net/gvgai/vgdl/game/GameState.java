@@ -9,6 +9,8 @@ public interface GameState<T> extends Copyable<T> {
 
     MovingAvatar getAvatar();
 
+    GameMap getLevel();
+
     double getScore();
 
     boolean isGameOver();

@@ -1,5 +1,7 @@
 package net.gvgai.vgdl.sprites;
 
+import java.util.function.Supplier;
+
 import net.gvgai.vgdl.game.Copyable;
 import net.gvgai.vgdl.game.GameMap;
 import net.gvgai.vgdl.game.GameState;
@@ -7,12 +9,22 @@ import net.gvgai.vgdl.tools.AutoWire;
 
 public abstract class VGDLSprite implements Copyable<VGDLSprite> {
 
+    @AutoWire
+    public static Supplier<Object> RightDirection;
+    @AutoWire
+    public static Supplier<Object> LeftDirection;
+    @AutoWire
+    public static Supplier<Object> UpDirection;
+    @AutoWire
+    public static Supplier<Object> DownDirection;
+
     //Direction and position need to be immutable
     private Object position;
+
     private Object preFramePosition;
+
     private Object direction;
     private Object preFrameDirection;
-
     @AutoWire
     protected GameState state;
     @AutoWire
@@ -22,6 +34,7 @@ public abstract class VGDLSprite implements Copyable<VGDLSprite> {
 
     protected VGDLSprite() {
         id = hashCode();
+        direction = UpDirection.get();
     }
 
     /**
@@ -57,8 +70,8 @@ public abstract class VGDLSprite implements Copyable<VGDLSprite> {
         map.remove( position, this );
     }
 
-    public boolean OnOutOfBounds() {
-        return false;
+    public void OnOutOfBounds() {
+        //NOP
     }
 
     public void postFrame() {

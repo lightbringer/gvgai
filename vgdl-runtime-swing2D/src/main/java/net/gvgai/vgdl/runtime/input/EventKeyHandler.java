@@ -15,50 +15,38 @@ public class EventKeyHandler extends KeyAdapter implements Controller {
     private final static int RIGHT = 8;
     private int keyMap;
 
-    private final Object mutex = new Object();
+//    private final Object mutex = new Object();
 
     @Override
     public Action act( GameState s, double seconds ) {
-        try {
-            //TODO figure out if key_handler=pulse actually means that the simulation waits for keypresses
-            synchronized (mutex) {
-                mutex.wait();
-            }
-
-        }
-        catch (final InterruptedException e) {
-            throw new RuntimeException( e );
-        }
+//        try {
+//            //TODO figure out if key_handler=pulse actually means that the simulation waits for keypresses
+//            synchronized (mutex) {
+//                mutex.wait();
+//            }
+//
+//        }
+//        catch (final InterruptedException e) {
+//            throw new RuntimeException( e );
+//        }
 
         switch (keyMap) {
             case UP:
+                keyMap = 0;
                 return Action.ACTION_UP;
             case DOWN:
+                keyMap = 0;
                 return Action.ACTION_DOWN;
             case LEFT:
+                keyMap = 0;
                 return Action.ACTION_LEFT;
             case RIGHT:
+                keyMap = 0;
                 return Action.ACTION_RIGHT;
             default:
+                keyMap = 0;
                 return Action.ACTION_NIL;
         }
-    }
-
-    @Override
-    public void keyPressed( KeyEvent e ) {
-        handleKeyEvent( e, true );
-
-    }
-
-    @Override
-    public void keyReleased( KeyEvent e ) {
-        handleKeyEvent( e, false );
-
-    }
-
-    @Override
-    public void keyTyped( KeyEvent e ) {
-        handleKeyEvent( e, true );
     }
 
     private void handleKeyEvent( KeyEvent e, boolean pressed ) {
@@ -98,10 +86,27 @@ public class EventKeyHandler extends KeyAdapter implements Controller {
             default:
                 break;
         }
-        synchronized (mutex) {
-            mutex.notify();
-        }
+//        synchronized (mutex) {
+//            mutex.notify();
+//        }
 
+    }
+
+    @Override
+    public void keyPressed( KeyEvent e ) {
+        handleKeyEvent( e, true );
+
+    }
+
+    @Override
+    public void keyReleased( KeyEvent e ) {
+        handleKeyEvent( e, false );
+
+    }
+
+    @Override
+    public void keyTyped( KeyEvent e ) {
+        handleKeyEvent( e, true );
     }
 
 }
