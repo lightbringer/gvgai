@@ -20,7 +20,7 @@ public class ShieldFrom extends BaseEffect {
         super.generate( vgdlCompiler, requiredFeatures, mg );
 
         //XXX
-        VGDLCompiler.generateConsoleMessage( mg, "ShieldFrom called" );
+        VGDLCompiler.generateLogMessage( myType.getClassName(), mg, "ShieldFrom called" );
     }
 
 }

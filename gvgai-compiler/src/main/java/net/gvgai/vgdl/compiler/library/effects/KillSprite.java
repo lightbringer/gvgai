@@ -19,7 +19,7 @@ public class KillSprite extends BaseEffect {
     @Override
     public void generate( VGDLCompiler vgdlCompiler, Set<Feature> requiredFeatures, GeneratorAdapter mg ) {
         super.generate( vgdlCompiler, requiredFeatures, mg );
-//        VGDLCompiler.generateConsoleMessage( mg, "Killed" );
+        VGDLCompiler.generateLogMessage( myType.getClassName(), mg, "Killed" );
         mg.loadThis();
         final Method m1 = Method.getMethod( "void kill()" );
         mg.invokeVirtual( Type.getType( VGDLSprite.class ), m1 );

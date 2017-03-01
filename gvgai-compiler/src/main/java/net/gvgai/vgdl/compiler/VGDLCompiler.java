@@ -3,7 +3,6 @@ package net.gvgai.vgdl.compiler;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -20,6 +19,8 @@ import java.util.SortedMap;
 import java.util.Stack;
 import java.util.TreeMap;
 import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.keyvalue.DefaultMapEntry;
@@ -71,12 +72,6 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         }
     }
 
-    public static void generateConsoleMessage( GeneratorAdapter mg, String string ) {
-        mg.getStatic( Type.getType( System.class ), "out", Type.getType( PrintStream.class ) );
-        mg.push( string );
-        mg.invokeVirtual( Type.getType( PrintStream.class ), Method.getMethod( "void println (String)" ) );
-    }
-
     public static void generateGetGameMap( GeneratorAdapter mg ) {
         mg.loadThis();
         mg.getField( Type.getType( VGDLSprite.class ), "map", Type.getType( GameMap.class ) );
@@ -85,6 +80,14 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
     public static void generateGetGameStat( GeneratorAdapter mg ) {
         mg.loadThis();
         mg.getField( Type.getType( VGDLSprite.class ), "state", Type.getType( GameState.class ) );
+    }
+
+    public static void generateLogMessage( String loggerName, GeneratorAdapter mg, String string ) {
+        mg.push( loggerName );
+        mg.invokeStatic( Type.getType( Logger.class ), Method.getMethod( Logger.class.getName() + " getLogger(String)" ) );
+        mg.getStatic( Type.getType( Level.class ), "INFO", Type.getType( Level.class ) );
+        mg.push( string );
+        mg.invokeVirtual( Type.getType( Logger.class ), Method.getMethod( "void log(" + Level.class.getName() + ", String)" ) );
     }
 
     private static void generateCollideMethod( Type actorType, GeneratorAdapter m, int argIndex, Map<Type[], Object[]> map, int[] locals ) {
@@ -114,6 +117,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
             final Label loopTest = m.newLabel();
             final Label loopBlock = m.newLabel();
             final Label trueBlock = m.newLabel();
+            final Label caseDone = m.newLabel();
 
             //Loop over the elements argIndex ... others.length to see if there's an object of the required class
             //We can assume that the class ids are in ascending order
@@ -147,7 +151,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
             if (leafStatement != null) {
                 final Type[] argTypes = (Type[]) leafStatement.getValue()[0];
-//                generateConsoleMessage( m, actorType + "collides with " + Arrays.toString( argTypes ) );
+                generateLogMessage( actorType.getClassName(), m, actorType + "collides with " + Arrays.toString( argTypes ) );
 
                 String signature = "void collide(";
                 final Type[] signatureTypes = (Type[]) leafStatement.getValue()[0];
@@ -169,7 +173,8 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
                 final Method typedCollide = Method.getMethod( signature );
                 m.invokeVirtual( actorType, typedCollide );
-                m.returnValue();
+//                m.returnValue();
+                m.goTo( caseDone );
 
             }
 
@@ -180,7 +185,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
             m.loadArg( 0 );
             m.arrayLength();
             m.ifICmp( IFLT, loopBlock );
-
+            m.mark( caseDone );
         }
 
         /* At this point none of the if-instanceof blocks triggered a return, so the call will be delegated to the parent's collide method */
@@ -603,7 +608,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
             final Type actorType = e.getKey();
             final Type parentType = e.getValue().parentType;
             final GeneratorAdapter m = new GeneratorAdapter( ACC_PUBLIC, overLoadMethod, null, null, cw );
-//            generateConsoleMessage( m, "Collide in class " + actorType.getClassName() + " has been called" );
+            generateLogMessage( actorType.getClassName(), m, "Collide in class " + actorType.getClassName() + " has been called" );
 
             /* We defined outselves a helper map that maps the collision types to the GeneratorAdaptor and the a copy
              * of the collision type arrays. We use the latter in the recursive reduction function of the ifinstace blocks (see generateInteractions)

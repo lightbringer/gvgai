@@ -24,11 +24,11 @@ public class PullWithIt extends BaseEffect {
     }
 
     @Override
-    public void generate( VGDLCompiler vgdlCompiler, Set<Feature> requiredFeatures, GeneratorAdapter mg ) {
-        super.generate( vgdlCompiler, requiredFeatures, mg );
+    public void generate( VGDLCompiler vgdlCompiler, Set<Feature> requiredFeatures, GeneratorAdapter collisionMethodAdapter ) {
+        super.generate( vgdlCompiler, requiredFeatures, collisionMethodAdapter );
 
         //XXX
-        VGDLCompiler.generateConsoleMessage( mg, "PullWithIt called" );
+        VGDLCompiler.generateLogMessage( myType.getClassName(), collisionMethodAdapter, "PullWithIt called" );
 
         final Type parentType = vgdlCompiler.getNonGeneratedParentType( myType );
         try {
@@ -51,6 +51,7 @@ public class PullWithIt extends BaseEffect {
 
         final Method addMethod = Method.getMethod( "void addToPull(" + VGDLSprite.class.getName() + ")" );
         final Method removeMethod = Method.getMethod( "void removeFromPull(" + VGDLSprite.class.getName() + ")" );
+        final Method moveMethod = Method.getMethod( "void move(Object )" );
 
         final GeneratedType otherGeneratedType = vgdlCompiler.getClassLoader().getGeneratedTypes().get( otherTypes[0] );
         if (otherGeneratedType.options.get( PULL_WITH_IT ) == null) {
@@ -89,7 +90,6 @@ public class PullWithIt extends BaseEffect {
             newRemoveMethod.endMethod();
 
             //Override the move method
-            final Method moveMethod = Method.getMethod( "void move(Object )" );
             final GeneratorAdapter mv = new GeneratorAdapter( ACC_PUBLIC, moveMethod, null, null, cw );
             mv.visitCode();
 //            VGDLCompiler.generateConsoleMessage( mv, "pulling moved called" );
@@ -134,12 +134,47 @@ public class PullWithIt extends BaseEffect {
             mv.visitMaxs( 2, 4 );
             mv.visitEnd();
 
+            //TODO implement what happens when puller is removed
+
         }
 
 //        VGDLCompiler.generateConsoleMessage( mg, "Will add " + myType + " to be pulled by " + otherTypes[0] );
-        mg.loadArg( 0 );
-        mg.loadThis();
-        mg.invokeVirtual( otherTypes[0], addMethod );
+        final GeneratedType myGeneratedType = vgdlCompiler.getClassLoader().getGeneratedTypes().get( myType );
+        myGeneratedType.cw.visitField( ACC_PRIVATE, "puller", "L" + otherTypes[0].getInternalName() + ";", null, null );
+        collisionMethodAdapter.loadThis();
+        collisionMethodAdapter.loadArg( 0 );
+
+        collisionMethodAdapter.putField( myType, "puller", otherTypes[0] );
+        collisionMethodAdapter.loadArg( 0 );
+        collisionMethodAdapter.loadThis();
+        collisionMethodAdapter.invokeVirtual( otherTypes[0], addMethod );
+
+        //TODO unify move methods
+        //Override the move method of myType to reset the puller/pullee connection if 'this' is moved
+        final GeneratorAdapter moveMethodAdapter = new GeneratorAdapter( ACC_PUBLIC, moveMethod, null, null, myGeneratedType.cw );
+        final Label noPuller = new Label();
+
+        moveMethodAdapter.loadThis();
+        moveMethodAdapter.getField( myType, "puller", otherTypes[0] );
+        moveMethodAdapter.visitJumpInsn( IFNULL, noPuller );
+
+        moveMethodAdapter.loadThis();
+        moveMethodAdapter.getField( myType, "puller", otherTypes[0] );
+        moveMethodAdapter.loadThis();
+        moveMethodAdapter.invokeVirtual( otherTypes[0], removeMethod );
+
+        moveMethodAdapter.loadThis();
+        moveMethodAdapter.visitInsn( ACONST_NULL );
+        moveMethodAdapter.putField( myType, "puller", otherTypes[0] );
+        moveMethodAdapter.mark( noPuller );
+
+        //Call super
+        moveMethodAdapter.loadThis();
+        moveMethodAdapter.loadArg( 0 );
+        moveMethodAdapter.visitMethodInsn( INVOKESPECIAL, myGeneratedType.parentType.getInternalName(), "move", "(Ljava/lang/Object;)V", false );
+
+        moveMethodAdapter.returnValue();
+        moveMethodAdapter.endMethod();
     }
 
 }
