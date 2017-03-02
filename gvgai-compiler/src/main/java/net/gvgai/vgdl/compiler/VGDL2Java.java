@@ -12,7 +12,11 @@ import java.util.Vector;
 import java.util.stream.Stream;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Recognizer;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
@@ -147,6 +151,16 @@ public class VGDL2Java extends Task {
 
         final vgdlLexer lexer = new vgdlLexer( new ANTLRInputStream( input ) );
         final vgdlParser parser = new vgdlParser( new CommonTokenStream( lexer ) );
+        parser.removeErrorListeners();
+        parser.addErrorListener( new BaseErrorListener() {
+
+            @Override
+            public void syntaxError( Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg,
+                            RecognitionException e ) {
+                throw new ParseCancellationException( "line " + line + ":" + charPositionInLine + " " + msg );
+            }
+
+        } );
         final GameContext game = parser.game();
 
         // Walk it and attach our listener
@@ -155,5 +169,6 @@ public class VGDL2Java extends Task {
         walker.walk( compilerContext, game );
 
         return compilerContext;
+
     }
 }

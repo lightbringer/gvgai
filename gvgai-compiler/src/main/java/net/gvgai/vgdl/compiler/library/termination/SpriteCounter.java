@@ -23,7 +23,9 @@ public class SpriteCounter implements Termination, Opcodes {
 
     @Override
     public void generate( VGDLCompiler context, Type gameType, Set<Feature> requiredFeatures, ClassWriter cw, GeneratorAdapter ga ) {
-
+        final int lambda = context.nextLambda();
+//        VGDLCompiler.generateLogMessage( gameType.getClassName(), ga,
+//                        "Counting sprites of type " + context.getGamePackageName() + "/" + VGDLCompiler.formatClassName( stype ) );
         ga.loadThis();
         ga.visitMethodInsn( INVOKEVIRTUAL, gameType.getInternalName(), "getGameState", "()L" + Type.getType( GameState.class ).getInternalName() + ";", false );
         ga.visitMethodInsn( INVOKEINTERFACE, Type.getType( GameState.class ).getInternalName(), "values", "()Ljava/util/stream/Stream;", true );
@@ -31,7 +33,7 @@ public class SpriteCounter implements Termination, Opcodes {
                         new Handle( Opcodes.H_INVOKESTATIC, "java/lang/invoke/LambdaMetafactory", "metafactory",
                                         "(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;" ),
                         new Object[] { Type.getType( "(Ljava/lang/Object;)Z" ),
-                                        new Handle( Opcodes.H_INVOKESTATIC, gameType.getInternalName(), "lambda$0",
+                                        new Handle( Opcodes.H_INVOKESTATIC, gameType.getInternalName(), "lambda$" + lambda,
                                                         "(L" + Type.getType( VGDLSprite.class ).getInternalName() + ";)Z" ),
                                         Type.getType( "(L" + Type.getType( VGDLSprite.class ).getInternalName() + ";)Z" ) } );
         ga.visitMethodInsn( INVOKEINTERFACE, "java/util/stream/Stream", "filter", "(Ljava/util/function/Predicate;)Ljava/util/stream/Stream;", true );
@@ -52,7 +54,7 @@ public class SpriteCounter implements Termination, Opcodes {
         ga.push( true );
         ga.mark( e );
 
-        final MethodVisitor lambdaWriter = cw.visitMethod( ACC_PRIVATE + ACC_STATIC + ACC_SYNTHETIC, "lambda$" + context.nextLambda(),
+        final MethodVisitor lambdaWriter = cw.visitMethod( ACC_PRIVATE + ACC_STATIC + ACC_SYNTHETIC, "lambda$" + lambda,
                         "(L" + Type.getType( VGDLSprite.class ).getInternalName() + ";)Z", null, null );
         lambdaWriter.visitCode();
         lambdaWriter.visitVarInsn( ALOAD, 0 );

@@ -40,7 +40,7 @@ public abstract class Missile extends Passive {
 
         if (frameAction) {
             move( getDirection() );
-
+            frameAction = false;
         }
     }
 

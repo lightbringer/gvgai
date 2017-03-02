@@ -71,7 +71,8 @@ public abstract class VGDLSprite implements Copyable<VGDLSprite> {
     }
 
     public void OnOutOfBounds() {
-        //NOP
+        //Set the sprite back to its original position without triggering a new collision
+        map.set( position, this );
     }
 
     public void postFrame() {

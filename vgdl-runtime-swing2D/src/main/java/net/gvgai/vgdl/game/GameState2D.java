@@ -341,12 +341,12 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
         }
         setupDelegates( s );
 
-        s.setPosition( p );
         if (obeyBoundaries && !isInBounds( p )) {
             s.OnOutOfBounds();
             return false;
         }
         else {
+            s.setPosition( p );
             final List<VGDLSprite> l = get( p, true );
             if (l.isEmpty()) {
                 l.add( s );

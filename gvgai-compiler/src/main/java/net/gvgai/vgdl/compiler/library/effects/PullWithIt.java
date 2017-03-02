@@ -97,7 +97,7 @@ public class PullWithIt extends BaseEffect {
             mv.visitLabel( l0 );
             mv.visitVarInsn( ALOAD, 0 );
             mv.visitVarInsn( ALOAD, 1 );
-            mv.visitMethodInsn( INVOKESPECIAL, Type.getInternalName( Passive.class ), "move", "(Ljava/lang/Object;)V", false );
+            mv.visitMethodInsn( INVOKESPECIAL, otherGeneratedType.parentType.getInternalName(), "move", "(Ljava/lang/Object;)V", false );
             final Label l1 = new Label();
             mv.visitLabel( l1 );
             mv.visitVarInsn( ALOAD, 0 );
