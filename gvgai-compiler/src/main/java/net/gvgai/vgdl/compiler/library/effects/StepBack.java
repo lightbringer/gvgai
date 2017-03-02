@@ -12,8 +12,8 @@ import net.gvgai.vgdl.sprites.Passive;
 
 public class StepBack extends BaseEffect {
 
-    public StepBack( Type myType, Type[] otherType, String... s ) {
-        super( myType, otherType, s );
+    public StepBack( VGDLCompiler context, Type my, Type[] others, String... parameters ) {
+        super( context, my, others, parameters );
 
     }
 

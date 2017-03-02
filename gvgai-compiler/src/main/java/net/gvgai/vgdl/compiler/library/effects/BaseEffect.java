@@ -18,7 +18,7 @@ public abstract class BaseEffect implements Effect, Opcodes {
 
     private double scoreChange;
 
-    protected BaseEffect( Type my, Type[] others, String... parameters ) {
+    protected BaseEffect( VGDLCompiler context, Type my, Type[] others, String... parameters ) {
         myType = my;
         otherTypes = others;
 
@@ -29,7 +29,8 @@ public abstract class BaseEffect implements Effect, Opcodes {
                         scoreChange = Double.parseDouble( parameters[i + 1] );
                         break;
                     default:
-                        System.err.println( "Warning: ignoring unknown option \"" + parameters[i] + "=" + parameters[i + 1] + "\"" );
+//                        Logger.getLogger( getClass().getName() ).warning( "Ignoring unknown option " + parameters[i]  + "=" + parameters[i + 1] );
+
                         break;
                 }
             }
@@ -48,6 +49,28 @@ public abstract class BaseEffect implements Effect, Opcodes {
             final Method m2 = Method.getMethod( "void setScore(double)" );
             mg.invokeInterface( Type.getType( GameState.class ), m2 );
         }
+    }
+
+    @Override
+    public Type getMyType() {
+        return myType;
+    }
+
+    @Override
+    public Type[] getOtherTypes() {
+        return otherTypes;
+    }
+
+    @Override
+    public void postGeneration( VGDLCompiler vgdlCompiler, GeneratorAdapter method, Set<Feature> requiredFeatures, Effect ef ) {
+        //NOP
+
+    }
+
+    @Override
+    public void preGeneration( VGDLCompiler vgdlCompiler, GeneratorAdapter method, Set<Feature> requiredFeatures, Effect ef ) {
+        //NOP
+
     }
 
 }

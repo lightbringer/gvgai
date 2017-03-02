@@ -12,8 +12,8 @@ import net.gvgai.vgdl.sprites.VGDLSprite;
 
 public class KillSprite extends BaseEffect {
 
-    public KillSprite( Type myType, Type[] otherType, String... s ) {
-        super( myType, otherType, s );
+    public KillSprite( VGDLCompiler context, Type my, Type[] others, String... parameters ) {
+        super( context, my, others, parameters );
     }
 
     @Override

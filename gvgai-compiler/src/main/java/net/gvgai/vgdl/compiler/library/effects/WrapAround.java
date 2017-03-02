@@ -13,9 +13,8 @@ import net.gvgai.vgdl.sprites.VGDLSprite;
 
 public class WrapAround extends BaseEffect {
 
-    public WrapAround( Type my, Type[] other, String[] parameters ) {
-        super( my, other, parameters );
-
+    public WrapAround( VGDLCompiler context, Type my, Type[] others, String... parameters ) {
+        super( context, my, others, parameters );
     }
 
     @Override

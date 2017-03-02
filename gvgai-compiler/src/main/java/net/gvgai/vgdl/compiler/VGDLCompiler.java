@@ -9,6 +9,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -23,7 +24,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import org.apache.commons.collections4.keyvalue.DefaultMapEntry;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
@@ -36,6 +36,7 @@ import org.objectweb.asm.commons.TableSwitchGenerator;
 import net.gvgai.vgdl.SpriteInfo;
 import net.gvgai.vgdl.VGDLRuntime;
 import net.gvgai.vgdl.VGDLRuntime.Feature;
+import net.gvgai.vgdl.compiler.GeneratedType.GeneratedInteraction;
 import net.gvgai.vgdl.compiler.generated.vgdlBaseListener;
 import net.gvgai.vgdl.compiler.generated.vgdlParser.GameContext;
 import net.gvgai.vgdl.compiler.generated.vgdlParser.Game_classContext;
@@ -61,7 +62,15 @@ import net.gvgai.vgdl.sprites.producer.SpawnPoint;
 public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
     public final static String BASE_PACKAGE = "net/gvgai/game";
 
-    private final static String END_OF_SCREEN = "EOS";
+    public final static String END_OF_SCREEN = "EOS";
+
+    public static final String ON_BOUNDARY = "onBoundary";
+
+    public static final String CONSTRUCTOR = "<init>";
+
+    public static final String UPDATE = "update";
+
+    public static final String POST_FRAME = "postFrame";
 
     public static String formatClassName( String name ) {
         if (Character.isUpperCase( name.codePointAt( 0 ) )) {
@@ -94,15 +103,16 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         mg.invokeVirtual( Type.getType( Logger.class ), Method.getMethod( "void log(" + Level.class.getName() + ", String)" ) );
     }
 
-    private static void generateCollideMethod( Type actorType, GeneratorAdapter m, int argIndex, Map<Type[], Object[]> map, int[] locals ) {
-        final Map<Type, Map<Type[], Object[]>> reducedMap = new HashMap<>();
-        for (final Map.Entry<Type[], Object[]> e : map.entrySet()) {
+    private static void generateCollideMethod( Type actorType, GeneratorAdapter m, int argIndex, Map<Type[], GeneratedType.GeneratedInteraction> map,
+                    int[] locals ) {
+        final Map<Type, Map<Type[], GeneratedType.GeneratedInteraction>> reducedMap = new HashMap<>();
+        for (final Map.Entry<Type[], GeneratedType.GeneratedInteraction> e : map.entrySet()) {
             final Type[] keys = e.getKey();
             if (keys == null) {
                 continue;
             }
             final Type c = keys[0];
-            Map<Type[], Object[]> subList = reducedMap.get( c );
+            Map<Type[], GeneratedType.GeneratedInteraction> subList = reducedMap.get( c );
             if (subList == null) {
                 subList = new HashMap<>();
                 reducedMap.put( c, subList );
@@ -116,7 +126,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
         }
 
-        for (final Map.Entry<Type, Map<Type[], Object[]>> e : reducedMap.entrySet()) {
+        for (final Map.Entry<Type, Map<Type[], GeneratedType.GeneratedInteraction>> e : reducedMap.entrySet()) {
             final Label loopIncrement = m.newLabel();
             final Label loopTest = m.newLabel();
             final Label loopBlock = m.newLabel();
@@ -152,14 +162,15 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
             generateCollideMethod( actorType, m, argIndex + 1, e.getValue(), newLocals );
 
             // .. if we come back here, nothing down there has triggered a return
-            final Map.Entry<Type[], Object[]> leafStatement = e.getValue().entrySet().stream().filter( en -> en.getKey() == null ).findAny().orElse( null );
+            final Map.Entry<Type[], GeneratedType.GeneratedInteraction> leafStatement = e.getValue().entrySet().stream().filter( en -> en.getKey() == null )
+                            .findAny().orElse( null );
 
             if (leafStatement != null) {
-                final Type[] argTypes = (Type[]) leafStatement.getValue()[0];
+                final Type[] argTypes = leafStatement.getValue().types;
                 generateLogMessage( actorType.getClassName(), m, actorType + "collides with " + Arrays.toString( argTypes ), Level.FINER );
 
                 String signature = "void collide(";
-                final Type[] signatureTypes = (Type[]) leafStatement.getValue()[0];
+                final Type[] signatureTypes = leafStatement.getValue().types;
                 for (int i = 0; i < signatureTypes.length; i++) {
                     signature += signatureTypes[i].getClassName();
                     if (i < signatureTypes.length - 1) {
@@ -178,7 +189,6 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
                 final Method typedCollide = Method.getMethod( signature );
                 m.invokeVirtual( actorType, typedCollide );
-//                m.returnValue();
                 m.goTo( caseDone );
 
             }
@@ -321,7 +331,6 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
         final String nameA = ctx.known_sprite_name( 0 ).getText();
         final GeneratedType actorType = classLoader.getGeneratedTypes().get( getTypeForSimpleName( formatClassName( nameA ) ) );
-        GeneratorAdapter mg;
 
         if (nameA.equals( END_OF_SCREEN )) {
             throw new IllegalStateException( END_OF_SCREEN
@@ -336,7 +345,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
             }
 
             System.out.println( "Setting interaction " + actorType.type + " -> <End of Screen>" );
-            mg = actorType.onBoundary;
+            GeneratorAdapter mg = actorType.methods.get( ON_BOUNDARY );
             if (mg == null) {
                 System.out.println( "Creating new method" );
                 final Method m = Method.getMethod( "void OnOutOfBounds ()" );
@@ -344,13 +353,20 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
                 //Call super
                 mg.loadThis();
                 mg.visitMethodInsn( INVOKESPECIAL, actorType.parentType.getInternalName(), m.getName(), m.getDescriptor(), false );
-                actorType.onBoundary = mg;
+                actorType.methods.put( ON_BOUNDARY, mg );
             }
             else {
                 System.out.println( "Extending existing method" );
             }
-            final Effect e = getEffectForName( formatClassName( ctx.action.getText() ), actorType.type, null, ctx.option() );
-            e.generate( this, requiredFeatures, mg );
+            final Effect e = getEffectForName( ctx.action.getText(), actorType.type, null, ctx.option() );
+            GeneratedType.GeneratedInteraction ge = actorType.definedInteractions.get( ON_BOUNDARY );
+            if (ge == null) {
+                ge = new GeneratedInteraction( null );
+                ge.method = mg;
+                actorType.definedInteractions.put( ON_BOUNDARY, ge );
+            }
+            ge.effects.add( e );
+
         }
         else {
             //Build the collision methods
@@ -374,23 +390,25 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
             signature += ")";
 
-            Map.Entry<Type[], GeneratorAdapter> en = actorType.definedInteractions.get( signature );
+            GeneratedInteraction ge = actorType.definedInteractions.get( signature );
 
-            if (en != null) {
+            if (ge != null) {
                 System.out.println( "Extending existing method" );
-                mg = en.getValue();
             }
             else {
                 System.out.println( "Creating new method" );
                 final Method m = Method.getMethod( signature );
-                mg = new GeneratorAdapter( ACC_PROTECTED, m, null, null, actorType.cw );
-                en = new DefaultMapEntry( otherTypes.stream().map( ga -> ga.type ).toArray( Type[]::new ), mg );
-                actorType.definedInteractions.put( signature, en );
+                final GeneratorAdapter mg = new GeneratorAdapter( ACC_PROTECTED, m, null, null, actorType.cw );
+                ge = new GeneratedInteraction( otherTypes.stream().map( ga -> ga.type ).toArray( Type[]::new ) );
+                ge.method = mg;
+
+                actorType.definedInteractions.put( signature, ge );
+                actorType.methods.put( signature, mg );
             }
 
             final Effect e = getEffectForName( formatClassName( ctx.action.getText() ), actorType.type,
                             otherTypes.stream().map( gt -> gt.type ).toArray( Type[]::new ), ctx.option() );
-            e.generate( this, requiredFeatures, mg );
+            ge.effects.add( e );
 
             //Don't end the method here
         }
@@ -500,7 +518,8 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
             final Method setDirectionMethod = Method.getMethod( "void setDirection(Object )" );
             mg.invokeVirtual( spriteType, setDirectionMethod );
         }
-        g.constructor = mg;
+        g.methods.put( CONSTRUCTOR, mg );
+
         //Don't end the constructor here. Effects might want to alter it
 
         generateCopyMethod( spcw, spriteType, parentType );
@@ -586,14 +605,21 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
         cw.visitEnd();
 
-        //Also close the constructors for the sprite classes
+        //Also close all methods for the sprite classes
         for (final GeneratedType g : classLoader.getGeneratedTypes().values()) {
             if (g.type == gameType) {
                 continue;
             }
-            final GeneratorAdapter constructor = g.constructor;
-            constructor.returnValue();
-            constructor.endMethod();
+            for (final Map.Entry<String, GeneratorAdapter> e : g.methods.entrySet()) {
+                //Special case for onBoundary
+                if (e.getKey().equals( ON_BOUNDARY )) {
+                    requiredFeatures.add( Feature.OBEY_END_OF_BOUNDARIES );
+                    System.out.println( g.type + " has OnBoundaryMethod" );
+                }
+                final GeneratorAdapter ga = e.getValue();
+                ga.returnValue();
+                ga.endMethod();
+            }
 
             //That's all folks
             g.cw.visitEnd();
@@ -615,35 +641,22 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
             final GeneratorAdapter m = new GeneratorAdapter( ACC_PUBLIC, overLoadMethod, null, null, cw );
             generateLogMessage( actorType.getClassName(), m, "Collide in class " + actorType.getClassName() + " has been called", Level.FINER );
 
-            /* We defined outselves a helper map that maps the collision types to the GeneratorAdaptor and the a copy
+            /* We defined ourselves a helper map that maps the collision types to the GeneratorAdaptor and the a copy
              * of the collision type arrays. We use the latter in the recursive reduction function of the ifinstace blocks (see generateInteractions)
              */
 
-            final Map<Type[], Object[]> interactions = g.definedInteractions.entrySet().stream()
-                            .collect( Collectors.toMap( f -> Arrays.copyOf( f.getValue().getKey(), f.getValue().getKey().length ),
-                                            f -> new Object[] { f.getValue().getKey(), f.getValue().getValue() } ) );
-
-            //Special case for onBoundary
-            if (g.onBoundary != null) {
-                requiredFeatures.add( Feature.OBEY_END_OF_BOUNDARIES );
-                System.out.println( actorType + " has OnBoundaryMethod" );
-                g.onBoundary.returnValue();
-                g.onBoundary.endMethod();
-            }
-
             //The empty case
-            if (interactions.isEmpty()) {
+            if (g.definedInteractions.isEmpty()) {
 //              generateConsoleMessage( m, "No interactions defined for " + actorType.getClassName() + ". Delegating to super" );
                 System.out.println( "No interactions for " + actorType.getClassName() + " Delegating to " + parentType.getClassName() );
-                m.loadThis();
-                m.loadArg( 0 );
-                m.visitMethodInsn( INVOKESPECIAL, parentType.getInternalName(), overLoadMethod.getName(), overLoadMethod.getDescriptor(), false );
-                m.returnValue();
-                m.endMethod();
-                continue;
             }
+            else {
+                final Map<Type[], GeneratedType.GeneratedInteraction> interactions = g.definedInteractions.entrySet().stream()
+                                .filter( f -> !f.getKey().equals( ON_BOUNDARY ) )
+                                .collect( Collectors.toMap( f -> Arrays.copyOf( f.getValue().types, f.getValue().types.length ), f -> f.getValue() ) );
 
-            generateCollideMethod( actorType, m, 0, interactions, new int[0] );
+                generateCollideMethod( actorType, m, 0, interactions, new int[0] );
+            }
 
             m.loadThis();
             m.loadArg( 0 );
@@ -651,14 +664,15 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
             m.returnValue();
             m.endMethod();
 
-            //While we're at it. We need to close the collision method and onBoundary method
-            //It's only at this point that we know that all effects have been generated
-            interactions.values().stream().map( o -> o[1] ).forEach( o -> {
-                final GeneratorAdapter ga = (GeneratorAdapter) o;
-                ga.returnValue();
-                ga.endMethod();
-            } );
-
+            //Generate the actual effects and take care of inter-effect relations
+            final Collection<GeneratedType.GeneratedInteraction> definedInteractions = e.getValue().definedInteractions.values();
+            for (final GeneratedType.GeneratedInteraction ge : definedInteractions) {
+                for (final Effect ef : ge.effects) {
+                    definedInteractions.stream().flatMap( de -> de.effects.stream() ).forEach( f -> f.preGeneration( this, ge.method, requiredFeatures, ef ) );
+                    ef.generate( this, requiredFeatures, ge.method );
+                    definedInteractions.stream().flatMap( de -> de.effects.stream() ).forEach( f -> f.postGeneration( this, ge.method, requiredFeatures, ef ) );
+                }
+            }
         }
 
     }
@@ -799,6 +813,15 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         return classLoader;
     }
 
+    public Class<? extends Effect> getEffectClass( String name ) {
+        try {
+            return (Class<? extends Effect>) Class.forName( getTypeForSimpleName( formatClassName( name ) ).getClassName() );
+        }
+        catch (final ClassNotFoundException e) {
+            throw new RuntimeException( e );
+        }
+    }
+
     public String getGamePackageName() {
         return packageName;
     }
@@ -892,7 +915,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         mg.loadLocal( ret );
         mg.returnValue();
         mg.endMethod();
-    }
+    };
 
     private void generateSetField( GeneratorAdapter mg, Type spriteType, String key, String value ) {
         final Type parentType = getNonGeneratedParentType( spriteType );
@@ -963,14 +986,14 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
         System.out.println( "non-generated parent: " + parentType );
 
-    };
+    }
 
     private Effect getEffectForName( String text, Type actorType, Type[] otherTypes, List<OptionContext> list ) {
         try {
-            final Type t = getTypeForSimpleName( text );
-            final Class<? extends Effect> effectClass = (Class<? extends Effect>) Class.forName( t.getClassName() );
 
-            final Constructor<? extends Effect> c = effectClass.getConstructor( Type.class, Type[].class, String[].class );
+            final Class<? extends Effect> effectClass = getEffectClass( text );
+
+            final Constructor<? extends Effect> c = effectClass.getConstructor( VGDLCompiler.class, Type.class, Type[].class, String[].class );
             String[] options;
             if (list != null && !list.isEmpty()) {
                 options = new String[list.size() * 2];
@@ -984,9 +1007,9 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
             else {
                 options = null;
             }
-            return c.newInstance( actorType, otherTypes, options );
+            return c.newInstance( this, actorType, otherTypes, options );
         }
-        catch (InstantiationException | IllegalAccessException | ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalArgumentException |
+        catch (InstantiationException | IllegalAccessException | NoSuchMethodException | SecurityException | IllegalArgumentException |
 
                         InvocationTargetException e)
 

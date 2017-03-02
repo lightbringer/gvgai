@@ -19,8 +19,8 @@ import net.gvgai.vgdl.sprites.VGDLSprite;
 public class PullWithIt extends BaseEffect {
     private static final String PULL_WITH_IT = "pullWithIt";
 
-    public PullWithIt( Type my, Type[] other, String[] parameters ) {
-        super( my, other, parameters );
+    public PullWithIt( VGDLCompiler context, Type my, Type[] others, String... parameters ) {
+        super( context, my, others, parameters );
     }
 
     @Override
@@ -63,7 +63,7 @@ public class PullWithIt extends BaseEffect {
             otherGeneratedType.options.put( PULL_WITH_IT, "true" );
 
             //Add the initializer to the constructor
-            final GeneratorAdapter otherConstructor = otherGeneratedType.constructor;
+            final GeneratorAdapter otherConstructor = otherGeneratedType.methods.get( VGDLCompiler.CONSTRUCTOR );
             otherConstructor.loadThis();
             otherConstructor.newInstance( Type.getType( HashSet.class ) );
             otherConstructor.dup();

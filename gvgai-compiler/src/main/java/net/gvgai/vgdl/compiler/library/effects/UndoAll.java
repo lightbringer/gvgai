@@ -11,8 +11,9 @@ import net.gvgai.vgdl.compiler.VGDLCompiler;
 import net.gvgai.vgdl.sprites.VGDLSprite;
 
 public class UndoAll extends BaseEffect {
-    public UndoAll( Type myType, Type[] otherType, String... s ) {
-        super( myType, otherType, s );
+
+    public UndoAll( VGDLCompiler context, Type my, Type[] others, String... parameters ) {
+        super( context, my, others, parameters );
     }
 
     @Override

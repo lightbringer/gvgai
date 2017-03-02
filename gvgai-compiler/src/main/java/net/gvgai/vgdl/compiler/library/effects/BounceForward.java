@@ -11,9 +11,8 @@ import net.gvgai.vgdl.compiler.VGDLCompiler;
 
 public class BounceForward extends BaseEffect {
 
-    public BounceForward( Type myType, Type[] otherType, String... s ) {
-        super( myType, otherType, s );
-        System.out.println( "Bounce " + myType );
+    public BounceForward( VGDLCompiler context, Type my, Type[] others, String... parameters ) {
+        super( context, my, others, parameters );
 
     }
 
