@@ -20,7 +20,7 @@ public class StepBack extends BaseEffect {
     @Override
     public void generate( VGDLCompiler vgdlCompiler, Set<Feature> requiredFeatures, GeneratorAdapter mg ) {
         super.generate( vgdlCompiler, requiredFeatures, mg );
-        VGDLCompiler.generateLogMessage( myType.getClassName(), mg, "Step back!" );
+        vgdlCompiler.generateLogMessage( myType.getClassName(), mg, "Step back!" );
         mg.loadThis();
         mg.loadThis();
         final Method getDir = Method.getMethod( "Object reverseDirection( )" );

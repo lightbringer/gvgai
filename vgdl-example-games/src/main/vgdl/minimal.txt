@@ -1,0 +1,21 @@
+BasicGame
+    SpriteSet       
+		obstacle > Missile orientation=LEFT  speed=1 color=BROWN img=log
+		avatar > MovingAvatar img=frog
+		goal > Immovable img=coin
+		wall > Immovable color=BLACK img=wall
+		
+    LevelMapping
+        g > goal
+        a > avatar
+        w > wall
+        l > obstacle
+        
+    InteractionSet
+        goal avatar  > killSprite scoreChange=1
+        avatar wall  > stepBack
+        obstacle EOS > killSprite
+    
+    TerminationSet        
+        SpriteCounter stype=goal limit=0 win=True
+    

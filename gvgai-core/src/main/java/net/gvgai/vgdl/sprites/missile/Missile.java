@@ -7,22 +7,14 @@ public abstract class Missile extends Passive {
     protected double speed;
     private double blockDistance;
     private double preFrameBlockDistance;
-
-    private boolean frameAction;
+    private double preFrameSpeed;
 
     @Override
     public void preFrame() {
         super.preFrame();
 
         preFrameBlockDistance = blockDistance;
-
-        blockDistance += speed;
-
-        if (blockDistance >= 1.0) {
-            frameAction = true;
-
-            blockDistance = 0;
-        }
+        preFrameSpeed = speed;
 
     }
 
@@ -31,16 +23,18 @@ public abstract class Missile extends Passive {
         super.reset();
 
         blockDistance = preFrameBlockDistance;
-        frameAction = false;
+        speed = preFrameSpeed;
     }
 
     @Override
     public void update( double seconds ) {
         super.update( seconds );
 
-        if (frameAction) {
+        blockDistance += speed;
+
+        if (blockDistance >= 1.0) {
+            blockDistance = 0;
             move( getDirection() );
-            frameAction = false;
         }
     }
 

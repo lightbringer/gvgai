@@ -72,6 +72,8 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
     public static final String POST_FRAME = "postFrame";
 
+    private static final Logger LOGGER = Logger.getLogger( VGDLCompiler.class.getName() );
+
     public static String formatClassName( String name ) {
         if (Character.isUpperCase( name.codePointAt( 0 ) )) {
             return name;
@@ -91,122 +93,6 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         mg.getField( Type.getType( VGDLSprite.class ), "state", Type.getType( GameState.class ) );
     }
 
-    public static void generateLogMessage( String loggerName, GeneratorAdapter mg, String string ) {
-        generateLogMessage( loggerName, mg, string, Level.INFO );
-    }
-
-    public static void generateLogMessage( String loggerName, GeneratorAdapter mg, String string, Level level ) {
-        mg.push( loggerName );
-        mg.invokeStatic( Type.getType( Logger.class ), Method.getMethod( Logger.class.getName() + " getLogger(String)" ) );
-        mg.getStatic( Type.getType( Level.class ), level.getName(), Type.getType( Level.class ) );
-        mg.push( string );
-        mg.invokeVirtual( Type.getType( Logger.class ), Method.getMethod( "void log(" + Level.class.getName() + ", String)" ) );
-    }
-
-    private static void generateCollideMethod( Type actorType, GeneratorAdapter m, int argIndex, Map<Type[], GeneratedType.GeneratedInteraction> map,
-                    int[] locals ) {
-        final Map<Type, Map<Type[], GeneratedType.GeneratedInteraction>> reducedMap = new HashMap<>();
-        for (final Map.Entry<Type[], GeneratedType.GeneratedInteraction> e : map.entrySet()) {
-            final Type[] keys = e.getKey();
-            if (keys == null) {
-                continue;
-            }
-            final Type c = keys[0];
-            Map<Type[], GeneratedType.GeneratedInteraction> subList = reducedMap.get( c );
-            if (subList == null) {
-                subList = new HashMap<>();
-                reducedMap.put( c, subList );
-            }
-            if (keys.length == 1) {
-                subList.put( null, e.getValue() );
-            }
-            else {
-                subList.put( Arrays.copyOfRange( keys, 1, keys.length ), e.getValue() );
-            }
-
-        }
-
-        for (final Map.Entry<Type, Map<Type[], GeneratedType.GeneratedInteraction>> e : reducedMap.entrySet()) {
-            final Label loopIncrement = m.newLabel();
-            final Label loopTest = m.newLabel();
-            final Label loopBlock = m.newLabel();
-            final Label trueBlock = m.newLabel();
-            final Label caseDone = m.newLabel();
-
-            //Loop over the elements argIndex ... others.length to see if there's an object of the required class
-            //We can assume that the class ids are in ascending order
-            final int iLocal = m.newLocal( Type.INT_TYPE );
-            m.push( argIndex );
-            m.storeLocal( iLocal, Type.INT_TYPE );
-            m.goTo( loopTest );
-            m.mark( loopBlock );
-            m.loadArg( 0 );
-            m.loadLocal( iLocal );
-            m.arrayLoad( Type.getType( VGDLSprite.class ) );
-            m.loadThis();
-            m.ifCmp( Type.getType( VGDLSprite.class ), IFEQ, loopIncrement );
-            m.loadArg( 0 );
-            m.loadLocal( iLocal, Type.INT_TYPE );
-            m.arrayLoad( Type.getType( VGDLSprite.class ) );
-            generateLogMessage( actorType.getClassName(), m, "Checking if argument is of type " + e.getKey(), Level.FINER );
-            m.instanceOf( e.getKey() );
-            m.push( true );
-            m.ifCmp( Type.BOOLEAN_TYPE, IFEQ, trueBlock );
-            m.goTo( loopIncrement );
-            m.mark( trueBlock );
-
-            //Dive deeper into the rabbit hole ...
-            final int[] newLocals = Arrays.copyOf( locals, locals.length + 1 );
-            newLocals[newLocals.length - 1] = iLocal;
-
-            generateCollideMethod( actorType, m, argIndex + 1, e.getValue(), newLocals );
-
-            // .. if we come back here, nothing down there has triggered a return
-            final Map.Entry<Type[], GeneratedType.GeneratedInteraction> leafStatement = e.getValue().entrySet().stream().filter( en -> en.getKey() == null )
-                            .findAny().orElse( null );
-
-            if (leafStatement != null) {
-                final Type[] argTypes = leafStatement.getValue().types;
-                generateLogMessage( actorType.getClassName(), m, actorType + "collides with " + Arrays.toString( argTypes ), Level.FINER );
-
-                String signature = "void collide(";
-                final Type[] signatureTypes = leafStatement.getValue().types;
-                for (int i = 0; i < signatureTypes.length; i++) {
-                    signature += signatureTypes[i].getClassName();
-                    if (i < signatureTypes.length - 1) {
-                        signature += ", ";
-                    }
-                }
-                signature += ")";
-
-                m.loadThis();
-                for (int i = 0; i < argTypes.length; i++) {
-                    m.loadArg( 0 );
-                    m.loadLocal( newLocals[i] );
-                    m.arrayLoad( Type.getType( VGDLSprite.class ) );
-                    m.visitTypeInsn( CHECKCAST, argTypes[i].getInternalName() );
-                }
-
-                final Method typedCollide = Method.getMethod( signature );
-                m.invokeVirtual( actorType, typedCollide );
-                m.goTo( caseDone );
-
-            }
-
-            m.mark( loopIncrement );
-            m.iinc( iLocal, 1 );
-            m.mark( loopTest );
-            m.loadLocal( iLocal );
-            m.loadArg( 0 );
-            m.arrayLength();
-            m.ifICmp( IFLT, loopBlock );
-            m.mark( caseDone );
-        }
-
-        /* At this point none of the if-instanceof blocks triggered a return, so the call will be delegated to the parent's collide method */
-
-    }
-
     private static Field getField( Class<?> clazz, String name ) {
         try {
             return clazz.getDeclaredField( name );
@@ -220,6 +106,8 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
             }
         }
     }
+
+    private boolean generateDebugOutput;
 
     /**
      *
@@ -343,11 +231,10 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
             if (ctx.known_sprite_name().size() != 2) {
                 throw new IllegalStateException( END_OF_SCREEN + " supplied and overflowing list of actors" );
             }
+            LOGGER.finer( "Setting interaction " + actorType.type + " -> <End of Screen>" );
 
-            System.out.println( "Setting interaction " + actorType.type + " -> <End of Screen>" );
             GeneratorAdapter mg = actorType.methods.get( ON_BOUNDARY );
             if (mg == null) {
-                System.out.println( "Creating new method" );
                 final Method m = Method.getMethod( "void OnOutOfBounds ()" );
                 mg = new GeneratorAdapter( ACC_PUBLIC, m, null, null, actorType.cw );
                 //Call super
@@ -355,9 +242,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
                 mg.visitMethodInsn( INVOKESPECIAL, actorType.parentType.getInternalName(), m.getName(), m.getDescriptor(), false );
                 actorType.methods.put( ON_BOUNDARY, mg );
             }
-            else {
-                System.out.println( "Extending existing method" );
-            }
+
             final Effect e = getEffectForName( ctx.action.getText(), actorType.type, null, ctx.option() );
             GeneratedType.GeneratedInteraction ge = actorType.definedInteractions.get( ON_BOUNDARY );
             if (ge == null) {
@@ -378,7 +263,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
             }
             otherTypes.sort( ( c1, c2 ) -> Integer.compare( c2.classId, c1.classId ) );
 
-            System.out.println( "Setting interaction " + actorType.type + " -> " + otherTypes.stream().map( gt -> gt.type ).collect( Collectors.toList() ) );
+            LOGGER.fine( "Setting interaction " + actorType.type + " -> " + otherTypes.stream().map( gt -> gt.type ).collect( Collectors.toList() ) );
 
             String signature = "void collide (";
             for (int i = 0; i < otherTypes.size(); i++) {
@@ -392,11 +277,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
             GeneratedInteraction ge = actorType.definedInteractions.get( signature );
 
-            if (ge != null) {
-                System.out.println( "Extending existing method" );
-            }
-            else {
-                System.out.println( "Creating new method" );
+            if (ge == null) {
                 final Method m = Method.getMethod( signature );
                 final GeneratorAdapter mg = new GeneratorAdapter( ACC_PROTECTED, m, null, null, actorType.cw );
                 ge = new GeneratedInteraction( otherTypes.stream().map( ga -> ga.type ).toArray( Type[]::new ) );
@@ -449,7 +330,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         classLoader.getGeneratedTypes().put( spriteType, g );
         final Type parentType = getTypeForSimpleName( formatClassName( ctx.parentClass ) );
         g.parentType = parentType;
-        System.out.println( "Parent of " + spriteType + " is " + parentType );
+        LOGGER.fine( "Parent of " + spriteType + " is " + parentType );
 
         spcw.visit( V1_8, ACC_PUBLIC, spriteType.getInternalName(), null, parentType.getInternalName(), null );
 
@@ -498,7 +379,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
             mg.loadThis();
             switch (orientation) {
                 default:
-                    System.err.println( "Orientation " + orientation + " on class " + g.type + " unknown. Defaulting to UP" );
+                    LOGGER.info( "Orientation " + orientation + " on class " + g.type + " unknown. Defaulting to UP" );
                 case "UP":
                     mg.getStatic( Type.getType( VGDLSprite.class ), "UpDirection", Type.getType( Supplier.class ) );
                     break;
@@ -512,7 +393,6 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
                     mg.getStatic( Type.getType( VGDLSprite.class ), "RightDirection", Type.getType( Supplier.class ) );
                     break;
             }
-            System.out.println( g.type + " has orientation " + orientation );
             final Method getMethod = Method.getMethod( "Object get( )" );
             mg.invokeInterface( Type.getType( Supplier.class ), getMethod );
             final Method setDirectionMethod = Method.getMethod( "void setDirection(Object )" );
@@ -614,7 +494,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
                 //Special case for onBoundary
                 if (e.getKey().equals( ON_BOUNDARY )) {
                     requiredFeatures.add( Feature.OBEY_END_OF_BOUNDARIES );
-                    System.out.println( g.type + " has OnBoundaryMethod" );
+                    LOGGER.fine( g.type + " has OnBoundaryMethod" );
                 }
                 final GeneratorAdapter ga = e.getValue();
                 ga.returnValue();
@@ -647,8 +527,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
             //The empty case
             if (g.definedInteractions.isEmpty()) {
-//              generateConsoleMessage( m, "No interactions defined for " + actorType.getClassName() + ". Delegating to super" );
-                System.out.println( "No interactions for " + actorType.getClassName() + " Delegating to " + parentType.getClassName() );
+                LOGGER.finer( "No interactions for " + actorType.getClassName() + " Delegating to " + parentType.getClassName() );
             }
             else {
                 final Map<Type[], GeneratedType.GeneratedInteraction> interactions = g.definedInteractions.entrySet().stream()
@@ -796,6 +675,20 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         currentMethod.endMethod();
     }
 
+    public void generateLogMessage( String loggerName, GeneratorAdapter mg, String string ) {
+        generateLogMessage( loggerName, mg, string, Level.INFO );
+    }
+
+    public void generateLogMessage( String loggerName, GeneratorAdapter mg, String string, Level level ) {
+        if (generateDebugOutput) {
+            mg.push( loggerName );
+            mg.invokeStatic( Type.getType( Logger.class ), Method.getMethod( Logger.class.getName() + " getLogger(String)" ) );
+            mg.getStatic( Type.getType( Level.class ), level.getName(), Type.getType( Level.class ) );
+            mg.push( string );
+            mg.invokeVirtual( Type.getType( Logger.class ), Method.getMethod( "void log(" + Level.class.getName() + ", String)" ) );
+        }
+    }
+
     public Set<Class> getClasses() {
         final Set<Class> clazzes = new HashSet<>();
         for (final Entry<Type, GeneratedType> e : classLoader.getGeneratedTypes().entrySet()) {
@@ -862,6 +755,10 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         return nextLambda++;
     }
 
+    public void setGenerateDebugOutput( boolean generateDebugOutput ) {
+        this.generateDebugOutput = generateDebugOutput;
+    }
+
     public void writeClassesToDisk( File rootDir ) {
         classLoader.getGeneratedTypes().forEach( ( t, gt ) -> {
             try {
@@ -895,6 +792,109 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         return classId;
     }
 
+    private void generateCollideMethod( Type actorType, GeneratorAdapter m, int argIndex, Map<Type[], GeneratedType.GeneratedInteraction> map, int[] locals ) {
+        final Map<Type, Map<Type[], GeneratedType.GeneratedInteraction>> reducedMap = new HashMap<>();
+        for (final Map.Entry<Type[], GeneratedType.GeneratedInteraction> e : map.entrySet()) {
+            final Type[] keys = e.getKey();
+            if (keys == null) {
+                continue;
+            }
+            final Type c = keys[0];
+            Map<Type[], GeneratedType.GeneratedInteraction> subList = reducedMap.get( c );
+            if (subList == null) {
+                subList = new HashMap<>();
+                reducedMap.put( c, subList );
+            }
+            if (keys.length == 1) {
+                subList.put( null, e.getValue() );
+            }
+            else {
+                subList.put( Arrays.copyOfRange( keys, 1, keys.length ), e.getValue() );
+            }
+
+        }
+
+        for (final Map.Entry<Type, Map<Type[], GeneratedType.GeneratedInteraction>> e : reducedMap.entrySet()) {
+            final Label loopIncrement = m.newLabel();
+            final Label loopTest = m.newLabel();
+            final Label loopBlock = m.newLabel();
+            final Label trueBlock = m.newLabel();
+            final Label caseDone = m.newLabel();
+
+            //Loop over the elements argIndex ... others.length to see if there's an object of the required class
+            //We can assume that the class ids are in ascending order
+            final int iLocal = m.newLocal( Type.INT_TYPE );
+            m.push( argIndex );
+            m.storeLocal( iLocal, Type.INT_TYPE );
+            m.goTo( loopTest );
+            m.mark( loopBlock );
+            m.loadArg( 0 );
+            m.loadLocal( iLocal );
+            m.arrayLoad( Type.getType( VGDLSprite.class ) );
+            m.loadThis();
+            m.ifCmp( Type.getType( VGDLSprite.class ), IFEQ, loopIncrement );
+            m.loadArg( 0 );
+            m.loadLocal( iLocal, Type.INT_TYPE );
+            m.arrayLoad( Type.getType( VGDLSprite.class ) );
+            generateLogMessage( actorType.getClassName(), m, "Checking if argument is of type " + e.getKey(), Level.FINER );
+            m.instanceOf( e.getKey() );
+            m.push( true );
+            m.ifCmp( Type.BOOLEAN_TYPE, IFEQ, trueBlock );
+            m.goTo( loopIncrement );
+            m.mark( trueBlock );
+
+            //Dive deeper into the rabbit hole ...
+            final int[] newLocals = Arrays.copyOf( locals, locals.length + 1 );
+            newLocals[newLocals.length - 1] = iLocal;
+
+            generateCollideMethod( actorType, m, argIndex + 1, e.getValue(), newLocals );
+
+            // .. if we come back here, nothing down there has triggered a return
+            final Map.Entry<Type[], GeneratedType.GeneratedInteraction> leafStatement = e.getValue().entrySet().stream().filter( en -> en.getKey() == null )
+                            .findAny().orElse( null );
+
+            if (leafStatement != null) {
+                final Type[] argTypes = leafStatement.getValue().types;
+                generateLogMessage( actorType.getClassName(), m, actorType + "collides with " + Arrays.toString( argTypes ), Level.FINER );
+
+                String signature = "void collide(";
+                final Type[] signatureTypes = leafStatement.getValue().types;
+                for (int i = 0; i < signatureTypes.length; i++) {
+                    signature += signatureTypes[i].getClassName();
+                    if (i < signatureTypes.length - 1) {
+                        signature += ", ";
+                    }
+                }
+                signature += ")";
+
+                m.loadThis();
+                for (int i = 0; i < argTypes.length; i++) {
+                    m.loadArg( 0 );
+                    m.loadLocal( newLocals[i] );
+                    m.arrayLoad( Type.getType( VGDLSprite.class ) );
+                    m.visitTypeInsn( CHECKCAST, argTypes[i].getInternalName() );
+                }
+
+                final Method typedCollide = Method.getMethod( signature );
+                m.invokeVirtual( actorType, typedCollide );
+                m.goTo( caseDone );
+
+            }
+
+            m.mark( loopIncrement );
+            m.iinc( iLocal, 1 );
+            m.mark( loopTest );
+            m.loadLocal( iLocal );
+            m.loadArg( 0 );
+            m.arrayLength();
+            m.ifICmp( IFLT, loopBlock );
+            m.mark( caseDone );
+        }
+
+        /* At this point none of the if-instanceof blocks triggered a return, so the call will be delegated to the parent's collide method */
+
+    }
+
     private void generateCopyMethod( ClassWriter spcw, Type spriteType, Type parentType ) {
         final Method m = Method.getMethod( VGDLSprite.class.getName() + " copy ()" );
         final GeneratorAdapter mg = new GeneratorAdapter( ACC_PUBLIC, m, null, null, spcw );
@@ -925,7 +925,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
             final Field f = getField( clazz, key );
             if (f == null) {
-                System.err.println( "Warning: ignoring unknown option \"" + key + "=" + value + "\" on sprite class " + spriteType );
+                LOGGER.warning( "Ignoring unknown option \"" + key + "=" + value + "\" on sprite class " + spriteType );
                 return;
             }
             final Class fieldClazz = f.getType();
@@ -951,7 +951,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
                     }
                 }
                 if (!found) {
-                    System.err.println( "Warning: option \"" + key + " is of type " + fieldClazz + ". None of the possible values matches " + value );
+                    LOGGER.warning( "Option \"" + key + " is of type " + fieldClazz + ". None of the possible values matches " + value );
                 }
             }
             else if (fieldClazz == float.class) {
@@ -962,7 +962,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
                     mg.putField( spriteType, key, Type.FLOAT_TYPE );
                 }
                 catch (final NumberFormatException e) {
-                    System.err.println( "Warning: option \"" + key + " is of type float." + value + " is not a valid numeric value" );
+                    LOGGER.warning( "Option \"" + key + " is of type float." + value + " is not a valid numeric value" );
                 }
             }
             else if (fieldClazz == double.class) {
@@ -973,19 +973,16 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
                     mg.putField( spriteType, key, Type.DOUBLE_TYPE );
                 }
                 catch (final NumberFormatException e) {
-                    System.err.println( "Warning: option \"" + key + " is of type double." + value + " is not a valid numeric value" );
+                    LOGGER.warning( "Option \"" + key + " is of type double." + value + " is not a valid numeric value" );
                 }
             }
             else {
-                System.err.println( "Warning: option \"" + key + " is of unsupported type " + f.getType() );
+                LOGGER.warning( "Option \"" + key + " is of unsupported type " + f.getType() );
             }
         }
         catch (final ClassNotFoundException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
             throw new RuntimeException( e );
         }
-
-        System.out.println( "non-generated parent: " + parentType );
-
     }
 
     private Effect getEffectForName( String text, Type actorType, Type[] otherTypes, List<OptionContext> list ) {
@@ -1027,7 +1024,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
             if (SpawnPoint.class.isAssignableFrom( parentClazz )) {
                 final Type spriteType = getTypeForSimpleName( formatClassName( option_value ) );
                 if (spriteType == null) {
-                    System.err.println( "Unrecognized sprite type option on class " + parent + " for type " + g.type + ". Class " + option_value + " unknown" );
+                    LOGGER.severe( "Unrecognized sprite type option on class " + parent + " for type " + g.type + ". Class " + option_value + " unknown" );
                     return;
                 }
                 final ClassWriter cw = g.cw;
@@ -1045,7 +1042,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
             }
             else {
-                System.err.println( "Unrecognized option stype on class " + parent + " for type " + g.type );
+                LOGGER.severe( "Unrecognized option stype on class " + parent + " for type " + g.type );
             }
         }
         catch (final ClassNotFoundException e) {

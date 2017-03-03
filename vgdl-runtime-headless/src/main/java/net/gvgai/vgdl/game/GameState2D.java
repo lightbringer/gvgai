@@ -26,7 +26,7 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
     private static int FLATTEN_DEPTH = 1000;
 
     private static MovingAvatar findAvatar( List[] a, int index ) {
-        return (MovingAvatar) a[index].stream().filter( i -> i instanceof MovingAvatar ).findFirst().get();
+        return (MovingAvatar) a[index].stream().filter( i -> i instanceof MovingAvatar ).findFirst().orElse( null );
     }
 
     private static Action reverse( Object s ) {
@@ -74,6 +74,8 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
 
     private boolean inFrame;
     private boolean preFrameGameOver;
+    private boolean preBufferFrame;
+    private boolean obeyBoundaries;
 
     public GameState2D( int width, int height ) {
         this.height = height;
@@ -118,18 +120,46 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
     }
 
     @Override
+    public int[] add( int[] position, Action direction ) {
+        final int[] newPos = Arrays.copyOf( position, 2 );
+        switch (direction) {
+            case ACTION_DOWN:
+                newPos[1]--;
+                break;
+            case ACTION_LEFT:
+                newPos[0]--;
+                break;
+            case ACTION_RIGHT:
+                newPos[0]++;
+                break;
+            case ACTION_UP:
+                newPos[1]++;
+                break;
+            default:
+                throw new IllegalStateException( "action must a spatial one" );
+        }
+        return newPos;
+
+    }
+
+    @Override
     public GameState2D copy() {
         return new GameState2D( this );
     }
 
     @Override
-    public Collection<VGDLSprite> get( int[] p, boolean forWriting ) {
+    public Action down() {
+        return Action.ACTION_DOWN;
+    }
+
+    @Override
+    public List<VGDLSprite> get( int[] p, boolean forWriting ) {
         final int index = p[1] * width + p[0];
         final List<VGDLSprite> s = sprites[index];
         if (s == null) {
             if (parent == null) {
                 if (!forWriting) {
-                    return Collections.unmodifiableCollection( Collections.emptySet() );
+                    return Collections.unmodifiableList( Collections.emptyList() );
                 }
                 else {
                     throw new IllegalStateException( "root map has no collection to write in here" );
@@ -150,7 +180,7 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
                 return s;
             }
             else {
-                return Collections.unmodifiableCollection( s );
+                return Collections.unmodifiableList( s );
             }
         }
     }
@@ -163,6 +193,11 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
     @Override
     public int getHeight() {
         return height;
+    }
+
+    @Override
+    public GameMap getLevel() {
+        return this;
     }
 
     @Override
@@ -186,15 +221,27 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
     }
 
     @Override
+    public boolean isInBounds( int[] p ) {
+        final int x = p[0];
+        final int y = p[1];
+
+        return x >= 0 && y >= 0 && x < width && y < height;
+    }
+
+    @Override
     public boolean isReady() {
         return true;
+    }
+
+    @Override
+    public Action left() {
+        return Action.ACTION_LEFT;
     }
 
     @Override
     public boolean move( VGDLSprite s, Action direction ) {
         final int[] p = (int[]) s.getPosition();
         assert p != null;
-        remove( p, s );
 
         final int[] pCopy = Arrays.copyOf( p, 2 );
         movePosition( direction, pCopy );
@@ -211,16 +258,17 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
             }
         }
 
+        remove( p, s );
+
         if (set( pCopy, sCopy )) {
             final Collection<VGDLSprite> src = get( pCopy, false );
 
-            final List<VGDLSprite> copy = new ArrayList<>( src );
-            copy.forEach( o -> {
-                if (sCopy != o) {
-                    sCopy.collide( o );
-                    o.collide( sCopy );
-                }
-            } );
+            final VGDLSprite[] copy = new VGDLSprite[src.size()];
+            src.toArray( copy );
+
+            for (final VGDLSprite o : copy) {
+                o.collide( copy );
+            }
             return true;
         }
         else {
@@ -233,6 +281,8 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
         assert inFrame;
 
         if (resetFrame) {
+            assert preBufferFrame;
+
             resetFrame = false;
             score = preFrameScore;
             gameOver = preFrameGameOver;
@@ -252,12 +302,13 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
     @Override
     public void preFrame() {
         assert !inFrame;
-        preFrameAvatarIndex = avatarIndex;
-        preFrameScore = score;
-        preFrameAvatar = avatar;
-        preFrameGameOver = gameOver;
-        Arrays.setAll( preFrameSprites, i -> sprites[i] != null ? new ArrayList<>( sprites[i] ) : null );
-
+        if (preBufferFrame) {
+            preFrameAvatarIndex = avatarIndex;
+            preFrameScore = score;
+            preFrameAvatar = avatar;
+            preFrameGameOver = gameOver;
+            Arrays.setAll( preFrameSprites, i -> sprites[i] != null ? new ArrayList<>( sprites[i] ) : null );
+        }
         assert preFrameSprites != null;
         Stream.of( sprites ).filter( l -> l != null ).flatMap( Collection::stream ).forEach( s -> s.preFrame() );
 
@@ -278,6 +329,11 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
     }
 
     @Override
+    public Action right() {
+        return Action.ACTION_RIGHT;
+    }
+
+    @Override
     public boolean set( int[] p, VGDLSprite s ) {
         assert p != null;
         if (s instanceof MovingAvatar) {
@@ -285,16 +341,41 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
         }
         setupDelegates( s );
 
-        s.setPosition( p );
-        final Collection<VGDLSprite> l = get( p, true );
-        final boolean ret = !l.isEmpty();
-        l.add( s );
-        return ret;
+        if (obeyBoundaries && !isInBounds( p )) {
+            s.OnOutOfBounds();
+            return false;
+        }
+        else {
+            s.setPosition( p );
+            final List<VGDLSprite> l = get( p, true );
+            if (l.isEmpty()) {
+                l.add( s );
+                return false;
+            }
+            else {
+                //Make sure the list is ordered by classIds
+                final int size = l.size();
+                final int myId = s.getClassId();
+                for (int i = 0; i < size - 1; i++) {
+                    if (l.get( i + 1 ).getClassId() > myId) {
+                        l.add( i, s );
+                        return true;
+                    }
+                }
+                l.add( s );
+                return true;
+            }
+        }
     }
 
     @Override
     public void setAvatar( MovingAvatar a ) {
         avatar = a;
+    }
+
+    public void setBufferFrame( boolean b ) {
+        preBufferFrame = b;
+
     }
 
     @Override
@@ -305,14 +386,52 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
         }
     }
 
+    public void setObeyBoundaries( boolean b ) {
+        obeyBoundaries = b;
+
+    }
+
     @Override
     public void setScore( double d ) {
         score = d;
     }
 
     @Override
+    public Action up() {
+        return Action.ACTION_UP;
+    }
+
+    @Override
+    public void update( double seconds ) {
+        Arrays.asList( sprites ).stream().filter( l -> l != null ).flatMap( Collection::stream ).collect( Collectors.toList() )
+                        .forEach( s -> s.update( seconds ) );
+        if (parent != null) {
+            parent.update( seconds );
+        }
+
+    }
+
+    @Override
     public Stream<VGDLSprite> values() {
         return IntStream.range( 0, sprites.length ).mapToObj( i -> (sprites[i] != null ? sprites[i] : get( i )) ).flatMap( Collection::stream );
+    }
+
+    @Override
+    public int[] wrap( int[] p ) {
+        if (p[0] < 0) {
+            p[0] = width - 1;
+        }
+        else if (p[0] >= width - 1) {
+            p[0] = 0;
+        }
+        if (p[1] < 0) {
+            p[1] = height - 1;
+        }
+        else if (p[1] >= height - 1) {
+            p[1] = 0;
+        }
+
+        return p;
     }
 
     private Collection<VGDLSprite> get( int index ) {
@@ -355,10 +474,10 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
             default:
                 throw new RuntimeException();
         }
-        p[0] = Math.max( p[0], 0 );
-        p[1] = Math.max( p[1], 0 );
-        p[0] = Math.min( p[0], width - 1 );
-        p[1] = Math.min( p[1], height - 1 );
+//        p[0] = Math.max( p[0], 0 );
+//        p[1] = Math.max( p[1], 0 );
+//        p[0] = Math.min( p[0], width - 1 );
+//        p[1] = Math.min( p[1], height - 1 );
     }
 
     private void setupDelegates( VGDLSprite s ) {

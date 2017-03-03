@@ -19,7 +19,7 @@ public class BounceForward extends BaseEffect {
     @Override
     public void generate( VGDLCompiler vgdlCompiler, Set<Feature> requiredFeatures, GeneratorAdapter mg ) {
         super.generate( vgdlCompiler, requiredFeatures, mg );
-        VGDLCompiler.generateLogMessage( myType.getClassName(), mg, "Bounce forward" );
+        vgdlCompiler.generateLogMessage( myType.getClassName(), mg, "Bounce forward" );
 
         //Move object 0 (this) into the direction that 1 (0) is facing
         mg.loadThis();

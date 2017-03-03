@@ -3,6 +3,7 @@ package net.gvgai.vgdl.compiler.library.effects;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
@@ -18,6 +19,7 @@ import net.gvgai.vgdl.sprites.VGDLSprite;
 
 public class PullWithIt extends BaseEffect {
     private static final String PULL_WITH_IT = "pullWithIt";
+    private static final Logger LOGGER = Logger.getLogger( PullWithIt.class.getName() );
 
     public PullWithIt( VGDLCompiler context, Type my, Type[] others, String... parameters ) {
         super( context, my, others, parameters );
@@ -28,7 +30,7 @@ public class PullWithIt extends BaseEffect {
         super.generate( vgdlCompiler, requiredFeatures, collisionMethodAdapter );
 
         //XXX
-        VGDLCompiler.generateLogMessage( myType.getClassName(), collisionMethodAdapter, "PullWithIt called" );
+        vgdlCompiler.generateLogMessage( myType.getClassName(), collisionMethodAdapter, "PullWithIt called" );
 
         final Type parentType = vgdlCompiler.getNonGeneratedParentType( myType );
         try {
@@ -55,7 +57,7 @@ public class PullWithIt extends BaseEffect {
 
         final GeneratedType otherGeneratedType = vgdlCompiler.getClassLoader().getGeneratedTypes().get( otherTypes[0] );
         if (otherGeneratedType.options.get( PULL_WITH_IT ) == null) {
-            System.out.println( "Injecting " + otherTypes[0] + " with \"PullWithIt\" listener" );
+            LOGGER.fine( "Injecting " + otherTypes[0] + " with \"PullWithIt\" listener" );
             final ClassWriter cw = otherGeneratedType.cw;
 
             //Add a set with things to pull

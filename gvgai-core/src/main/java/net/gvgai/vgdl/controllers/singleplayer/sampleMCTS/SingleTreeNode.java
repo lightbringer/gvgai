@@ -4,6 +4,7 @@ import java.util.Random;
 
 import net.gvgai.vgdl.game.GameState;
 import net.gvgai.vgdl.input.Action;
+import net.gvgai.vgdl.sprites.MovingAvatar;
 import net.gvgai.vgdl.tools.Utils;
 
 public class SingleTreeNode {
@@ -119,7 +120,11 @@ public class SingleTreeNode {
 
         final GameState nextState = state.copy();
         nextState.preFrame();
-        nextState.getAvatar().act( Action.values()[bestAction] );
+        nextState.update( 1 );
+        final MovingAvatar a = nextState.getAvatar();
+        if (a != null) {
+            nextState.getAvatar().act( Action.values()[bestAction] );
+        }
         nextState.postFrame();
 
         final SingleTreeNode tn = new SingleTreeNode( nextState, this, m_rnd );
@@ -222,7 +227,11 @@ public class SingleTreeNode {
 
             final int action = m_rnd.nextInt( Action.values().length );
             rollerState.preFrame();
-            rollerState.getAvatar().act( Action.values()[action] );
+            rollerState.update( 1 );
+            final MovingAvatar a = rollerState.getAvatar();
+            if (a != null) {
+                rollerState.getAvatar().act( Action.values()[action] );
+            }
             rollerState.postFrame();
             thisDepth++;
         }

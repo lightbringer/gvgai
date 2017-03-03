@@ -9,6 +9,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Iterator;
 import java.util.Vector;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -55,11 +56,15 @@ public class VGDL2Java extends Task {
 
     }
 
+    private final static Logger LOGGER = Logger.getLogger( VGDL2Java.class.getName() );
+
     private Input input;
 
     private Output output;
 
     private Path classpath;
+
+    private boolean generateDebugOutput;
 
     public void addClasspath( Path p ) {
         classpath = p;
@@ -91,7 +96,7 @@ public class VGDL2Java extends Task {
         final char c = gameName.charAt( 0 );
         if (!Character.isUpperCase( c )) {
             gameName = Character.toUpperCase( c ) + gameName.substring( 1 );
-            System.err.println( "Warning: changing game name to " + gameName );
+            LOGGER.warning( "Changing game name to " + gameName );
         }
         final VGDLCompiler compilerContext = load( gameName, new FileInputStream( inputFile ) );
         compilerContext.writeClassesToDisk( outputDir );
@@ -135,6 +140,10 @@ public class VGDL2Java extends Task {
         }
     }
 
+    public boolean isGenerateDebugOutput() {
+        return generateDebugOutput;
+    }
+
     public Class<? extends VGDLGame> loadIntoMemory( String name, InputStream input ) throws IOException {
 
         final VGDLCompiler compilerContext = load( name, input );
@@ -142,6 +151,10 @@ public class VGDL2Java extends Task {
 
         return compilerContext.getClasses().stream().filter( c -> VGDLGame.class.isAssignableFrom( c ) ).findFirst().get();
 
+    }
+
+    public void setGenerateDebugOutput( boolean generateDebugOutput ) {
+        this.generateDebugOutput = generateDebugOutput;
     }
 
     private VGDLCompiler load( String name, InputStream input ) throws IOException {
@@ -166,6 +179,7 @@ public class VGDL2Java extends Task {
         // Walk it and attach our listener
         final ParseTreeWalker walker = new ParseTreeWalker();
         final VGDLCompiler compilerContext = new VGDLCompiler( name, false );
+        compilerContext.setGenerateDebugOutput( generateDebugOutput );
         walker.walk( compilerContext, game );
 
         return compilerContext;

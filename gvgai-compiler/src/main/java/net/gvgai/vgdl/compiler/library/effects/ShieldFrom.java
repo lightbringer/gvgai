@@ -53,7 +53,7 @@ public class ShieldFrom extends BaseEffect {
         super.generate( vgdlCompiler, requiredFeatures, mg );
 
         //XXX
-        VGDLCompiler.generateLogMessage( myType.getClassName(), mg, "ShieldFrom called" );
+        vgdlCompiler.generateLogMessage( myType.getClassName(), mg, "ShieldFrom called" );
 
         final GeneratedType otherGeneratedType = stype;
         final GeneratedType myGeneratedType = vgdlCompiler.getClassLoader().getGeneratedTypes().get( myType );
@@ -87,10 +87,10 @@ public class ShieldFrom extends BaseEffect {
     public void postGeneration( VGDLCompiler vgdlCompiler, GeneratorAdapter method, Set<Feature> requiredFeatures, Effect ef ) {
         if (ftype.isAssignableFrom( ef.getClass() ) && ef.getOtherTypes()[0] == stype.type && ef.getMyType() == myType) {
             final Label l = method.newLabel();
-            VGDLCompiler.generateLogMessage( myType.getClassName(), method, myType + " was shielded NOT from " + ftype, Level.FINER );
+            vgdlCompiler.generateLogMessage( myType.getClassName(), method, myType + " was shielded NOT from " + ftype, Level.FINER );
             method.goTo( l );
             method.mark( unshieldedLabel );
-            VGDLCompiler.generateLogMessage( myType.getClassName(), method, myType + " was shielded from " + ftype, Level.FINER );
+            vgdlCompiler.generateLogMessage( myType.getClassName(), method, myType + " was shielded from " + ftype, Level.FINER );
             method.mark( l );
         }
 
