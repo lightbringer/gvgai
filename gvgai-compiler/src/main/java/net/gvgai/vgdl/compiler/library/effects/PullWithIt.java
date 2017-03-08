@@ -1,8 +1,8 @@
 package net.gvgai.vgdl.compiler.library.effects;
 
-import java.util.HashSet;
-import java.util.Iterator;
+import java.util.Arrays;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.objectweb.asm.ClassWriter;
@@ -14,12 +14,152 @@ import org.objectweb.asm.commons.Method;
 import net.gvgai.vgdl.VGDLRuntime.Feature;
 import net.gvgai.vgdl.compiler.GeneratedType;
 import net.gvgai.vgdl.compiler.VGDLCompiler;
+import net.gvgai.vgdl.game.GameMap;
 import net.gvgai.vgdl.sprites.Passive;
 import net.gvgai.vgdl.sprites.VGDLSprite;
 
 public class PullWithIt extends BaseEffect {
     private static final String PULL_WITH_IT = "pullWithIt";
+    private static final String PULL_WITH_IT_ADDED = "pullWithItAdded";
     private static final Logger LOGGER = Logger.getLogger( PullWithIt.class.getName() );
+    private static final String PULLER = "puller";
+
+    private static void createAddMethod( VGDLCompiler vgdlCompiler, Type type, Method addMethod, ClassWriter cw ) {
+//        if (sprites == null) {
+//            sprites = new VGDLSprite[] { s };
+//        }
+//        for (int i = 0; i < sprites.length; i++) {
+//            if (sprites[i] == null) {
+//                sprites[i] = s;
+//                return;
+//            }
+//        }
+//        sprites = Arrays.copyOf( sprites, sprites.length + 1 );
+//        sprites[sprites.length - 1] = s;
+        final GeneratorAdapter newAddMethod = new GeneratorAdapter( ACC_PUBLIC, addMethod, null, null, cw );
+        vgdlCompiler.generateLogMessage( type.getClassName(), newAddMethod, "pullWithItAdded", Level.FINEST );
+
+        newAddMethod.loadThis();
+        newAddMethod.getField( type, PULL_WITH_IT, Type.getType( VGDLSprite[].class ) );
+        final Label insertLabel = newAddMethod.newLabel();
+        newAddMethod.ifNonNull( insertLabel );
+        newAddMethod.loadThis();
+        newAddMethod.push( 1 );
+        newAddMethod.newArray( Type.getType( VGDLSprite.class ) );
+        newAddMethod.dup();
+        newAddMethod.push( 0 );
+        newAddMethod.loadArg( 0 );
+        newAddMethod.arrayStore( Type.getType( VGDLSprite.class ) );
+        newAddMethod.putField( type, PULL_WITH_IT, Type.getType( VGDLSprite[].class ) );
+        newAddMethod.returnValue();
+
+        newAddMethod.mark( insertLabel );
+        final int counter = newAddMethod.newLocal( Type.INT_TYPE );
+        newAddMethod.push( 0 );
+        newAddMethod.storeLocal( counter );
+        final Label testBlock = newAddMethod.newLabel();
+        newAddMethod.goTo( testBlock );
+        final Label block = newAddMethod.newLabel();
+        newAddMethod.mark( block );
+
+        newAddMethod.loadThis();
+        newAddMethod.getField( type, PULL_WITH_IT, Type.getType( VGDLSprite[].class ) );
+        newAddMethod.loadLocal( counter );
+        newAddMethod.arrayLoad( Type.getType( VGDLSprite.class ) );
+        final Label incrementBlock = newAddMethod.newLabel();
+        final Label nullBlock = newAddMethod.newLabel();
+        newAddMethod.dup();
+        newAddMethod.ifNonNull( nullBlock );
+        newAddMethod.loadThis();
+        newAddMethod.getField( type, PULL_WITH_IT, Type.getType( VGDLSprite[].class ) );
+        newAddMethod.loadLocal( counter );
+        newAddMethod.loadArg( 0 );
+        newAddMethod.arrayStore( Type.getType( VGDLSprite.class ) );
+        newAddMethod.returnValue();
+
+        newAddMethod.mark( nullBlock );
+        newAddMethod.pop();
+        newAddMethod.mark( incrementBlock );
+        newAddMethod.iinc( counter, 1 );
+        newAddMethod.mark( testBlock );
+        newAddMethod.loadLocal( counter );
+        newAddMethod.loadThis();
+        newAddMethod.getField( type, PULL_WITH_IT, Type.getType( VGDLSprite[].class ) );
+        newAddMethod.arrayLength();
+        newAddMethod.ifCmp( Type.INT_TYPE, GeneratorAdapter.LT, block );
+
+        newAddMethod.loadThis();
+        newAddMethod.dup();
+        newAddMethod.getField( type, PULL_WITH_IT, Type.getType( VGDLSprite[].class ) );
+        newAddMethod.dup();
+        newAddMethod.arrayLength();
+        newAddMethod.push( 1 );
+        newAddMethod.math( GeneratorAdapter.ADD, Type.INT_TYPE );
+        newAddMethod.invokeStatic( Type.getType( Arrays.class ), Method.getMethod( "Object[] copyOf(Object[], int)" ) );
+        newAddMethod.checkCast( Type.getType( VGDLSprite[].class ) );
+        newAddMethod.putField( type, PULL_WITH_IT, Type.getType( VGDLSprite[].class ) );
+
+        newAddMethod.loadThis();
+        newAddMethod.getField( type, PULL_WITH_IT, Type.getType( VGDLSprite[].class ) );
+        newAddMethod.loadLocal( counter );
+        newAddMethod.loadArg( 0 );
+        newAddMethod.arrayStore( Type.getType( VGDLSprite.class ) );
+        newAddMethod.returnValue();
+        newAddMethod.endMethod();
+    }
+
+    private static void createRemoveMethod( VGDLCompiler vgdlCompiler, Type type, Method removeMethod, ClassWriter cw ) {
+//        for (int i = 0; i < sprites.length; i++) {
+//            if (sprites[i] == s) {
+//                sprites[i] = null;
+//                return;
+//            }
+//        }
+        final GeneratorAdapter newRemoveMethod = new GeneratorAdapter( ACC_PUBLIC, removeMethod, null, null, cw );
+        vgdlCompiler.generateLogMessage( type.getClassName(), newRemoveMethod, "pullWithItRemoved", Level.FINEST );
+        final int counter = newRemoveMethod.newLocal( Type.INT_TYPE );
+        newRemoveMethod.push( 0 );
+        newRemoveMethod.storeLocal( counter );
+
+        final Label testBlock = newRemoveMethod.newLabel();
+        newRemoveMethod.goTo( testBlock );
+
+        final Label block = newRemoveMethod.newLabel();
+        newRemoveMethod.mark( block );
+        newRemoveMethod.loadThis();
+        newRemoveMethod.getField( type, PULL_WITH_IT, Type.getType( VGDLSprite[].class ) );
+        newRemoveMethod.loadLocal( counter );
+        newRemoveMethod.arrayLoad( Type.getType( VGDLSprite.class ) );
+        newRemoveMethod.loadArg( 0 );
+        final Label spriteFound = newRemoveMethod.newLabel();
+        newRemoveMethod.ifCmp( Type.getType( VGDLSprite.class ), GeneratorAdapter.EQ, spriteFound );
+        final Label incrementBlock = newRemoveMethod.newLabel();
+        newRemoveMethod.goTo( incrementBlock );
+
+        newRemoveMethod.mark( spriteFound );
+        newRemoveMethod.loadThis();
+        newRemoveMethod.getField( type, PULL_WITH_IT, Type.getType( VGDLSprite[].class ) );
+        newRemoveMethod.loadLocal( counter );
+        newRemoveMethod.push( (String) null );
+        newRemoveMethod.arrayStore( Type.getType( VGDLSprite.class ) );
+        newRemoveMethod.returnValue();
+
+        newRemoveMethod.mark( incrementBlock );
+        newRemoveMethod.iinc( counter, 1 );
+
+        newRemoveMethod.mark( testBlock );
+        newRemoveMethod.loadLocal( counter );
+        newRemoveMethod.loadThis();
+        newRemoveMethod.getField( type, PULL_WITH_IT, Type.getType( VGDLSprite[].class ) );
+        newRemoveMethod.arrayLength();
+        newRemoveMethod.ifCmp( Type.INT_TYPE, GeneratorAdapter.LT, block );
+
+        vgdlCompiler.generateLogMessage( type.getClassName(), newRemoveMethod, "removePullWIthIt found no match to remove", Level.WARNING );
+
+        newRemoveMethod.returnValue();
+        newRemoveMethod.endMethod();
+
+    }
 
     public PullWithIt( VGDLCompiler context, Type my, Type[] others, String... parameters ) {
         super( context, my, others, parameters );
@@ -53,7 +193,7 @@ public class PullWithIt extends BaseEffect {
 
         final Method addMethod = Method.getMethod( "void addToPull(" + VGDLSprite.class.getName() + ")" );
         final Method removeMethod = Method.getMethod( "void removeFromPull(" + VGDLSprite.class.getName() + ")" );
-        final Method moveMethod = Method.getMethod( "void move(Object )" );
+        final Method moveMethod = Method.getMethod( "void move(" + GameMap.class.getName() + ", Object )" );
 
         final GeneratedType otherGeneratedType = vgdlCompiler.getClassLoader().getGeneratedTypes().get( otherTypes[0] );
         if (otherGeneratedType.options.get( PULL_WITH_IT ) == null) {
@@ -61,122 +201,124 @@ public class PullWithIt extends BaseEffect {
             final ClassWriter cw = otherGeneratedType.cw;
 
             //Add a set with things to pull
-            cw.visitField( ACC_PRIVATE, PULL_WITH_IT, "L" + Type.getType( Set.class ).getInternalName() + ";", null, null );
+            cw.visitField( ACC_PRIVATE, PULL_WITH_IT, "[L" + Type.getType( VGDLSprite.class ).getInternalName() + ";", null, null );
             otherGeneratedType.options.put( PULL_WITH_IT, "true" );
 
-            //Add the initializer to the constructor
-            final GeneratorAdapter otherConstructor = otherGeneratedType.methods.get( VGDLCompiler.CONSTRUCTOR );
-            otherConstructor.loadThis();
-            otherConstructor.newInstance( Type.getType( HashSet.class ) );
-            otherConstructor.dup();
-            otherConstructor.invokeConstructor( Type.getType( HashSet.class ), Method.getMethod( "void <init> ()" ) );
-            otherConstructor.putField( otherTypes[0], PULL_WITH_IT, Type.getType( Set.class ) );
-
             //add add/remove methods
-            final GeneratorAdapter newAddMethod = new GeneratorAdapter( ACC_PUBLIC, addMethod, null, null, cw );
-//            VGDLCompiler.generateConsoleMessage( newAddMethod, "pullWithItAdded" );
-            newAddMethod.loadThis();
-            newAddMethod.getField( otherTypes[0], PULL_WITH_IT, Type.getType( Set.class ) );
-            newAddMethod.loadArg( 0 );
-            newAddMethod.invokeInterface( Type.getType( Set.class ), Method.getMethod( "boolean add(Object)" ) );
-            newAddMethod.returnValue();
-            newAddMethod.endMethod();
-
-            final GeneratorAdapter newRemoveMethod = new GeneratorAdapter( ACC_PUBLIC, removeMethod, null, null, cw );
-//            VGDLCompiler.generateConsoleMessage( newRemoveMethod, "pullWithItRemoved" );
-            newRemoveMethod.loadThis();
-            newRemoveMethod.getField( otherTypes[0], PULL_WITH_IT, Type.getType( Set.class ) );
-            newRemoveMethod.loadArg( 0 );
-            newRemoveMethod.invokeInterface( Type.getType( Set.class ), Method.getMethod( "boolean remove(Object)" ) );
-            newRemoveMethod.returnValue();
-            newRemoveMethod.endMethod();
+            createAddMethod( vgdlCompiler, otherTypes[0], addMethod, cw );
+            createRemoveMethod( vgdlCompiler, otherTypes[0], removeMethod, cw );
 
             //Override the move method
-            final GeneratorAdapter mv = new GeneratorAdapter( ACC_PUBLIC, moveMethod, null, null, cw );
-            mv.visitCode();
-//            VGDLCompiler.generateConsoleMessage( mv, "pulling moved called" );
-            final Label l0 = new Label();
-            mv.visitLabel( l0 );
-            mv.visitVarInsn( ALOAD, 0 );
-            mv.visitVarInsn( ALOAD, 1 );
-            mv.visitMethodInsn( INVOKESPECIAL, otherGeneratedType.parentType.getInternalName(), "move", "(Ljava/lang/Object;)V", false );
-            final Label l1 = new Label();
-            mv.visitLabel( l1 );
-            mv.visitVarInsn( ALOAD, 0 );
-            mv.visitFieldInsn( GETFIELD, otherTypes[0].getInternalName(), PULL_WITH_IT, "L" + Type.getInternalName( Set.class ) + ";" );
-            mv.visitMethodInsn( INVOKEINTERFACE, Type.getInternalName( Set.class ), "iterator", "()L" + Type.getInternalName( Iterator.class ) + ";", true );
-            mv.visitVarInsn( ASTORE, 3 );
-            final Label l2 = new Label();
-            mv.visitJumpInsn( GOTO, l2 );
-            final Label l3 = new Label();
-            mv.visitLabel( l3 );
-            mv.visitFrame( F_NEW, 4, new Object[] { "A", "java/lang/Object", TOP, Type.getInternalName( Iterator.class ) }, 0, new Object[] {} );
-            mv.visitVarInsn( ALOAD, 3 );
-            mv.visitMethodInsn( INVOKEINTERFACE, Type.getInternalName( Iterator.class ), "next", "()Ljava/lang/Object;", true );
-            mv.visitTypeInsn( CHECKCAST, Type.getInternalName( Passive.class ) );
-            mv.visitVarInsn( ASTORE, 2 );
-            final Label l4 = new Label();
-            mv.visitLabel( l4 );
-            mv.visitVarInsn( ALOAD, 2 );
-            mv.visitVarInsn( ALOAD, 1 );
-            mv.visitMethodInsn( INVOKEVIRTUAL, Type.getInternalName( Passive.class ), "move", "(Ljava/lang/Object;)V", false );
-            mv.visitLabel( l2 );
-            mv.visitFrame( F_NEW, 0, null, 0, null );
-            mv.visitVarInsn( ALOAD, 3 );
-            mv.visitMethodInsn( INVOKEINTERFACE, Type.getInternalName( Iterator.class ), "hasNext", "()Z", true );
-            mv.visitJumpInsn( IFNE, l3 );
-            final Label l5 = new Label();
-            mv.visitLabel( l5 );
-            mv.visitInsn( RETURN );
-            final Label l6 = new Label();
-            mv.visitLabel( l6 );
-            mv.visitLocalVariable( "this", "LA;", null, l0, l6, 0 );
-            mv.visitLocalVariable( "o", "Ljava/lang/Object;", null, l0, l6, 1 );
-            mv.visitLocalVariable( "p", "L" + Type.getInternalName( Passive.class ) + ";", null, l4, l2, 2 );
-            mv.visitMaxs( 2, 4 );
-            mv.visitEnd();
+            final GeneratorAdapter mv = vgdlCompiler.getMethod( otherGeneratedType, VGDLCompiler.MOVE );
+            vgdlCompiler.generateLogMessage( otherTypes[0].getClassName(), mv, "moveWithPull called", Level.FINEST );
 
-            //TODO implement what happens when puller is removed
+            final int counter = mv.newLocal( Type.INT_TYPE );
+            mv.push( 0 );
+            mv.storeLocal( counter );
+            final Label testBlock = mv.newLabel();
+            mv.goTo( testBlock );
+            ;
+            final Label block = mv.newLabel();
+            mv.mark( block );
 
+            final Label incrementBlock = mv.newLabel();
+            mv.loadThis();
+            mv.getField( otherTypes[0], PULL_WITH_IT, Type.getType( VGDLSprite[].class ) );
+            mv.loadLocal( counter );
+            mv.arrayLoad( Type.getType( VGDLSprite.class ) );
+            mv.dup();
+            final Label nullBlock = mv.newLabel();
+            mv.ifNull( nullBlock );
+            vgdlCompiler.generateLogMessage( otherTypes[0].getClassName(), mv, "Pulling another object", Level.FINEST );
+            mv.checkCast( Type.getType( Passive.class ) );
+            mv.loadArgs();
+            mv.invokeVirtual( Type.getType( Passive.class ), moveMethod );
+            mv.goTo( incrementBlock );
+            mv.mark( nullBlock );
+            mv.pop();
+            mv.mark( incrementBlock );
+            mv.iinc( counter, 1 );
+            mv.mark( testBlock );
+            mv.loadLocal( counter );
+            mv.loadThis();
+            mv.getField( otherTypes[0], PULL_WITH_IT, Type.getType( VGDLSprite[].class ) );
+            mv.arrayLength();
+            mv.ifCmp( Type.INT_TYPE, GeneratorAdapter.LT, block );
+
+            //The puller's setup method has to copy all the references in the set
+            final GeneratorAdapter setupMethod = vgdlCompiler.getMethod( otherGeneratedType, VGDLCompiler.SETUP );
+            setupMethod.loadThis();
+            setupMethod.getField( otherTypes[0], PULL_WITH_IT, Type.getType( VGDLSprite[].class ) );
+            final Label spritesNullLabel = setupMethod.newLabel();
+            setupMethod.ifNull( spritesNullLabel );
+
+            setupMethod.loadArg( 0 );
+            setupMethod.checkCast( otherTypes[0] );
+            setupMethod.loadThis();
+            setupMethod.getField( otherTypes[0], PULL_WITH_IT, Type.getType( VGDLSprite[].class ) );
+            setupMethod.dup();
+            setupMethod.arrayLength();
+            setupMethod.invokeStatic( Type.getType( Arrays.class ), Method.getMethod( "Object[] copyOf(Object[], int)" ) );
+            setupMethod.checkCast( Type.getType( VGDLSprite[].class ) );
+
+            setupMethod.putField( otherTypes[0], PULL_WITH_IT, Type.getType( VGDLSprite[].class ) );
+
+            setupMethod.mark( spritesNullLabel );
         }
 
-//        VGDLCompiler.generateConsoleMessage( mg, "Will add " + myType + " to be pulled by " + otherTypes[0] );
+        vgdlCompiler.generateLogMessage( myType.getClassName(), collisionMethodAdapter, "Will add " + myType + " to be pulled by " + otherTypes[0],
+                        Level.FINE );
         final GeneratedType myGeneratedType = vgdlCompiler.getClassLoader().getGeneratedTypes().get( myType );
-        myGeneratedType.cw.visitField( ACC_PRIVATE, "puller", "L" + otherTypes[0].getInternalName() + ";", null, null );
+        myGeneratedType.cw.visitField( ACC_PRIVATE, PULLER, "L" + Type.getType( Passive.class ).getInternalName() + ";", null, null );
+        myGeneratedType.cw.visitField( ACC_PRIVATE, PULL_WITH_IT_ADDED, "Z", null, null );
+
+        collisionMethodAdapter.loadThis();
+        collisionMethodAdapter.push( true );
+        collisionMethodAdapter.putField( myType, PULL_WITH_IT_ADDED, Type.BOOLEAN_TYPE );
+
         collisionMethodAdapter.loadThis();
         collisionMethodAdapter.loadArg( 1 );
 
-        collisionMethodAdapter.putField( myType, "puller", otherTypes[0] );
+        collisionMethodAdapter.putField( myType, PULLER, Type.getType( Passive.class ) );
         collisionMethodAdapter.loadArg( 1 );
         collisionMethodAdapter.loadThis();
         collisionMethodAdapter.invokeVirtual( otherTypes[0], addMethod );
 
-        //TODO unify move methods
         //Override the move method of myType to reset the puller/pullee connection if 'this' is moved
-        final GeneratorAdapter moveMethodAdapter = new GeneratorAdapter( ACC_PUBLIC, moveMethod, null, null, myGeneratedType.cw );
+        //But only if the "super.move" didn't just trigger a new connection
+        final GeneratorAdapter moveMethodAdapter = vgdlCompiler.getMethod( myGeneratedType, VGDLCompiler.MOVE );
         final Label noPuller = new Label();
 
         moveMethodAdapter.loadThis();
-        moveMethodAdapter.getField( myType, "puller", otherTypes[0] );
+        moveMethodAdapter.getField( myType, PULL_WITH_IT_ADDED, Type.BOOLEAN_TYPE );
+        moveMethodAdapter.visitJumpInsn( IFNE, noPuller );
+
+        moveMethodAdapter.loadThis();
+        moveMethodAdapter.getField( myType, PULLER, Type.getType( Passive.class ) );
         moveMethodAdapter.visitJumpInsn( IFNULL, noPuller );
 
         moveMethodAdapter.loadThis();
-        moveMethodAdapter.getField( myType, "puller", otherTypes[0] );
+        moveMethodAdapter.getField( myType, PULLER, Type.getType( Passive.class ) );
+        moveMethodAdapter.checkCast( otherTypes[0] );
         moveMethodAdapter.loadThis();
         moveMethodAdapter.invokeVirtual( otherTypes[0], removeMethod );
 
         moveMethodAdapter.loadThis();
         moveMethodAdapter.visitInsn( ACONST_NULL );
-        moveMethodAdapter.putField( myType, "puller", otherTypes[0] );
+        moveMethodAdapter.putField( myType, "puller", Type.getType( Passive.class ) );
         moveMethodAdapter.mark( noPuller );
 
-        //Call super
         moveMethodAdapter.loadThis();
-        moveMethodAdapter.loadArgs();
-        moveMethodAdapter.visitMethodInsn( INVOKESPECIAL, myGeneratedType.parentType.getInternalName(), "move", "(Ljava/lang/Object;)V", false );
+        moveMethodAdapter.push( false );
+        moveMethodAdapter.putField( myType, PULL_WITH_IT_ADDED, Type.BOOLEAN_TYPE );
 
-        moveMethodAdapter.returnValue();
-        moveMethodAdapter.endMethod();
+        //Now instruct the setup method to copy the puller
+        final GeneratorAdapter setupMethod = vgdlCompiler.getMethod( myGeneratedType, VGDLCompiler.SETUP );
+        setupMethod.loadArg( 0 );
+        setupMethod.checkCast( myType );
+        setupMethod.loadThis();
+        setupMethod.getField( myType, PULLER, Type.getType( Passive.class ) );
+        setupMethod.putField( myType, PULLER, Type.getType( Passive.class ) );
     }
 
 }

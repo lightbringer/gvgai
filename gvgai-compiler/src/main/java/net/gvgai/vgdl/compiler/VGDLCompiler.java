@@ -74,6 +74,10 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
     private static final Logger LOGGER = Logger.getLogger( VGDLCompiler.class.getName() );
 
+    public static final String SETUP = "setup";
+
+    public static final String MOVE = "move";
+
     public static String formatClassName( String name ) {
         if (Character.isUpperCase( name.codePointAt( 0 ) )) {
             return name;
@@ -724,6 +728,25 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         return packageName;
     }
 
+    public GeneratorAdapter getMethod( GeneratedType generatedType, String name ) {
+        GeneratorAdapter ret = generatedType.methods.get( name );
+        if (ret == null) {
+            switch (name) {
+                case POST_FRAME:
+                    ret = generatePostFrameMethod( generatedType.cw, generatedType.type, generatedType.parentType );
+                    break;
+                case SETUP:
+                    ret = generateSetupMethod( generatedType.cw, generatedType.type, generatedType.parentType );
+                    break;
+                case MOVE:
+                    ret = generateMoveMethod( generatedType.cw, generatedType.type, generatedType.parentType );
+                    break;
+            }
+            generatedType.methods.put( name, ret );
+        }
+        return ret;
+    }
+
     public Type getNonGeneratedParentType( Object spriteType ) {
         GeneratedType g = classLoader.getGeneratedTypes().get( spriteType );
         Type parentType = null;
@@ -795,7 +818,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         mg.endMethod();
 
         return classId;
-    };
+    }
 
     private void generateCollideMethod( Type actorType, GeneratorAdapter m, int argIndex, Map<Type[], GeneratedType.GeneratedInteraction> map, int[] locals ) {
         final Map<Type, Map<Type[], GeneratedType.GeneratedInteraction>> reducedMap = new HashMap<>();
@@ -899,7 +922,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
         /* At this point none of the if-instanceof blocks triggered a return, so the call will be delegated to the parent's collide method */
 
-    }
+    };
 
     private void generateCopyMethod( ClassWriter spcw, Type spriteType, Type parentType ) {
         final Method m = Method.getMethod( VGDLSprite.class.getName() + " copy ()" );
@@ -916,11 +939,30 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         mg.loadLocal( ret );
 
         final Method setup = Method.getMethod( "void setup (" + VGDLSprite.class.getName() + ")" );
-        mg.invokeVirtual( parentType, setup );
+        mg.invokeVirtual( spriteType, setup );
 
         mg.loadLocal( ret );
         mg.returnValue();
         mg.endMethod();
+    }
+
+    private GeneratorAdapter generateMoveMethod( ClassWriter cw, Type type, Type parentType ) {
+        final Method moveMethod = Method.getMethod( "void move(" + GameMap.class.getName() + ", Object )" );
+
+        final GeneratorAdapter ret = new GeneratorAdapter( ACC_PUBLIC, moveMethod, null, null, cw );
+        ret.loadThis();
+        ret.loadArgs();
+        ret.invokeConstructor( parentType, moveMethod );
+        return ret;
+    }
+
+    private GeneratorAdapter generatePostFrameMethod( ClassWriter cw, Type type, Type parentType ) {
+
+        final GeneratorAdapter postFrameMethod = new GeneratorAdapter( ACC_PUBLIC, Method.getMethod( "void postFrame()" ), null, null, cw );
+        postFrameMethod.loadThis();
+        postFrameMethod.visitMethodInsn( INVOKESPECIAL, parentType.getInternalName(), "postFrame", "()V", false );
+        return postFrameMethod;
+
     }
 
     private void generateSetField( GeneratorAdapter mg, Type spriteType, String key, String value ) {
@@ -989,6 +1031,15 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         catch (final ClassNotFoundException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
             throw new RuntimeException( e );
         }
+    }
+
+    private GeneratorAdapter generateSetupMethod( ClassWriter spcw, Type spriteType, Type parentType ) {
+        final Method m = Method.getMethod( "void setup(" + VGDLSprite.class.getName() + ")" );
+        final GeneratorAdapter ga = new GeneratorAdapter( ACC_PUBLIC, m, null, null, spcw );
+        ga.loadThis();
+        ga.loadArgs();
+        ga.invokeConstructor( parentType, m );
+        return ga;
     }
 
     private Effect getEffectForName( String text, Type actorType, Type[] otherTypes, List<OptionContext> list ) {

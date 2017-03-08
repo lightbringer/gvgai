@@ -8,7 +8,6 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
-import org.objectweb.asm.commons.Method;
 
 import net.gvgai.vgdl.VGDLRuntime.Feature;
 import net.gvgai.vgdl.compiler.GeneratedType;
@@ -69,13 +68,8 @@ public class ShieldFrom extends BaseEffect {
         mg.putField( myType, flagName, Type.BOOLEAN_TYPE );
 
         //inject unshield to update
-        GeneratorAdapter postFrameMethod = myGeneratedType.methods.get( VGDLCompiler.POST_FRAME );
-        if (postFrameMethod == null) {
-            postFrameMethod = new GeneratorAdapter( ACC_PUBLIC, Method.getMethod( "void postFrame()" ), null, null, myGeneratedType.cw );
-            postFrameMethod.loadThis();
-            postFrameMethod.visitMethodInsn( INVOKESPECIAL, myGeneratedType.parentType.getInternalName(), "postFrame", "()V", false );
-            myGeneratedType.methods.put( VGDLCompiler.UPDATE, postFrameMethod );
-        }
+        final GeneratorAdapter postFrameMethod = vgdlCompiler.getMethod( myGeneratedType, VGDLCompiler.POST_FRAME );
+
         postFrameMethod.loadThis();
         postFrameMethod.push( false );
         postFrameMethod.putField( myType, flagName, Type.BOOLEAN_TYPE );

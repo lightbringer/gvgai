@@ -16,6 +16,7 @@ import javax.swing.JPanel;
 
 import net.gvgai.vgdl.VGDLRuntime;
 import net.gvgai.vgdl.controllers.singleplayer.sampleMCTS.Agent;
+import net.gvgai.vgdl.game.GameState;
 import net.gvgai.vgdl.game.GameState2D;
 import net.gvgai.vgdl.game.VGDLGame;
 import net.gvgai.vgdl.input.Action;
@@ -28,16 +29,16 @@ import net.gvgai.vgdl.sprites.VGDLSprite;
 public class RuntimeSwing implements VGDLRuntime {
     public static void main( String[] args ) throws IOException, ClassNotFoundException {
 //      final Class<? extends VGDLGame> gameClass = VGDL2Java.loadIntoMemory( "Sokoban", VGDL2Java.class.getResource( "sokoban.txt" ).openStream() );
-        final Class<? extends VGDLGame> gameClass = (Class<? extends VGDLGame>) Class.forName( "net.gvgai.game.frogs.Frogs" );
+//        final Class<? extends VGDLGame> gameClass = (Class<? extends VGDLGame>) Class.forName( "net.gvgai.game.frogs.Frogs" );
 //        final Class<? extends VGDLGame> gameClass = (Class<? extends VGDLGame>) Class.forName( "net.gvgai.game.sokoban.Sokoban" );
 //        final Class<? extends VGDLGame> gameClass = Minimal.class;
-//        final Class<? extends VGDLGame> gameClass = (Class<? extends VGDLGame>) Class.forName( "se.lu.lucs.vgdl.manualminimal.Minimal" );
+        final Class<? extends VGDLGame> gameClass = (Class<? extends VGDLGame>) Class.forName( "net.gvgai.game.minimal.Minimal" );
         final ServiceLoader<VGDLRuntime> loader = ServiceLoader.load( VGDLRuntime.class );
         final VGDLRuntime runtime = loader.iterator().next();
         runtime.loadGame( gameClass );
-        runtime.loadLevel( gameClass.getResourceAsStream( "/frogs_lvl0.txt" ) );
+//        runtime.loadLevel( gameClass.getResourceAsStream( "/frogs_lvl0.txt" ) );
 //        runtime.loadLevel( gameClass.getResourceAsStream( "/sokoban_lvl0.txt" ) );
-//        runtime.loadLevel( Minimal.class.getResourceAsStream( "/minimal_lvl0.txt" ) );
+        runtime.loadLevel( gameClass.getResourceAsStream( "/minimal_lvl0.txt" ) );
         runtime.run();
     }
 
@@ -247,9 +248,9 @@ public class RuntimeSwing implements VGDLRuntime {
 
             time = System.currentTimeMillis();
 
-//            if (controller instanceof EventKeyHandler) {
-//                game.setGameState( (GameState) game.getGameState().copy() );
-//            }
+            if (controller instanceof EventKeyHandler) {
+                game.setGameState( (GameState) game.getGameState().copy() );
+            }
 
             try {
                 Thread.sleep( 200 );

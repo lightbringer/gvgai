@@ -70,7 +70,8 @@ public abstract class VGDLSprite implements Copyable<VGDLSprite> {
     public void OnOutOfBounds( GameState state ) {
 //        //Set the sprite back to its original position without triggering a new collision
 //        map.set( position, this );
-        throw new IllegalStateException( "FIXME: no default policy for out of bound sprites" );
+
+//        throw new IllegalStateException( "FIXME: no default policy for out of bound sprites" );
     }
 
     public void postFrame() {

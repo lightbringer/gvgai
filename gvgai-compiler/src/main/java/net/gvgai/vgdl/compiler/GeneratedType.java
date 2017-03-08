@@ -27,7 +27,7 @@ public class GeneratedType {
     public Type parentType;
     public final ClassWriter cw;
     public final Map<String, GeneratedInteraction> definedInteractions;
-    public final Map<String, GeneratorAdapter> methods;
+    final Map<String, GeneratorAdapter> methods;
     public Class<?> clazz;
     public int classId;
     public final Map<String, String> options;

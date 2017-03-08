@@ -8,6 +8,7 @@ import org.objectweb.asm.commons.Method;
 
 import net.gvgai.vgdl.VGDLRuntime.Feature;
 import net.gvgai.vgdl.compiler.VGDLCompiler;
+import net.gvgai.vgdl.game.GameMap;
 import net.gvgai.vgdl.sprites.Passive;
 
 public class StepBack extends BaseEffect {
@@ -22,10 +23,11 @@ public class StepBack extends BaseEffect {
         super.generate( vgdlCompiler, requiredFeatures, mg );
         vgdlCompiler.generateLogMessage( myType.getClassName(), mg, "Step back!" );
         mg.loadThis();
+        mg.loadArg( 0 );
         mg.loadThis();
         final Method getDir = Method.getMethod( "Object reverseDirection( )" );
         mg.invokeVirtual( Type.getType( Passive.class ), getDir );
-        final Method move = Method.getMethod( "void move(Object)" );
+        final Method move = Method.getMethod( "void move(" + GameMap.class.getName() + ", Object)" );
         mg.invokeVirtual( Type.getType( Passive.class ), move );
     }
 
