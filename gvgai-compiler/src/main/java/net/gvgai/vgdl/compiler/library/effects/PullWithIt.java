@@ -144,10 +144,10 @@ public class PullWithIt extends BaseEffect {
         final GeneratedType myGeneratedType = vgdlCompiler.getClassLoader().getGeneratedTypes().get( myType );
         myGeneratedType.cw.visitField( ACC_PRIVATE, "puller", "L" + otherTypes[0].getInternalName() + ";", null, null );
         collisionMethodAdapter.loadThis();
-        collisionMethodAdapter.loadArg( 0 );
+        collisionMethodAdapter.loadArg( 1 );
 
         collisionMethodAdapter.putField( myType, "puller", otherTypes[0] );
-        collisionMethodAdapter.loadArg( 0 );
+        collisionMethodAdapter.loadArg( 1 );
         collisionMethodAdapter.loadThis();
         collisionMethodAdapter.invokeVirtual( otherTypes[0], addMethod );
 
@@ -172,7 +172,7 @@ public class PullWithIt extends BaseEffect {
 
         //Call super
         moveMethodAdapter.loadThis();
-        moveMethodAdapter.loadArg( 0 );
+        moveMethodAdapter.loadArgs();
         moveMethodAdapter.visitMethodInsn( INVOKESPECIAL, myGeneratedType.parentType.getInternalName(), "move", "(Ljava/lang/Object;)V", false );
 
         moveMethodAdapter.returnValue();

@@ -24,7 +24,8 @@ public class Minimal extends BasicGame {
 
     @Override
     public Feature[] getRequiredFeatures() {
-        return new Feature[0];
+        return new Feature[] { Feature.PRE_BUFFER_FRAME };
+//        return new Feature[] {};
     }
 
     @Override

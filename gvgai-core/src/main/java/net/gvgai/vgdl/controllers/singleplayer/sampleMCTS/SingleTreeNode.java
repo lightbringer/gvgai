@@ -123,7 +123,7 @@ public class SingleTreeNode {
         nextState.update( 1 );
         final MovingAvatar a = nextState.getAvatar();
         if (a != null) {
-            nextState.getAvatar().act( Action.values()[bestAction] );
+            a.act( nextState.getLevel(), Action.values()[bestAction] );
         }
         nextState.postFrame();
 
@@ -230,7 +230,7 @@ public class SingleTreeNode {
             rollerState.update( 1 );
             final MovingAvatar a = rollerState.getAvatar();
             if (a != null) {
-                rollerState.getAvatar().act( Action.values()[action] );
+                a.act( rollerState.getLevel(), Action.values()[action] );
             }
             rollerState.postFrame();
             thisDepth++;
@@ -303,7 +303,8 @@ public class SingleTreeNode {
         double rawScore = a_gameState.getScore();
 
         //FIXME
-        final boolean win = rawScore == 3.0;
+        final boolean win = rawScore > 0;
+
         if (gameOver && !win) {
             rawScore += HUGE_NEGATIVE;
         }

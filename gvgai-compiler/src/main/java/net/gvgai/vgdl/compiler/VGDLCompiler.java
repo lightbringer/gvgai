@@ -84,13 +84,15 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
     }
 
     public static void generateGetGameMap( GeneratorAdapter mg ) {
-        mg.loadThis();
-        mg.getField( Type.getType( VGDLSprite.class ), "map", Type.getType( GameMap.class ) );
+        generateGetGameStat( mg );
+        final Method method = Method.getMethod( GameMap.class.getName() + " getLevel()" );
+        mg.invokeInterface( Type.getType( GameState.class ), method );
+
     }
 
     public static void generateGetGameStat( GeneratorAdapter mg ) {
-        mg.loadThis();
-        mg.getField( Type.getType( VGDLSprite.class ), "state", Type.getType( GameState.class ) );
+        mg.loadArg( 0 );
+
     }
 
     private static Field getField( Class<?> clazz, String name ) {
@@ -235,10 +237,11 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
             GeneratorAdapter mg = actorType.methods.get( ON_BOUNDARY );
             if (mg == null) {
-                final Method m = Method.getMethod( "void OnOutOfBounds ()" );
+                final Method m = Method.getMethod( "void OnOutOfBounds (" + GameState.class.getName() + ")" );
                 mg = new GeneratorAdapter( ACC_PUBLIC, m, null, null, actorType.cw );
                 //Call super
                 mg.loadThis();
+                mg.loadArgs();
                 mg.visitMethodInsn( INVOKESPECIAL, actorType.parentType.getInternalName(), m.getName(), m.getDescriptor(), false );
                 actorType.methods.put( ON_BOUNDARY, mg );
             }
@@ -265,7 +268,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
             LOGGER.fine( "Setting interaction " + actorType.type + " -> " + otherTypes.stream().map( gt -> gt.type ).collect( Collectors.toList() ) );
 
-            String signature = "void collide (";
+            String signature = "void collide (" + GameState.class.getName() + ", ";
             for (int i = 0; i < otherTypes.size(); i++) {
                 signature += otherTypes.get( i ).type.getClassName();
                 if (i < otherTypes.size() - 1) {
@@ -453,6 +456,26 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
     @Override
     public void exitGame( GameContext ctx ) {
+        //First close all methods for the sprite classes
+        for (final GeneratedType g : classLoader.getGeneratedTypes().values()) {
+            if (g.type == gameType) {
+                continue;
+            }
+            for (final Map.Entry<String, GeneratorAdapter> e : g.methods.entrySet()) {
+                //Special case for onBoundary
+                if (e.getKey().equals( ON_BOUNDARY )) {
+                    requiredFeatures.add( Feature.OBEY_END_OF_BOUNDARIES );
+                    LOGGER.fine( g.type + " has OnBoundaryMethod" );
+                }
+                final GeneratorAdapter ga = e.getValue();
+                ga.returnValue();
+                ga.endMethod();
+            }
+
+            //That's all folks
+            g.cw.visitEnd();
+        }
+
         final ClassWriter cw = classLoader.getGeneratedTypes().get( gameType ).cw;
         cw.visitField( ACC_STATIC | ACC_FINAL | ACC_PRIVATE, "REQUIRED_FEATURES", "[Lnet/gvgai/vgdl/VGDLRuntime$Feature;", null, null );
         final Type at = Type.getType( Array.class );
@@ -463,6 +486,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         staticblock.newArray( Type.getType( Feature.class ) );
         staticblock.storeLocal( array );
         int i = 0;
+
         for (final Feature f : requiredFeatures) {
             staticblock.loadLocal( array );
             staticblock.push( i );
@@ -485,31 +509,12 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
         cw.visitEnd();
 
-        //Also close all methods for the sprite classes
-        for (final GeneratedType g : classLoader.getGeneratedTypes().values()) {
-            if (g.type == gameType) {
-                continue;
-            }
-            for (final Map.Entry<String, GeneratorAdapter> e : g.methods.entrySet()) {
-                //Special case for onBoundary
-                if (e.getKey().equals( ON_BOUNDARY )) {
-                    requiredFeatures.add( Feature.OBEY_END_OF_BOUNDARIES );
-                    LOGGER.fine( g.type + " has OnBoundaryMethod" );
-                }
-                final GeneratorAdapter ga = e.getValue();
-                ga.returnValue();
-                ga.endMethod();
-            }
-
-            //That's all folks
-            g.cw.visitEnd();
-        }
     }
 
     @Override
     public void exitInteraction_set( Interaction_setContext ctx ) {
         //now implement the abstract lookup method
-        final Method overLoadMethod = Method.getMethod( "void collide (" + VGDLSprite.class.getName() + "[])" );
+        final Method overLoadMethod = Method.getMethod( "void collide (" + GameState.class.getName() + ", " + VGDLSprite.class.getName() + "[])" );
         for (final Map.Entry<Type, GeneratedType> e : classLoader.getGeneratedTypes().entrySet()) {
             if (e.getKey().equals( gameType )) {
                 continue;
@@ -538,7 +543,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
             }
 
             m.loadThis();
-            m.loadArg( 0 );
+            m.loadArgs();
             m.visitMethodInsn( INVOKESPECIAL, parentType.getInternalName(), overLoadMethod.getName(), overLoadMethod.getDescriptor(), false );
             m.returnValue();
             m.endMethod();
@@ -663,7 +668,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
         //Call the game state's setter and store the outcome there
         currentMethod.loadThis();
-        final Method getGameState = Method.getMethod( "net.gvgai.vgdl.game.GameState getGameState()" );
+        final Method getGameState = Method.getMethod( GameState.class.getName() + " getGameState()" );
         currentMethod.invokeInterface( Type.getType( VGDLGame.class ), getGameState );
         currentMethod.loadLocal( ret );
         final Method setGameOver = Method.getMethod( "void setGameOver(boolean)" );
@@ -790,7 +795,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         mg.endMethod();
 
         return classId;
-    }
+    };
 
     private void generateCollideMethod( Type actorType, GeneratorAdapter m, int argIndex, Map<Type[], GeneratedType.GeneratedInteraction> map, int[] locals ) {
         final Map<Type, Map<Type[], GeneratedType.GeneratedInteraction>> reducedMap = new HashMap<>();
@@ -828,12 +833,12 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
             m.storeLocal( iLocal, Type.INT_TYPE );
             m.goTo( loopTest );
             m.mark( loopBlock );
-            m.loadArg( 0 );
+            m.loadArg( 1 );
             m.loadLocal( iLocal );
             m.arrayLoad( Type.getType( VGDLSprite.class ) );
             m.loadThis();
             m.ifCmp( Type.getType( VGDLSprite.class ), IFEQ, loopIncrement );
-            m.loadArg( 0 );
+            m.loadArg( 1 );
             m.loadLocal( iLocal, Type.INT_TYPE );
             m.arrayLoad( Type.getType( VGDLSprite.class ) );
             generateLogMessage( actorType.getClassName(), m, "Checking if argument is of type " + e.getKey(), Level.FINER );
@@ -857,7 +862,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
                 final Type[] argTypes = leafStatement.getValue().types;
                 generateLogMessage( actorType.getClassName(), m, actorType + "collides with " + Arrays.toString( argTypes ), Level.FINER );
 
-                String signature = "void collide(";
+                String signature = "void collide(" + GameState.class.getName() + ", ";
                 final Type[] signatureTypes = leafStatement.getValue().types;
                 for (int i = 0; i < signatureTypes.length; i++) {
                     signature += signatureTypes[i].getClassName();
@@ -868,8 +873,9 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
                 signature += ")";
 
                 m.loadThis();
+                m.loadArg( 0 );
                 for (int i = 0; i < argTypes.length; i++) {
-                    m.loadArg( 0 );
+                    m.loadArg( 1 );
                     m.loadLocal( newLocals[i] );
                     m.arrayLoad( Type.getType( VGDLSprite.class ) );
                     m.visitTypeInsn( CHECKCAST, argTypes[i].getInternalName() );
@@ -885,7 +891,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
             m.iinc( iLocal, 1 );
             m.mark( loopTest );
             m.loadLocal( iLocal );
-            m.loadArg( 0 );
+            m.loadArg( 1 );
             m.arrayLength();
             m.ifICmp( IFLT, loopBlock );
             m.mark( caseDone );
@@ -915,7 +921,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
         mg.loadLocal( ret );
         mg.returnValue();
         mg.endMethod();
-    };
+    }
 
     private void generateSetField( GeneratorAdapter mg, Type spriteType, String key, String value ) {
         final Type parentType = getNonGeneratedParentType( spriteType );

@@ -9,7 +9,9 @@ public class Goal extends Immovable {
 
     @Override
     public VGDLSprite copy() {
-        return new Goal();
+        final Goal g = new Goal();
+        setup( g );
+        return g;
     }
 
     @Override

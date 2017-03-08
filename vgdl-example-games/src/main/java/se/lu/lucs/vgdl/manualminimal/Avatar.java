@@ -1,6 +1,7 @@
 package se.lu.lucs.vgdl.manualminimal;
 
 import net.gvgai.vgdl.SpriteInfo;
+import net.gvgai.vgdl.game.GameState;
 import net.gvgai.vgdl.sprites.MovingAvatar;
 import net.gvgai.vgdl.sprites.VGDLSprite;
 
@@ -8,17 +9,17 @@ import net.gvgai.vgdl.sprites.VGDLSprite;
 public class Avatar extends MovingAvatar {
 
     @Override
-    public void collide( VGDLSprite... others ) {
+    public void collide( GameState state, VGDLSprite... others ) {
         for (final VGDLSprite o : others) {
             if (o instanceof Wall) {
-                collide( (Wall) o );
+                collide( state, (Wall) o );
                 break;
             }
             else if (o instanceof Goal) {
-                collide( (Goal) o );
+                collide( state, (Goal) o );
             }
         }
-        super.collide( others );
+        super.collide( state, others );
     }
 
     @Override
@@ -33,14 +34,14 @@ public class Avatar extends MovingAvatar {
         return 0;
     }
 
-    private void collide( Goal g ) {
+    private void collide( GameState state, Goal g ) {
         state.setScore( 1 );
-        kill();
+        kill( state );
     }
 
-    private void collide( Wall w ) {
+    private void collide( GameState state, Wall w ) {
         final Object reverseDirection = reverseDirection();
-        move( reverseDirection );
+        move( state.getLevel(), reverseDirection );
     }
 
 }

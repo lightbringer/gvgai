@@ -125,19 +125,19 @@ public class VGDL2Java extends Task {
 
         Thread.currentThread().setContextClassLoader( urlClassLoader );
 
-        try {
-            for (final FileSet f : input.getFiles()) {
-                final Iterator<Resource> iter = f.iterator();
-                while (iter.hasNext()) {
-                    final Resource r = iter.next();
+        for (final FileSet f : input.getFiles()) {
+            final Iterator<Resource> iter = f.iterator();
+            while (iter.hasNext()) {
+                final Resource r = iter.next();
+                try {
                     compile( new File( r.toString() ), output.dir );
                 }
-
+                catch (final Exception e) {
+                    throw new BuildException( r.getName() + " generated an error", e );
+                }
             }
         }
-        catch (final IOException e) {
-            throw new BuildException( e );
-        }
+
     }
 
     public boolean isGenerateDebugOutput() {

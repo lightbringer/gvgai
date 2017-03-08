@@ -9,7 +9,9 @@ public class Wall extends Immovable {
 
     @Override
     public VGDLSprite copy() {
-        return new Wall();
+        final Wall w = new Wall();
+        setup( w );
+        return w;
     }
 
     @Override

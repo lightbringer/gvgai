@@ -8,6 +8,7 @@ import org.objectweb.asm.commons.Method;
 
 import net.gvgai.vgdl.VGDLRuntime.Feature;
 import net.gvgai.vgdl.compiler.VGDLCompiler;
+import net.gvgai.vgdl.game.GameState;
 import net.gvgai.vgdl.sprites.VGDLSprite;
 
 public class KillSprite extends BaseEffect {
@@ -21,7 +22,8 @@ public class KillSprite extends BaseEffect {
         super.generate( vgdlCompiler, requiredFeatures, mg );
         vgdlCompiler.generateLogMessage( myType.getClassName(), mg, "Killed" );
         mg.loadThis();
-        final Method m1 = Method.getMethod( "void kill()" );
+        final Method m1 = Method.getMethod( "void kill(" + GameState.class.getName() + ")" );
+        mg.loadArg( 0 );
         mg.invokeVirtual( Type.getType( VGDLSprite.class ), m1 );
     }
 

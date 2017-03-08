@@ -1,5 +1,6 @@
 package net.gvgai.vgdl.sprites.missile;
 
+import net.gvgai.vgdl.game.GameState;
 import net.gvgai.vgdl.sprites.Passive;
 import net.gvgai.vgdl.sprites.VGDLSprite;
 
@@ -27,14 +28,14 @@ public abstract class Missile extends Passive {
     }
 
     @Override
-    public void update( double seconds ) {
-        super.update( seconds );
+    public void update( GameState state, double seconds ) {
+        super.update( state, seconds );
 
         blockDistance += speed;
 
         if (blockDistance >= 1.0) {
             blockDistance = 0;
-            move( getDirection() );
+            move( state.getLevel(), getDirection() );
         }
     }
 

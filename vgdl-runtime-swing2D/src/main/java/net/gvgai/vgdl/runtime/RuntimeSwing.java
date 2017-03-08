@@ -15,29 +15,29 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import net.gvgai.vgdl.VGDLRuntime;
-import net.gvgai.vgdl.game.GameState;
+import net.gvgai.vgdl.controllers.singleplayer.sampleMCTS.Agent;
 import net.gvgai.vgdl.game.GameState2D;
 import net.gvgai.vgdl.game.VGDLGame;
 import net.gvgai.vgdl.input.Action;
 import net.gvgai.vgdl.input.Controller;
 import net.gvgai.vgdl.runtime.input.EventKeyHandler;
 import net.gvgai.vgdl.sprites.MovingAvatar;
+import net.gvgai.vgdl.sprites.Passive;
 import net.gvgai.vgdl.sprites.VGDLSprite;
-import se.lu.lucs.vgdl.manualminimal.Minimal;
 
 public class RuntimeSwing implements VGDLRuntime {
     public static void main( String[] args ) throws IOException, ClassNotFoundException {
 //      final Class<? extends VGDLGame> gameClass = VGDL2Java.loadIntoMemory( "Sokoban", VGDL2Java.class.getResource( "sokoban.txt" ).openStream() );
-//        final Class<? extends VGDLGame> gameClass = (Class<? extends VGDLGame>) Class.forName( "net.gvgai.game.frogs.Frogs" );
+        final Class<? extends VGDLGame> gameClass = (Class<? extends VGDLGame>) Class.forName( "net.gvgai.game.frogs.Frogs" );
 //        final Class<? extends VGDLGame> gameClass = (Class<? extends VGDLGame>) Class.forName( "net.gvgai.game.sokoban.Sokoban" );
-//        final Class<? extends VGDLGame> gameClass = MinimalGame.class;
-        final Class<? extends VGDLGame> gameClass = (Class<? extends VGDLGame>) Class.forName( "se.lu.lucs.vgdl.manualminimal.Minimal" );
+//        final Class<? extends VGDLGame> gameClass = Minimal.class;
+//        final Class<? extends VGDLGame> gameClass = (Class<? extends VGDLGame>) Class.forName( "se.lu.lucs.vgdl.manualminimal.Minimal" );
         final ServiceLoader<VGDLRuntime> loader = ServiceLoader.load( VGDLRuntime.class );
         final VGDLRuntime runtime = loader.iterator().next();
         runtime.loadGame( gameClass );
-//        runtime.loadLevel( gameClass.getResourceAsStream( "/frogs_lvl0.txt" ) );
+        runtime.loadLevel( gameClass.getResourceAsStream( "/frogs_lvl0.txt" ) );
 //        runtime.loadLevel( gameClass.getResourceAsStream( "/sokoban_lvl0.txt" ) );
-        runtime.loadLevel( Minimal.class.getResourceAsStream( "minimal_lvl0.txt" ) );
+//        runtime.loadLevel( Minimal.class.getResourceAsStream( "/minimal_lvl0.txt" ) );
         runtime.run();
     }
 
@@ -88,10 +88,13 @@ public class RuntimeSwing implements VGDLRuntime {
                         throw new IllegalStateException( mode + " is not supported" );
                 }
             }
-//          XXX
-//            controller = new Agent( 1000L );
-            controller = new EventKeyHandler();
-            window.addKeyListener( (EventKeyHandler) controller );
+            if (false) {
+                controller = new Agent( 1000L );
+            }
+            else {
+                controller = new EventKeyHandler();
+                window.addKeyListener( (EventKeyHandler) controller );
+            }
 
             //FIXME Remove this
             renderer = new DebugRenderer( this );
@@ -140,6 +143,7 @@ public class RuntimeSwing implements VGDLRuntime {
             VGDLSprite.DownDirection = level::down;
             VGDLSprite.LeftDirection = level::left;
             VGDLSprite.RightDirection = level::right;
+            Passive.reverse = GameState2D::reverse;
 
             int lineIndex = 0;
             for (final String line : lines) {
@@ -167,8 +171,6 @@ public class RuntimeSwing implements VGDLRuntime {
                                     }
                                     game.getGameState().setAvatar( (MovingAvatar) sprite );
                                 }
-//                                sprite.setDirection( Action.ACTION_UP );
-
                                 level.set( Arrays.copyOf( p, 2 ), sprite );
                             }
                             break;
@@ -181,7 +183,7 @@ public class RuntimeSwing implements VGDLRuntime {
                     src.toArray( copy );
 
                     for (final VGDLSprite o : copy) {
-                        o.collide( copy );
+                        o.collide( game.getGameState(), copy );
                     }
                     //End Trigger
                     colIndex++;
@@ -202,7 +204,6 @@ public class RuntimeSwing implements VGDLRuntime {
         if (game == null || game.getGameState() == null || !game.getGameState().isReady()) {
             throw new IllegalStateException( "load game and level first" );
         }
-        ((GameState2D) game.getGameState()).setObeyBoundaries( true );
 
         //TODO remove swing stuff
         window.setVisible( true );
@@ -215,6 +216,8 @@ public class RuntimeSwing implements VGDLRuntime {
             final double delta = (System.currentTimeMillis() - time) / 1000.0;
             final double controllerDelta = (System.currentTimeMillis() - controllerTime) / 1000.0;
             game.preFrame();
+            game.update( 1 );
+            game.postFrame();
             if (controllerDelta > updateFrequency) {
 
                 Action a;
@@ -225,8 +228,10 @@ public class RuntimeSwing implements VGDLRuntime {
                 else {
                     synchronized (game.getGameState()) {
                         a = controller.act( game.getGameState(), controllerDelta );
-                        System.out.println( a );
                     }
+
+                    System.out.println( a );
+
                 }
 
                 final MovingAvatar av = game.getGameState().getAvatar();
@@ -234,19 +239,17 @@ public class RuntimeSwing implements VGDLRuntime {
                     break;
                 }
 
-                av.act( a );
+                av.act( game.getGameState().getLevel(), a );
 
                 tick++;
                 controllerTime = System.currentTimeMillis();
             }
-            game.update( 1 );
-            game.postFrame();
 
             time = System.currentTimeMillis();
 
-            if (controller instanceof EventKeyHandler) {
-                game.setGameState( (GameState) game.getGameState().copy() );
-            }
+//            if (controller instanceof EventKeyHandler) {
+//                game.setGameState( (GameState) game.getGameState().copy() );
+//            }
 
             try {
                 Thread.sleep( 200 );
@@ -268,6 +271,7 @@ public class RuntimeSwing implements VGDLRuntime {
             }
 
         }
+        System.out.println( "score = " + game.getScore() );
         System.out.println( "Game over" );
     }
 
