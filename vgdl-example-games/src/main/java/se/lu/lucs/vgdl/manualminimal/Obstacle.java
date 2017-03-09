@@ -1,6 +1,7 @@
 package se.lu.lucs.vgdl.manualminimal;
 
 import net.gvgai.vgdl.SpriteInfo;
+import net.gvgai.vgdl.game.GameMap;
 import net.gvgai.vgdl.game.GameState;
 import net.gvgai.vgdl.sprites.VGDLSprite;
 import net.gvgai.vgdl.sprites.missile.Missile;
@@ -25,9 +26,9 @@ public class Obstacle extends Missile {
     }
 
     @Override
-    public VGDLSprite copy() {
+    public VGDLSprite copy( GameMap m ) {
         final Obstacle o = new Obstacle();
-        setup( o );
+        setup( o, m );
         return o;
     }
 

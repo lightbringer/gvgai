@@ -1,6 +1,7 @@
 package se.lu.lucs.vgdl.manualminimal;
 
 import net.gvgai.vgdl.SpriteInfo;
+import net.gvgai.vgdl.game.GameMap;
 import net.gvgai.vgdl.sprites.Immovable;
 import net.gvgai.vgdl.sprites.VGDLSprite;
 
@@ -8,9 +9,9 @@ import net.gvgai.vgdl.sprites.VGDLSprite;
 public class Goal extends Immovable {
 
     @Override
-    public VGDLSprite copy() {
+    public VGDLSprite copy( GameMap m ) {
         final Goal g = new Goal();
-        setup( g );
+        setup( g, m );
         return g;
     }
 

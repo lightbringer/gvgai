@@ -925,7 +925,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
     };
 
     private void generateCopyMethod( ClassWriter spcw, Type spriteType, Type parentType ) {
-        final Method m = Method.getMethod( VGDLSprite.class.getName() + " copy ()" );
+        final Method m = Method.getMethod( VGDLSprite.class.getName() + " copy (" + GameMap.class.getName() + ")" );
         final GeneratorAdapter mg = new GeneratorAdapter( ACC_PUBLIC, m, null, null, spcw );
         final int ret = mg.newLocal( spriteType );
 
@@ -937,8 +937,8 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
 
         mg.loadThis();
         mg.loadLocal( ret );
-
-        final Method setup = Method.getMethod( "void setup (" + VGDLSprite.class.getName() + ")" );
+        mg.loadArg( 0 );
+        final Method setup = Method.getMethod( "void setup (" + VGDLSprite.class.getName() + ", " + GameMap.class.getName() + ")" );
         mg.invokeVirtual( spriteType, setup );
 
         mg.loadLocal( ret );
@@ -1034,7 +1034,7 @@ public class VGDLCompiler extends vgdlBaseListener implements Opcodes {
     }
 
     private GeneratorAdapter generateSetupMethod( ClassWriter spcw, Type spriteType, Type parentType ) {
-        final Method m = Method.getMethod( "void setup(" + VGDLSprite.class.getName() + ")" );
+        final Method m = Method.getMethod( "void setup(" + VGDLSprite.class.getName() + ", " + GameMap.class.getName() + ")" );
         final GeneratorAdapter ga = new GeneratorAdapter( ACC_PUBLIC, m, null, null, spcw );
         ga.loadThis();
         ga.loadArgs();

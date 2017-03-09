@@ -16,7 +16,6 @@ import javax.swing.JPanel;
 
 import net.gvgai.vgdl.VGDLRuntime;
 import net.gvgai.vgdl.controllers.singleplayer.sampleMCTS.Agent;
-import net.gvgai.vgdl.game.GameState;
 import net.gvgai.vgdl.game.GameState2D;
 import net.gvgai.vgdl.game.VGDLGame;
 import net.gvgai.vgdl.input.Action;
@@ -216,6 +215,7 @@ public class RuntimeSwing implements VGDLRuntime {
 
             final double delta = (System.currentTimeMillis() - time) / 1000.0;
             final double controllerDelta = (System.currentTimeMillis() - controllerTime) / 1000.0;
+
             game.preFrame();
             game.update( 1 );
             game.postFrame();
@@ -227,9 +227,9 @@ public class RuntimeSwing implements VGDLRuntime {
                     a = controller.act( game.getGameState(), controllerDelta );
                 }
                 else {
-                    synchronized (game.getGameState()) {
-                        a = controller.act( game.getGameState(), controllerDelta );
-                    }
+//                    synchronized (game.getGameState()) {
+                    a = controller.act( game.getGameState(), controllerDelta );
+//                    }
 
                     System.out.println( a );
 
@@ -249,7 +249,7 @@ public class RuntimeSwing implements VGDLRuntime {
             time = System.currentTimeMillis();
 
             if (controller instanceof EventKeyHandler) {
-                game.setGameState( (GameState) game.getGameState().copy() );
+                game.setGameState( ((GameState2D) game.getGameState()).copy() );
             }
 
             try {

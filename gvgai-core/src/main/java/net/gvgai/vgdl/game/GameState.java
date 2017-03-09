@@ -5,7 +5,9 @@ import java.util.stream.Stream;
 import net.gvgai.vgdl.sprites.MovingAvatar;
 import net.gvgai.vgdl.sprites.VGDLSprite;
 
-public interface GameState<T> extends Copyable<T> {
+public interface GameState<T> {
+
+    GameState copy();
 
     MovingAvatar getAvatar();
 

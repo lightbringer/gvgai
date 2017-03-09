@@ -76,6 +76,8 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
     private boolean preBufferFrame;
     private boolean obeyBoundaries;
 
+    private int tick;
+
     public GameState2D( int width, int height ) {
         this.height = height;
         this.width = width;
@@ -100,7 +102,7 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
 
         if (other.depth >= FLATTEN_DEPTH) {
             IntStream.range( 0, sprites.length ).mapToObj( i -> new ArrayList( other.get( i ) ) ).collect( Collectors.toList() ).toArray( sprites );
-            Stream.of( sprites ).forEach( l -> l.replaceAll( s -> s.copy() ) );
+            Stream.of( sprites ).forEach( l -> l.replaceAll( s -> s.copy( this ) ) );
             depth = 0;
             parent = null;
         }
@@ -123,6 +125,7 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
             avatar = findAvatar( sprites, avatarIndex );
         }
         obeyBoundaries = other.obeyBoundaries;
+        tick = other.tick;
     }
 
     @Override
@@ -148,7 +151,6 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
 
     }
 
-    @Override
     public GameState2D copy() {
         return new GameState2D( this );
     }
@@ -206,9 +208,17 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
         return this;
     }
 
+    public GameState2D getParent() {
+        return parent;
+    }
+
     @Override
     public double getScore() {
         return score;
+    }
+
+    public int getTick() {
+        return tick;
     }
 
     @Override
@@ -258,7 +268,7 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
             sCopy = s;
         }
         else {
-            sCopy = s.copy();
+            sCopy = s.copy( this );
 
         }
 
@@ -420,6 +430,7 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
 
     @Override
     public void update( double seconds ) {
+        tick++;
         values().collect( Collectors.toList() ).forEach( s -> s.update( this, seconds ) );
     }
 
@@ -464,7 +475,7 @@ public class GameState2D implements GameState<GameState2D>, GameMap<GameState2D,
         assert sprites[index] == null;
 
         sprites[index] = new ArrayList( parent.get( index ) );
-        sprites[index].replaceAll( sp -> sp.copy() );
+        sprites[index].replaceAll( sp -> sp.copy( this ) );
 
     }
 

@@ -2,11 +2,11 @@ package net.gvgai.vgdl.sprites;
 
 import java.util.function.Supplier;
 
-import net.gvgai.vgdl.game.Copyable;
+import net.gvgai.vgdl.game.GameMap;
 import net.gvgai.vgdl.game.GameState;
 import net.gvgai.vgdl.tools.AutoWire;
 
-public abstract class VGDLSprite implements Copyable<VGDLSprite> {
+public abstract class VGDLSprite {
 
     @AutoWire
     public static Supplier<Object> RightDirection;
@@ -42,8 +42,7 @@ public abstract class VGDLSprite implements Copyable<VGDLSprite> {
         //NOP
     }
 
-    @Override
-    public abstract VGDLSprite copy();
+    public abstract VGDLSprite copy( GameMap m );
 
     /**
      * Class ids are only unique locally, i.e. not across games
@@ -104,7 +103,7 @@ public abstract class VGDLSprite implements Copyable<VGDLSprite> {
         //NOP
     }
 
-    protected void setup( VGDLSprite s ) {
+    protected void setup( VGDLSprite s, GameMap map ) {
         s.id = id;
         s.direction = direction;
         s.position = position;

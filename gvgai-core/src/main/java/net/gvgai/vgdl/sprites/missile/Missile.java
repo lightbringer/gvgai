@@ -1,5 +1,6 @@
 package net.gvgai.vgdl.sprites.missile;
 
+import net.gvgai.vgdl.game.GameMap;
 import net.gvgai.vgdl.game.GameState;
 import net.gvgai.vgdl.sprites.Passive;
 import net.gvgai.vgdl.sprites.VGDLSprite;
@@ -40,8 +41,8 @@ public abstract class Missile extends Passive {
     }
 
     @Override
-    protected void setup( VGDLSprite s ) {
-        super.setup( s );
+    protected void setup( VGDLSprite s, GameMap map ) {
+        super.setup( s, map );
 
         final Missile m = (Missile) s;
         m.speed = speed;

@@ -13,7 +13,7 @@
 						<configuration>
 							<target>							
 								<typedef name="vgdlcompiler" classname="net.gvgai.vgdl.compiler.VGDL2Java" classpathref="maven.compile.classpath" />
-								<vgdlcompiler generateDebugOutput="false">
+								<vgdlcompiler generateDebugOutput="true">
 									<input>
 										<fileset dir="${project.basedir}/src/main/vgdl" includes="*.txt" />
 									</input>

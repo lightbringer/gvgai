@@ -1,12 +1,17 @@
 package net.gvgai.vgdl.compiler.library.effects;
 
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
@@ -211,13 +216,16 @@ public class PullWithIt extends BaseEffect {
             //Override the move method
             final GeneratorAdapter mv = vgdlCompiler.getMethod( otherGeneratedType, VGDLCompiler.MOVE );
             vgdlCompiler.generateLogMessage( otherTypes[0].getClassName(), mv, "moveWithPull called", Level.FINEST );
-
+            mv.loadThis();
+            mv.getField( otherTypes[0], PULL_WITH_IT, Type.getType( VGDLSprite[].class ) );
+            final Label skipLabel = mv.newLabel();
+            mv.ifNull( skipLabel );
             final int counter = mv.newLocal( Type.INT_TYPE );
             mv.push( 0 );
             mv.storeLocal( counter );
             final Label testBlock = mv.newLabel();
             mv.goTo( testBlock );
-            ;
+
             final Label block = mv.newLabel();
             mv.mark( block );
 
@@ -232,6 +240,14 @@ public class PullWithIt extends BaseEffect {
             vgdlCompiler.generateLogMessage( otherTypes[0].getClassName(), mv, "Pulling another object", Level.FINEST );
             mv.checkCast( Type.getType( Passive.class ) );
             mv.loadArgs();
+
+            //First throw away the current pullee. It (or its copy) will be eventually added in the same slot, but we don't want to pull it again
+            mv.loadThis();
+            mv.getField( otherTypes[0], PULL_WITH_IT, Type.getType( VGDLSprite[].class ) );
+            mv.loadLocal( counter );
+            mv.push( (Type) null );
+            mv.arrayStore( Type.getType( VGDLSprite.class ) );
+
             mv.invokeVirtual( Type.getType( Passive.class ), moveMethod );
             mv.goTo( incrementBlock );
             mv.mark( nullBlock );
@@ -244,7 +260,7 @@ public class PullWithIt extends BaseEffect {
             mv.getField( otherTypes[0], PULL_WITH_IT, Type.getType( VGDLSprite[].class ) );
             mv.arrayLength();
             mv.ifCmp( Type.INT_TYPE, GeneratorAdapter.LT, block );
-
+            mv.mark( skipLabel );
             //The puller's setup method has to copy all the references in the set
             final GeneratorAdapter setupMethod = vgdlCompiler.getMethod( otherGeneratedType, VGDLCompiler.SETUP );
             setupMethod.loadThis();
@@ -316,9 +332,47 @@ public class PullWithIt extends BaseEffect {
         final GeneratorAdapter setupMethod = vgdlCompiler.getMethod( myGeneratedType, VGDLCompiler.SETUP );
         setupMethod.loadArg( 0 );
         setupMethod.checkCast( myType );
+        final int targetObject = setupMethod.newLocal( myType );
+        setupMethod.storeLocal( targetObject );
         setupMethod.loadThis();
         setupMethod.getField( myType, PULLER, Type.getType( Passive.class ) );
+        final Label skipLabel = setupMethod.newLabel();
+        setupMethod.ifNull( skipLabel );
+        setupMethod.loadThis();
+        setupMethod.loadArg( 1 );
+        setupMethod.invokeInterface( Type.getType( GameMap.class ), Method.getMethod( Stream.class.getName() + " values()" ) );
+        setupMethod.loadThis();
+        final int lambda = vgdlCompiler.nextLambda();
+        setupMethod.visitInvokeDynamicInsn( "test", "(" + myType.getDescriptor() + ")Ljava/util/function/Predicate;",
+                        new Handle( Opcodes.H_INVOKESTATIC, "java/lang/invoke/LambdaMetafactory", "metafactory",
+                                        "(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;" ),
+                        new Object[] { Type.getType( "(Ljava/lang/Object;)Z" ),
+                                        new Handle( Opcodes.H_INVOKESPECIAL, myType.getInternalName(), "lambda$" + lambda,
+                                                        "(Lnet/gvgai/vgdl/sprites/VGDLSprite;)Z" ),
+                                        Type.getType( "(Lnet/gvgai/vgdl/sprites/VGDLSprite;)Z" ) } );
+        setupMethod.invokeInterface( Type.getType( Stream.class ), Method.getMethod( Stream.class.getName() + " filter(" + Predicate.class.getName() + ")" ) );
+        setupMethod.invokeInterface( Type.getType( Stream.class ), Method.getMethod( Optional.class.getName() + " findAny()" ) );
+        setupMethod.invokeVirtual( Type.getType( Optional.class ), Method.getMethod( "Object get()" ) );
+        setupMethod.checkCast( otherTypes[0] );
         setupMethod.putField( myType, PULLER, Type.getType( Passive.class ) );
+        setupMethod.mark( skipLabel );
+
+        final GeneratorAdapter lambdaMethod = new GeneratorAdapter( ACC_PRIVATE + ACC_SYNTHETIC,
+                        Method.getMethod( "boolean lambda$" + lambda + "(" + VGDLSprite.class.getName() + ")" ), null, null, myGeneratedType.cw );
+        lambdaMethod.loadArg( 0 );
+        lambdaMethod.invokeVirtual( Type.getType( VGDLSprite.class ), Method.getMethod( "int getId()" ) );
+        lambdaMethod.loadThis();
+        lambdaMethod.getField( myType, PULLER, Type.getType( Passive.class ) );
+        lambdaMethod.invokeVirtual( Type.getType( VGDLSprite.class ), Method.getMethod( "int getId()" ) );
+        final Label trueLabel = lambdaMethod.newLabel();
+        lambdaMethod.ifICmp( GeneratorAdapter.EQ, trueLabel );
+        lambdaMethod.push( false );
+        lambdaMethod.returnValue();
+        lambdaMethod.mark( trueLabel );
+        lambdaMethod.push( true );
+        lambdaMethod.returnValue();
+        lambdaMethod.endMethod();
+
     }
 
 }

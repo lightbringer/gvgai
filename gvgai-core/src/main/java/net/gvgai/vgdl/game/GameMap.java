@@ -13,14 +13,14 @@ import net.gvgai.vgdl.sprites.VGDLSprite;
  *
  * @param <T> The implementing class itself. It is only required to be passed into the {@link Copyable} interface
  *            to allow classes to both implement the {@link GameState} and this interface (and hence avoiding the
- *            duplicate definition of {@link Copyable#copy()}.
+ *            duplicate definition of {@link Copyable#copy(GameMap)}.
  * @param <P> The class of the location object that positions are related to. This is typically an immutable data vector
  *            such as int[] for 2D or Vector3f for three spaces. No assumption about this is made in the VGDL Runtime or sprite classes
  *            and stored as {@link Object}.
  * @param <D> A class defining spatial-differences, i.e. directions, this is typicall a direction (e.g. NORTH, SOUTH, EAST, etc.) or
  *            a vector. As with positions, no assumptions about directions is made in the runtime.
  */
-public interface GameMap<T, P, D> extends Copyable<T> {
+public interface GameMap<T, P, D> {
 
     P add( P position, D direction );
 

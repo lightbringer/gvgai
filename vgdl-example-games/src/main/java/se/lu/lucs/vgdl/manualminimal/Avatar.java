@@ -1,6 +1,7 @@
 package se.lu.lucs.vgdl.manualminimal;
 
 import net.gvgai.vgdl.SpriteInfo;
+import net.gvgai.vgdl.game.GameMap;
 import net.gvgai.vgdl.game.GameState;
 import net.gvgai.vgdl.sprites.MovingAvatar;
 import net.gvgai.vgdl.sprites.VGDLSprite;
@@ -23,9 +24,9 @@ public class Avatar extends MovingAvatar {
     }
 
     @Override
-    public VGDLSprite copy() {
+    public VGDLSprite copy( GameMap m ) {
         final Avatar a = new Avatar();
-        setup( a );
+        setup( a, m );
         return a;
     }
 
